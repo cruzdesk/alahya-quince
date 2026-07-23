@@ -14,7 +14,7 @@
       p.style.animationDuration = 8 + Math.random() * 14 + "s";
       p.style.animationDelay = Math.random() * 12 + "s";
       p.style.opacity = String(0.15 + Math.random() * 0.4);
-      if (Math.random() > 0.5) p.style.background = "#f4c4d4";
+      if (Math.random() > 0.5) p.style.background = "#8b1a1a";
       particlesEl.appendChild(p);
     }
   }
