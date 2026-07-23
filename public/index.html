@@ -236,6 +236,10 @@
       <div class="wishes-wall" id="wishesWall">
         <p class="muted center">Cargando deseos…</p>
       </div>
+      <div class="admin-print-bar">
+        <button type="button" class="btn btn-outline" id="printWishesBtn">🖨 Imprimir todos los deseos</button>
+        <p class="form-status" id="printStatus" role="status"></p>
+      </div>
     </div>
   </section>
 
@@ -249,6 +253,26 @@
       <p class="modal-when muted" id="wishModalWhen"></p>
       <h4 class="meta-heading">Información del equipo</h4>
       <div class="meta-grid" id="wishModalMeta"></div>
+    </div>
+  </div>
+
+  <!-- Modal clave admin para imprimir -->
+  <div class="modal-overlay" id="printAuthModal" hidden>
+    <div class="modal-card glass modal-card-sm" role="dialog" aria-modal="true" aria-labelledby="printAuthTitle">
+      <button type="button" class="modal-close" id="printAuthClose" aria-label="Cerrar">×</button>
+      <p class="section-kicker" style="margin-bottom:0.35rem">Solo administrador</p>
+      <h3 class="modal-title" id="printAuthTitle">Imprimir deseos</h3>
+      <p class="muted" style="margin-bottom:1rem">Ingresa la clave de administrador para generar la impresión de todos los deseos.</p>
+      <div class="form-row">
+        <label for="printAdminKey">Clave admin</label>
+        <input type="password" id="printAdminKey" placeholder="Clave" autocomplete="off" inputmode="numeric" />
+      </div>
+      <label class="check-row">
+        <input type="checkbox" id="printIncludeMeta" checked />
+        <span>Incluir información del equipo en la impresión</span>
+      </label>
+      <button type="button" class="btn btn-gold full" id="printAuthSubmit">Continuar e imprimir</button>
+      <p class="form-status" id="printAuthStatus" role="status"></p>
     </div>
   </div>
 

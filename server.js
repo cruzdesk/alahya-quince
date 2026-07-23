@@ -8,6 +8,7 @@ const { pool, ensureSchema } = require("./db");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "alahya-admin-cambia-esto";
+const PRINT_ADMIN_KEY = process.env.PRINT_ADMIN_KEY || "7874204160";
 const WISH_PIN = process.env.WISH_PIN || "2026";
 const EVENT_DATE =
   process.env.EVENT_DATE || "2026-10-10T18:00:00-04:00";
@@ -220,6 +221,34 @@ app.post("/api/wishes", wishLimiter, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "No se pudo guardar el mensaje." });
+  }
+});
+
+// ——— Admin: exportar todos los deseos para imprimir
+app.post("/api/admin/print-wishes", async (req, res) => {
+  try {
+    const key = String(
+      req.body.key || req.get("X-Print-Admin-Key") || ""
+    ).trim();
+    if (key !== PRINT_ADMIN_KEY) {
+      return res.status(401).json({ error: "Clave de administrador incorrecta." });
+    }
+    const { rows } = await pool.query(
+      `SELECT id, name, message, meta, created_at
+       FROM wishes
+       WHERE approved = true
+       ORDER BY created_at ASC`
+    );
+    res.json({
+      success: true,
+      printedAt: new Date().toISOString(),
+      event: "Alahya Thaís Saltares Ortega — XV Años",
+      total: rows.length,
+      wishes: rows,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "No se pudo cargar los deseos." });
   }
 });
 

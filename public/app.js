@@ -395,4 +395,172 @@
   });
 
   loadWishes();
+
+  // ——— Admin print all wishes
+  const printWishesBtn = document.getElementById("printWishesBtn");
+  const printStatus = document.getElementById("printStatus");
+  const printAuthModal = document.getElementById("printAuthModal");
+  const printAuthClose = document.getElementById("printAuthClose");
+  const printAuthSubmit = document.getElementById("printAuthSubmit");
+  const printAdminKey = document.getElementById("printAdminKey");
+  const printAuthStatus = document.getElementById("printAuthStatus");
+  const printIncludeMeta = document.getElementById("printIncludeMeta");
+
+  function openPrintAuth() {
+    if (!printAuthModal) return;
+    if (printAuthStatus) {
+      printAuthStatus.textContent = "";
+      printAuthStatus.className = "form-status";
+    }
+    if (printAdminKey) printAdminKey.value = "";
+    printAuthModal.hidden = false;
+    document.body.style.overflow = "hidden";
+    setTimeout(() => printAdminKey?.focus(), 50);
+  }
+
+  function closePrintAuth() {
+    if (!printAuthModal) return;
+    printAuthModal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  function metaSummary(meta) {
+    if (!meta || typeof meta !== "object") return "";
+    const ip = meta.server && meta.server.ip ? meta.server.ip : "—";
+    const platform =
+      (meta.client && (meta.client.platform || (meta.client.uaData && meta.client.uaData.platform))) ||
+      "—";
+    const tz = (meta.client && meta.client.timezone) || "—";
+    const ua = (meta.client && meta.client.userAgent) || (meta.server && meta.server.userAgent) || "—";
+    const screen =
+      meta.client && meta.client.screen
+        ? `${meta.client.screen.width}×${meta.client.screen.height}`
+        : "—";
+    return `IP: ${ip} · Plataforma: ${platform} · TZ: ${tz} · Pantalla: ${screen}<br><span class="print-ua">${escapeHtml(
+      String(ua).slice(0, 180)
+    )}</span>`;
+  }
+
+  function openPrintDocument(data, includeMeta) {
+    const wishes = data.wishes || [];
+    const whenPrinted = new Date(data.printedAt || Date.now()).toLocaleString("es", {
+      dateStyle: "full",
+      timeStyle: "short",
+    });
+    const rows = wishes
+      .map((w, i) => {
+        const when = w.created_at
+          ? new Date(w.created_at).toLocaleString("es", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })
+          : "";
+        const metaBlock =
+          includeMeta && w.meta
+            ? `<div class="meta">${metaSummary(w.meta)}</div>`
+            : includeMeta
+              ? `<div class="meta muted">Sin datos de equipo</div>`
+              : "";
+        return `<article class="item">
+          <div class="num">#${i + 1} · id ${w.id}</div>
+          <div class="who">${escapeHtml(w.name)}</div>
+          <div class="msg">${escapeHtml(w.message)}</div>
+          <div class="when">${escapeHtml(when)}</div>
+          ${metaBlock}
+        </article>`;
+      })
+      .join("");
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Deseos — Alahya Thaís Saltares Ortega XV</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Georgia, "Times New Roman", serif; color: #2a1f24; margin: 0; padding: 24px; }
+    h1 { font-size: 22px; margin: 0 0 4px; color: #9b3d5a; }
+    .sub { font-size: 12px; color: #5c4a52; margin-bottom: 6px; }
+    .count { font-size: 13px; margin-bottom: 18px; }
+    .item { border-bottom: 1px solid #e8d5a3; padding: 12px 0; page-break-inside: avoid; }
+    .num { font-size: 10px; color: #a09098; letter-spacing: 0.06em; text-transform: uppercase; }
+    .who { font-size: 16px; font-weight: bold; color: #c45c7a; margin: 2px 0; }
+    .msg { font-size: 14px; line-height: 1.45; margin: 4px 0; }
+    .when { font-size: 11px; color: #5c4a52; }
+    .meta { font-size: 10px; color: #5c4a52; margin-top: 6px; line-height: 1.35; }
+    .print-ua { word-break: break-all; opacity: 0.85; }
+    .muted { opacity: 0.7; }
+    @media print {
+      body { padding: 12px; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <button class="no-print" onclick="window.print()" style="margin-bottom:16px;padding:8px 14px;cursor:pointer">Imprimir / PDF</button>
+  <h1>${escapeHtml(data.event || "Deseos XV Alahya")}</h1>
+  <p class="sub">Listado de deseos del muro de cariño</p>
+  <p class="count"><strong>${wishes.length}</strong> deseo(s) · Impreso: ${escapeHtml(whenPrinted)}</p>
+  ${rows || "<p>No hay deseos todavía.</p>"}
+  <script>window.onload = function () { setTimeout(function () { window.print(); }, 300); };<\/script>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    if (!win) {
+      throw new Error("El navegador bloqueó la ventana de impresión. Permite pop-ups e intenta de nuevo.");
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
+  printWishesBtn?.addEventListener("click", openPrintAuth);
+  printAuthClose?.addEventListener("click", closePrintAuth);
+  printAuthModal?.addEventListener("click", (e) => {
+    if (e.target === printAuthModal) closePrintAuth();
+  });
+  printAdminKey?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") printAuthSubmit?.click();
+  });
+
+  printAuthSubmit?.addEventListener("click", async () => {
+    if (printAuthStatus) {
+      printAuthStatus.textContent = "";
+      printAuthStatus.className = "form-status";
+    }
+    const key = (printAdminKey?.value || "").trim();
+    if (!key) {
+      if (printAuthStatus) {
+        printAuthStatus.textContent = "Escribe la clave de administrador.";
+        printAuthStatus.classList.add("err");
+      }
+      return;
+    }
+    printAuthSubmit.disabled = true;
+    printAuthSubmit.textContent = "Cargando…";
+    try {
+      const res = await fetch("/api/admin/print-wishes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No autorizado");
+      closePrintAuth();
+      openPrintDocument(data, !!(printIncludeMeta && printIncludeMeta.checked));
+      if (printStatus) {
+        printStatus.textContent = `Listo: ${data.total} deseo(s) para imprimir.`;
+        printStatus.className = "form-status ok";
+      }
+    } catch (err) {
+      if (printAuthStatus) {
+        printAuthStatus.textContent = err.message || "Error al imprimir.";
+        printAuthStatus.classList.add("err");
+      }
+    } finally {
+      printAuthSubmit.disabled = false;
+      printAuthSubmit.textContent = "Continuar e imprimir";
+    }
+  });
 })();
