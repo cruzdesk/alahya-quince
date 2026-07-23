@@ -11,7 +11,7 @@ const ADMIN_SECRET = process.env.ADMIN_SECRET || "alahya-admin-cambia-esto";
 const PRINT_ADMIN_KEY = process.env.PRINT_ADMIN_KEY || "7874204160";
 const WISH_PIN = process.env.WISH_PIN || "2026";
 const EVENT_DATE =
-  process.env.EVENT_DATE || "2026-10-10T18:00:00-04:00";
+  process.env.EVENT_DATE || "2026-10-10T17:00:00-04:00";
 
 app.set("trust proxy", 1);
 app.use(cors());
@@ -53,8 +53,11 @@ app.get("/api/event", (_req, res) => {
     title: "Mis XV Años",
     eventDate: EVENT_DATE,
     venue: {
-      ceremony: "Ceremonia — detalles en la invitación",
-      reception: "Recepción — baile y cena",
+      location: "Tres Palmas, Aguadilla",
+      theme: "Victorian Masquerade Ball",
+      dressCode: "Formal · color negro",
+      church: false,
+      start: "5:00 p.m.",
     },
   });
 });

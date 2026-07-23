@@ -1,6 +1,6 @@
 /* Alahya XV — client */
 (function () {
-  const EVENT_FALLBACK = "2026-10-10T18:00:00-04:00";
+  const EVENT_FALLBACK = "2026-10-10T17:00:00-04:00";
 
   // ——— Particles
   const particlesEl = document.getElementById("particles");
