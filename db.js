@@ -77,9 +77,18 @@ function memoryQuery(text, params = []) {
   return Promise.resolve({ rows: [] });
 }
 
+let schemaReady = false;
+let schemaPromise = null;
+
 const db = {
-  query: (text, params) => {
-    if (pool) return pool.query(text, params);
+  query: async (text, params) => {
+    if (pool) {
+      // Auto-crear tablas si el primer arranque fue antes de que Postgres estuviera listo
+      if (!schemaReady && !/^\s*SELECT\s+1\s*$/i.test(text.trim())) {
+        await ensureSchema();
+      }
+      return pool.query(text, params);
+    }
     return memoryQuery(text, params);
   },
 };
@@ -87,36 +96,50 @@ const db = {
 async function ensureSchema() {
   if (!pool) {
     console.log("ℹ Sin DATABASE_URL — usando memoria (solo demo local)");
+    schemaReady = true;
     return;
   }
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS rsvps (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(120) NOT NULL,
-      email VARCHAR(160),
-      phone VARCHAR(40),
-      guests INTEGER NOT NULL DEFAULT 1,
-      attending BOOLEAN NOT NULL DEFAULT true,
-      message TEXT,
-      dietary VARCHAR(200),
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS wishes (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(80) NOT NULL,
-      message TEXT NOT NULL,
-      approved BOOLEAN NOT NULL DEFAULT true,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_rsvps_created ON rsvps (created_at DESC);
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_wishes_created ON wishes (created_at DESC);
-  `);
+  if (schemaReady) return;
+  if (schemaPromise) return schemaPromise;
+
+  schemaPromise = (async () => {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS rsvps (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(120) NOT NULL,
+        email VARCHAR(160),
+        phone VARCHAR(40),
+        guests INTEGER NOT NULL DEFAULT 1,
+        attending BOOLEAN NOT NULL DEFAULT true,
+        message TEXT,
+        dietary VARCHAR(200),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS wishes (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(80) NOT NULL,
+        message TEXT NOT NULL,
+        approved BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_rsvps_created ON rsvps (created_at DESC);
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_wishes_created ON wishes (created_at DESC);
+    `);
+    schemaReady = true;
+    console.log("✓ Schema rsvps/wishes listo");
+  })()
+    .catch((err) => {
+      schemaPromise = null;
+      throw err;
+    });
+
+  return schemaPromise;
 }
 
 module.exports = { pool: db, ensureSchema, rawPool: pool };

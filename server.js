@@ -47,7 +47,7 @@ app.get("/api/health", async (_req, res) => {
 
 app.get("/api/event", (_req, res) => {
   res.json({
-    name: "Alahya T. Saltares Ortega",
+    name: "Alahya Thaís Saltares Ortega",
     title: "Mis XV Años",
     eventDate: EVENT_DATE,
     venue: {

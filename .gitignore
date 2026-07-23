@@ -4,3 +4,7 @@ node_modules/
 *.log
 .vscode/
 .idea/
+
+.render-admin-secret.txt
+.render-service.json
+
