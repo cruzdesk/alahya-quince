@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Invitación a los XV años de Alahya T. Saltares Ortega — una noche de magia, amor y celebración." />
+  <meta property="og:title" content="Alahya T. Saltares Ortega — Mis XV Años" />
+  <meta property="og:description" content="Te invitamos a celebrar una noche inolvidable." />
+  <meta property="og:type" content="website" />
+  <title>Alahya T. Saltares Ortega · XV Años</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="particles" id="particles" aria-hidden="true"></div>
+
+  <nav class="nav" id="nav">
+    <a class="nav-logo" href="#inicio">A · XV</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menú">
+      <span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#historia">Historia</a></li>
+      <li><a href="#cuenta">Cuenta</a></li>
+      <li><a href="#detalles">Detalles</a></li>
+      <li><a href="#itinerario">Itinerario</a></li>
+      <li><a href="#rsvp">RSVP</a></li>
+      <li><a href="#deseos">Deseos</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero" id="inicio">
+    <div class="hero-frame">
+      <p class="eyebrow fade-up">Con la bendición de Dios y el amor de mi familia</p>
+      <div class="ornament fade-up delay-1">
+        <span class="line"></span>
+        <span class="diamond">✦</span>
+        <span class="line"></span>
+      </div>
+      <h1 class="hero-name fade-up delay-2">
+        <span class="first">Alahya</span>
+        <span class="middle">T. Saltares Ortega</span>
+      </h1>
+      <p class="hero-tagline fade-up delay-3">Mis Quince Años</p>
+      <p class="hero-date fade-up delay-4" id="heroDate">15 de Agosto · 2026</p>
+      <a href="#rsvp" class="btn btn-gold fade-up delay-5">Confirmar asistencia</a>
+    </div>
+    <div class="scroll-hint" aria-hidden="true">
+      <span>Descubre</span>
+      <div class="scroll-line"></div>
+    </div>
+  </header>
+
+  <!-- HISTORIA -->
+  <section class="section story" id="historia">
+    <div class="container narrow">
+      <p class="section-kicker">Una noche de cuento</p>
+      <h2 class="section-title">El día en que brilla como reina</h2>
+      <div class="story-card glass">
+        <p>
+          Hay momentos que marcan un antes y un después. Los quince años de
+          <strong>Alahya</strong> son uno de ellos: el umbral entre la niña que soñaba
+          castillos y la joven que camina con gracia hacia su propio destino.
+        </p>
+        <p>
+          Esta noche no es solo un baile. Es gratitud a sus padres, a quienes la criaron
+          con fe y ternura; es amistad, risas, vals y estrellas. Es el comienzo de un
+          capítulo escrito en oro y rosa.
+        </p>
+        <blockquote>
+          “Hoy celebro la vida, el amor de mi familia y el milagro de crecer rodeada de ustedes.”
+          <cite>— Alahya</cite>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- COUNTDOWN -->
+  <section class="section countdown-section" id="cuenta">
+    <div class="container">
+      <p class="section-kicker light">Falta muy poco</p>
+      <h2 class="section-title light">Cuenta regresiva mágica</h2>
+      <div class="countdown" id="countdown" role="timer" aria-live="polite">
+        <div class="cd-unit glass-dark">
+          <span class="cd-num" id="cdDays">00</span>
+          <span class="cd-label">Días</span>
+        </div>
+        <div class="cd-unit glass-dark">
+          <span class="cd-num" id="cdHours">00</span>
+          <span class="cd-label">Horas</span>
+        </div>
+        <div class="cd-unit glass-dark">
+          <span class="cd-num" id="cdMins">00</span>
+          <span class="cd-label">Min</span>
+        </div>
+        <div class="cd-unit glass-dark">
+          <span class="cd-num" id="cdSecs">00</span>
+          <span class="cd-label">Seg</span>
+        </div>
+      </div>
+      <p class="countdown-done" id="countdownDone" hidden>¡Hoy es el gran día! 👑✨</p>
+    </div>
+  </section>
+
+  <!-- DETALLES -->
+  <section class="section details" id="detalles">
+    <div class="container">
+      <p class="section-kicker">Todo lo que necesitas saber</p>
+      <h2 class="section-title">Detalles del evento</h2>
+      <div class="cards">
+        <article class="info-card glass">
+          <div class="info-icon">📅</div>
+          <h3>Fecha</h3>
+          <p id="detailDate">Sábado, 15 de Agosto de 2026</p>
+          <p class="muted">A las 6:00 p.m.</p>
+        </article>
+        <article class="info-card glass">
+          <div class="info-icon">⛪</div>
+          <h3>Ceremonia</h3>
+          <p>Misa de acción de gracias</p>
+          <p class="muted">Lugar por confirmar — actualiza en tu invitación impresa</p>
+        </article>
+        <article class="info-card glass">
+          <div class="info-icon">💃</div>
+          <h3>Recepción</h3>
+          <p>Cena, vals y baile</p>
+          <p class="muted">Salón de gala — código de vestimenta: formal / gala</p>
+        </article>
+        <article class="info-card glass">
+          <div class="info-icon">👗</div>
+          <h3>Código de vestimenta</h3>
+          <p>Formal elegante</p>
+          <p class="muted">Colores sugeridos: blush, champagne, oro y negro</p>
+        </article>
+      </div>
+      <div class="dress-note glass">
+        <p>
+          <strong>Tip de estilo:</strong> Evita el blanco puro (reservado para la quinceañera)
+          y el rosa fucsia intenso del cortejo. ¡Ven a brillar a tu manera!
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ITINERARIO -->
+  <section class="section timeline-section" id="itinerario">
+    <div class="container narrow">
+      <p class="section-kicker">El hilo de la noche</p>
+      <h2 class="section-title">Itinerario</h2>
+      <ol class="timeline">
+        <li class="timeline-item glass">
+          <span class="time">5:30 p.m.</span>
+          <div>
+            <h3>Recepción de invitados</h3>
+            <p>Champagne de bienvenida y fotos</p>
+          </div>
+        </li>
+        <li class="timeline-item glass">
+          <span class="time">6:00 p.m.</span>
+          <div>
+            <h3>Entrada de Alahya</h3>
+            <p>El momento en que la sala se detiene</p>
+          </div>
+        </li>
+        <li class="timeline-item glass">
+          <span class="time">6:30 p.m.</span>
+          <div>
+            <h3>Ceremonia y vals</h3>
+            <p>Padres, padrinos y el baile más esperado</p>
+          </div>
+        </li>
+        <li class="timeline-item glass">
+          <span class="time">7:30 p.m.</span>
+          <div>
+            <h3>Cena de gala</h3>
+            <p>Brindis, discursos y mesas de ensueño</p>
+          </div>
+        </li>
+        <li class="timeline-item glass">
+          <span class="time">9:00 p.m.</span>
+          <div>
+            <h3>Fiesta y sorpresas</h3>
+            <p>DJ, coreografías y hasta que el cuerpo aguante</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- GALERÍA ATMOSFÉRICA -->
+  <section class="section gallery-section" id="galeria">
+    <div class="container">
+      <p class="section-kicker">Inspiración</p>
+      <h2 class="section-title">Paleta de sueños</h2>
+      <div class="mood-grid">
+        <div class="mood m1"><span>Blush</span></div>
+        <div class="mood m2"><span>Champagne</span></div>
+        <div class="mood m3"><span>Oro rosa</span></div>
+        <div class="mood m4"><span>Medianoche</span></div>
+        <div class="mood m5"><span>Perla</span></div>
+        <div class="mood m6"><span>Cristal</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RSVP -->
+  <section class="section rsvp-section" id="rsvp">
+    <div class="container narrow">
+      <p class="section-kicker">Tu presencia es el mejor regalo</p>
+      <h2 class="section-title">Confirma tu asistencia</h2>
+      <form class="rsvp-form glass" id="rsvpForm" novalidate>
+        <div class="form-row">
+          <label for="name">Nombre completo *</label>
+          <input type="text" id="name" name="name" required autocomplete="name" placeholder="Tu nombre" />
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label for="email">Correo</label>
+            <input type="email" id="email" name="email" autocomplete="email" placeholder="opcional" />
+          </div>
+          <div class="form-row">
+            <label for="phone">Teléfono</label>
+            <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="opcional" />
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label for="guests">¿Cuántos asisten? (incluyéndote)</label>
+            <input type="number" id="guests" name="guests" min="1" max="12" value="1" />
+          </div>
+          <div class="form-row">
+            <label>¿Asistirás?</label>
+            <div class="toggle-group">
+              <label class="chip">
+                <input type="radio" name="attending" value="true" checked />
+                <span>¡Sí, ahí estaré!</span>
+              </label>
+              <label class="chip">
+                <input type="radio" name="attending" value="false" />
+                <span>No podré ir</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="dietary">Alergias o preferencias alimentarias</label>
+          <input type="text" id="dietary" name="dietary" placeholder="Ej. vegetariano, sin gluten…" />
+        </div>
+        <div class="form-row">
+          <label for="message">Mensaje para Alahya</label>
+          <textarea id="message" name="message" rows="3" placeholder="Un deseo, un chiste, un te quiero…"></textarea>
+        </div>
+        <button type="submit" class="btn btn-gold full" id="rsvpBtn">Enviar confirmación</button>
+        <p class="form-status" id="rsvpStatus" role="status"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- DESEOS -->
+  <section class="section wishes-section" id="deseos">
+    <div class="container">
+      <p class="section-kicker">Muro de cariño</p>
+      <h2 class="section-title">Deja un deseo</h2>
+      <form class="wish-form glass" id="wishForm">
+        <div class="form-grid">
+          <div class="form-row">
+            <label for="wishName">Tu nombre</label>
+            <input type="text" id="wishName" required placeholder="Nombre" />
+          </div>
+          <div class="form-row">
+            <label for="wishMsg">Tu mensaje</label>
+            <input type="text" id="wishMsg" required placeholder="Que Dios te bendiga…" maxlength="400" />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-outline">Publicar deseo ✨</button>
+        <p class="form-status" id="wishStatus" role="status"></p>
+      </form>
+      <div class="wishes-wall" id="wishesWall">
+        <p class="muted center">Cargando deseos…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- REGALOS -->
+  <section class="section gifts-section">
+    <div class="container narrow">
+      <div class="gifts glass">
+        <h2 class="section-title" style="margin-bottom:0.5rem">Mesa de regalos</h2>
+        <p>
+          Tu presencia es suficiente. Si deseas obsequiar algo, Alahya agradece
+          sobre todo tu cariño — y, si lo prefieres, un sobre para sus sueños futuros.
+        </p>
+        <p class="muted">Más detalles se compartirán con la familia cercana.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="ornament">
+      <span class="line"></span>
+      <span class="diamond">✦</span>
+      <span class="line"></span>
+    </div>
+    <p class="footer-name">Alahya T. Saltares Ortega</p>
+    <p class="footer-sub">XV Años · Con amor infinito</p>
+    <p class="footer-copy">Hecho con 💕 · GitHub + Render + PostgreSQL</p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
