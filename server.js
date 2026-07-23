@@ -8,6 +8,7 @@ const { pool, ensureSchema } = require("./db");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "alahya-admin-cambia-esto";
+const WISH_PIN = process.env.WISH_PIN || "2026";
 const EVENT_DATE =
   process.env.EVENT_DATE || "2026-10-10T18:00:00-04:00";
 
@@ -121,11 +122,50 @@ app.get("/api/rsvps", async (req, res) => {
   }
 });
 
+function clientIp(req) {
+  const xf = req.get("x-forwarded-for");
+  if (xf) return xf.split(",")[0].trim().slice(0, 80);
+  const real = req.get("x-real-ip");
+  if (real) return real.trim().slice(0, 80);
+  return (req.ip || "").slice(0, 80);
+}
+
+function buildWishMeta(req, clientMeta) {
+  const safe =
+    clientMeta && typeof clientMeta === "object" && !Array.isArray(clientMeta)
+      ? clientMeta
+      : {};
+  // Limitar tamaño del payload de cliente
+  let client = {};
+  try {
+    client = JSON.parse(JSON.stringify(safe).slice(0, 12000));
+  } catch {
+    client = {};
+  }
+  return {
+    server: {
+      ip: clientIp(req),
+      userAgent: (req.get("user-agent") || "").slice(0, 500),
+      acceptLanguage: (req.get("accept-language") || "").slice(0, 200),
+      acceptEncoding: (req.get("accept-encoding") || "").slice(0, 120),
+      referer: (req.get("referer") || "").slice(0, 300),
+      origin: (req.get("origin") || "").slice(0, 200),
+      host: (req.get("host") || "").slice(0, 120),
+      cfConnectingIp: (req.get("cf-connecting-ip") || "").slice(0, 80),
+      trueClientIp: (req.get("true-client-ip") || "").slice(0, 80),
+      xForwardedProto: (req.get("x-forwarded-proto") || "").slice(0, 20),
+      xForwardedFor: (req.get("x-forwarded-for") || "").slice(0, 200),
+      receivedAt: new Date().toISOString(),
+    },
+    client,
+  };
+}
+
 // ——— Guestbook / wishes
 app.get("/api/wishes", async (_req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT id, name, message, created_at
+      `SELECT id, name, message, meta, created_at
        FROM wishes
        WHERE approved = true
        ORDER BY created_at DESC
@@ -138,8 +178,29 @@ app.get("/api/wishes", async (_req, res) => {
   }
 });
 
+app.get("/api/wishes/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!id) return res.status(400).json({ error: "ID inválido" });
+    const { rows } = await pool.query(
+      `SELECT id, name, message, meta, created_at
+       FROM wishes WHERE id = $1 AND approved = true`,
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ error: "No encontrado" });
+    res.json({ wish: rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error" });
+  }
+});
+
 app.post("/api/wishes", wishLimiter, async (req, res) => {
   try {
+    const pin = String(req.body.pin || "").trim();
+    if (pin !== WISH_PIN) {
+      return res.status(403).json({ error: "PIN incorrecto. No se pudo publicar." });
+    }
     const name = clean(req.body.name, 80);
     const message = clean(req.body.message, 400);
     if (!name || name.length < 2) {
@@ -148,11 +209,12 @@ app.post("/api/wishes", wishLimiter, async (req, res) => {
     if (!message || message.length < 3) {
       return res.status(400).json({ error: "Escribe un mensaje." });
     }
+    const meta = buildWishMeta(req, req.body.device || req.body.meta);
     const { rows } = await pool.query(
-      `INSERT INTO wishes (name, message, approved)
-       VALUES ($1, $2, true)
-       RETURNING id, name, message, created_at`,
-      [name, message]
+      `INSERT INTO wishes (name, message, approved, meta)
+       VALUES ($1, $2, true, $3::jsonb)
+       RETURNING id, name, message, meta, created_at`,
+      [name, message, JSON.stringify(meta)]
     );
     res.status(201).json({ success: true, wish: rows[0] });
   } catch (err) {

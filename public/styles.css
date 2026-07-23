@@ -741,6 +741,110 @@ body {
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(42, 15, 28, 0.06);
   animation: fadeIn 0.5s ease;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.wish-card:hover,
+.wish-card:focus {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(42, 15, 28, 0.12);
+  border-color: var(--gold);
+  outline: none;
+}
+
+.pin-hint,
+.wish-tap-hint {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 0.8rem !important;
+}
+
+/* Modal meta */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(26, 15, 20, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.modal-overlay[hidden] {
+  display: none !important;
+}
+
+.modal-card {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: min(85vh, 720px);
+  overflow: auto;
+  padding: 1.75rem 1.5rem 1.5rem;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.85rem;
+  border: none;
+  background: transparent;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--rose);
+  margin-bottom: 0.35rem;
+}
+
+.modal-msg {
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+  font-size: 1.05rem;
+}
+
+.meta-heading {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin: 1.25rem 0 0.75rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.25);
+  padding-top: 1rem;
+}
+
+.meta-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.meta-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 42%) 1fr;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  padding: 0.4rem 0.5rem;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 8px;
+}
+
+.meta-key {
+  color: var(--rose);
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.meta-val {
+  color: var(--ink-soft);
+  word-break: break-word;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.72rem;
 }
 
 .wish-card .who {

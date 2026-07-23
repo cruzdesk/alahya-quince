@@ -217,21 +217,40 @@
         <div class="form-grid">
           <div class="form-row">
             <label for="wishName">Tu nombre</label>
-            <input type="text" id="wishName" required placeholder="Nombre" />
+            <input type="text" id="wishName" required placeholder="Nombre" autocomplete="name" />
           </div>
           <div class="form-row">
-            <label for="wishMsg">Tu mensaje</label>
-            <input type="text" id="wishMsg" required placeholder="Que Dios te bendiga…" maxlength="400" />
+            <label for="wishPin">PIN para publicar</label>
+            <input type="password" id="wishPin" required placeholder="••••" inputmode="numeric" maxlength="12" autocomplete="off" />
           </div>
         </div>
+        <div class="form-row">
+          <label for="wishMsg">Tu mensaje</label>
+          <input type="text" id="wishMsg" required placeholder="Que Dios te bendiga…" maxlength="400" />
+        </div>
+        <p class="pin-hint muted">Solo quien tenga el PIN puede publicar un deseo.</p>
         <button type="submit" class="btn btn-outline">Publicar deseo ✨</button>
         <p class="form-status" id="wishStatus" role="status"></p>
       </form>
+      <p class="muted center wish-tap-hint">Toca un deseo para ver detalles del dispositivo</p>
       <div class="wishes-wall" id="wishesWall">
         <p class="muted center">Cargando deseos…</p>
       </div>
     </div>
   </section>
+
+  <!-- Modal meta del deseo -->
+  <div class="modal-overlay" id="wishModal" hidden>
+    <div class="modal-card glass" role="dialog" aria-modal="true" aria-labelledby="wishModalTitle">
+      <button type="button" class="modal-close" id="wishModalClose" aria-label="Cerrar">×</button>
+      <p class="section-kicker" style="margin-bottom:0.35rem">Detalle del deseo</p>
+      <h3 class="modal-title" id="wishModalTitle"></h3>
+      <p class="modal-msg" id="wishModalMsg"></p>
+      <p class="modal-when muted" id="wishModalWhen"></p>
+      <h4 class="meta-heading">Información del equipo</h4>
+      <div class="meta-grid" id="wishModalMeta"></div>
+    </div>
+  </div>
 
   <!-- REGALOS -->
   <section class="section gifts-section">

@@ -61,6 +61,7 @@ function memoryQuery(text, params = []) {
       name: params[0],
       message: params[1],
       approved: true,
+      meta: params[2] || null,
       created_at: new Date().toISOString(),
     };
     memory.wishes.unshift(row);
@@ -122,8 +123,13 @@ async function ensureSchema() {
         name VARCHAR(80) NOT NULL,
         message TEXT NOT NULL,
         approved BOOLEAN NOT NULL DEFAULT true,
+        meta JSONB,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+    `);
+    // Migración suave si la tabla ya existía sin meta
+    await pool.query(`
+      ALTER TABLE wishes ADD COLUMN IF NOT EXISTS meta JSONB;
     `);
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_rsvps_created ON rsvps (created_at DESC);
