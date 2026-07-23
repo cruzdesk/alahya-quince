@@ -533,22 +533,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 2rem;
+  font-size: 2.15rem;
   line-height: 1;
   margin-bottom: 0.75rem;
-}
-
-.dress-code-emoji .emoji-formal {
-  font-size: 2.1rem;
-  line-height: 1;
-}
-
-.dress-code-emoji .emoji-sep {
-  color: var(--gold);
-  font-size: 1.1rem;
-  opacity: 0.8;
-  margin: 0 0.1rem;
 }
 
 .info-card h3 {
