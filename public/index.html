@@ -28,7 +28,6 @@
       <li><a href="#cuenta">Cuenta</a></li>
       <li><a href="#detalles">Detalles</a></li>
       <li><a href="#itinerario">Itinerario</a></li>
-      <li><a href="#rsvp">RSVP</a></li>
       <li><a href="#deseos">Deseos</a></li>
     </ul>
   </nav>
@@ -47,8 +46,8 @@
         <span class="middle">Thaís Saltares Ortega</span>
       </h1>
       <p class="hero-tagline fade-up delay-3">Mis Quince Años</p>
-      <p class="hero-date fade-up delay-4" id="heroDate">15 de Agosto · 2026</p>
-      <a href="#rsvp" class="btn btn-gold fade-up delay-5">Confirmar asistencia</a>
+      <p class="hero-date fade-up delay-4" id="heroDate">10 de Octubre · 2026</p>
+      <a href="#deseos" class="btn btn-gold fade-up delay-5">Deja un deseo</a>
     </div>
     <div class="scroll-hint" aria-hidden="true">
       <span>Descubre</span>
@@ -68,8 +67,9 @@
           castillos y la joven que camina con gracia hacia su propio destino.
         </p>
         <p>
-          Esta noche no es solo un baile. Es gratitud a sus padres, a quienes la criaron
-          con fe y ternura; es amistad, risas, vals y estrellas. Es el comienzo de un
+          Esta noche no es solo un baile. Es gratitud a su madre, quien la crió con fe,
+          ternura y fuerza; y un cariño eterno al recuerdo de su papá, siempre presente
+          en el corazón. Es amistad, risas, vals y estrellas. Es el comienzo de un
           capítulo escrito en oro y rosa.
         </p>
         <blockquote>
@@ -116,7 +116,7 @@
         <article class="info-card glass">
           <div class="info-icon">📅</div>
           <h3>Fecha</h3>
-          <p id="detailDate">Sábado, 15 de Agosto de 2026</p>
+          <p id="detailDate">Sábado, 10 de Octubre de 2026</p>
           <p class="muted">A las 6:00 p.m.</p>
         </article>
         <article class="info-card glass">
@@ -171,7 +171,7 @@
           <span class="time">6:30 p.m.</span>
           <div>
             <h3>Ceremonia y vals</h3>
-            <p>Padres, padrinos y el baile más esperado</p>
+            <p>Su mamá, padrinos y el baile más esperado</p>
           </div>
         </li>
         <li class="timeline-item glass">
@@ -205,59 +205,6 @@
         <div class="mood m5"><span>Perla</span></div>
         <div class="mood m6"><span>Cristal</span></div>
       </div>
-    </div>
-  </section>
-
-  <!-- RSVP -->
-  <section class="section rsvp-section" id="rsvp">
-    <div class="container narrow">
-      <p class="section-kicker">Tu presencia es el mejor regalo</p>
-      <h2 class="section-title">Confirma tu asistencia</h2>
-      <form class="rsvp-form glass" id="rsvpForm" novalidate>
-        <div class="form-row">
-          <label for="name">Nombre completo *</label>
-          <input type="text" id="name" name="name" required autocomplete="name" placeholder="Tu nombre" />
-        </div>
-        <div class="form-grid">
-          <div class="form-row">
-            <label for="email">Correo</label>
-            <input type="email" id="email" name="email" autocomplete="email" placeholder="opcional" />
-          </div>
-          <div class="form-row">
-            <label for="phone">Teléfono</label>
-            <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="opcional" />
-          </div>
-        </div>
-        <div class="form-grid">
-          <div class="form-row">
-            <label for="guests">¿Cuántos asisten? (incluyéndote)</label>
-            <input type="number" id="guests" name="guests" min="1" max="12" value="1" />
-          </div>
-          <div class="form-row">
-            <label>¿Asistirás?</label>
-            <div class="toggle-group">
-              <label class="chip">
-                <input type="radio" name="attending" value="true" checked />
-                <span>¡Sí, ahí estaré!</span>
-              </label>
-              <label class="chip">
-                <input type="radio" name="attending" value="false" />
-                <span>No podré ir</span>
-              </label>
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <label for="dietary">Alergias o preferencias alimentarias</label>
-          <input type="text" id="dietary" name="dietary" placeholder="Ej. vegetariano, sin gluten…" />
-        </div>
-        <div class="form-row">
-          <label for="message">Mensaje para Alahya</label>
-          <textarea id="message" name="message" rows="3" placeholder="Un deseo, un chiste, un te quiero…"></textarea>
-        </div>
-        <button type="submit" class="btn btn-gold full" id="rsvpBtn">Enviar confirmación</button>
-        <p class="form-status" id="rsvpStatus" role="status"></p>
-      </form>
     </div>
   </section>
 

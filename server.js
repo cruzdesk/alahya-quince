@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "alahya-admin-cambia-esto";
 const EVENT_DATE =
-  process.env.EVENT_DATE || "2026-08-15T18:00:00-04:00";
+  process.env.EVENT_DATE || "2026-10-10T18:00:00-04:00";
 
 app.set("trust proxy", 1);
 app.use(cors());

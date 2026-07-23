@@ -1,6 +1,6 @@
 /* Alahya XV — client */
 (function () {
-  const EVENT_FALLBACK = "2026-08-15T18:00:00-04:00";
+  const EVENT_FALLBACK = "2026-10-10T18:00:00-04:00";
 
   // ——— Particles
   const particlesEl = document.getElementById("particles");
@@ -117,58 +117,6 @@
 
   setInterval(tickCountdown, 1000);
   tickCountdown();
-
-  // ——— RSVP
-  const rsvpForm = document.getElementById("rsvpForm");
-  const rsvpStatus = document.getElementById("rsvpStatus");
-  const rsvpBtn = document.getElementById("rsvpBtn");
-
-  rsvpForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    rsvpStatus.textContent = "";
-    rsvpStatus.className = "form-status";
-
-    const fd = new FormData(rsvpForm);
-    const body = {
-      name: fd.get("name"),
-      email: fd.get("email"),
-      phone: fd.get("phone"),
-      guests: Number(fd.get("guests") || 1),
-      attending: fd.get("attending") === "true",
-      dietary: fd.get("dietary"),
-      message: fd.get("message"),
-    };
-
-    if (!body.name || String(body.name).trim().length < 2) {
-      rsvpStatus.textContent = "Por favor escribe tu nombre.";
-      rsvpStatus.classList.add("err");
-      return;
-    }
-
-    rsvpBtn.disabled = true;
-    rsvpBtn.textContent = "Enviando…";
-
-    try {
-      const res = await fetch("/api/rsvp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error");
-      rsvpStatus.textContent = data.message || "¡Guardado!";
-      rsvpStatus.classList.add("ok");
-      rsvpForm.reset();
-      document.querySelector('input[name="attending"][value="true"]').checked = true;
-      document.getElementById("guests").value = "1";
-    } catch (err) {
-      rsvpStatus.textContent = err.message || "No se pudo enviar. Intenta de nuevo.";
-      rsvpStatus.classList.add("err");
-    } finally {
-      rsvpBtn.disabled = false;
-      rsvpBtn.textContent = "Enviar confirmación";
-    }
-  });
 
   // ——— Wishes
   const wishesWall = document.getElementById("wishesWall");
