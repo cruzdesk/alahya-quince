@@ -1,0 +1,17 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Alahya XV//alahya-quince//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:alahya-xv-2026-10-10@alahya-quince
+DTSTAMP:20260723T000000Z
+DTSTART;TZID=America/Puerto_Rico:20261010T170000
+DTEND;TZID=America/Puerto_Rico:20261010T230000
+SUMMARY:XV Alahya Thaís Saltares Ortega
+DESCRIPTION:Victorian Masquerade Ball\nFormal: color negro\nSin ceremonia en la iglesia.\nhttps://alahya-quince.onrender.com
+LOCATION:Tres Palmas\, Aguadilla\, Puerto Rico
+URL:https://alahya-quince.onrender.com
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR

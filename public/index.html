@@ -27,6 +27,7 @@
       <li><a href="#historia">Historia</a></li>
       <li><a href="#cuenta">Cuenta</a></li>
       <li><a href="#detalles">Detalles</a></li>
+      <li><a href="#mapa">Mapa</a></li>
       <li><a href="#itinerario">Itinerario</a></li>
       <li><a href="#deseos">Deseos</a></li>
     </ul>
@@ -47,7 +48,10 @@
       </h1>
       <p class="hero-tagline fade-up delay-3">Mis Quince Años · Victorian Masquerade Ball</p>
       <p class="hero-date fade-up delay-4" id="heroDate">10 de Octubre · 2026 · 5:00 p.m.</p>
-      <a href="#deseos" class="btn btn-gold fade-up delay-5">Deja un deseo</a>
+      <div class="hero-ctas fade-up delay-5">
+        <a href="#calendario" class="btn btn-gold">Añadir al calendario</a>
+        <a href="#mapa" class="btn btn-outline">Cómo llegar</a>
+      </div>
     </div>
     <div class="scroll-hint" aria-hidden="true">
       <span>Descubre</span>
@@ -123,7 +127,8 @@
           <div class="info-icon">📍</div>
           <h3>Lugar</h3>
           <p>Tres Palmas</p>
-          <p class="muted">Aguadilla</p>
+          <p class="muted">Aguadilla, Puerto Rico</p>
+          <a class="card-link" href="https://www.google.com/maps/search/?api=1&amp;query=Tres+Palmas+Aguadilla+Puerto+Rico" target="_blank" rel="noopener noreferrer">Ver en el mapa</a>
         </article>
         <article class="info-card glass">
           <div class="info-icon">🎭</div>
@@ -142,6 +147,47 @@
           <strong>Nota:</strong> No habrá ceremonia en la iglesia. Toda la celebración es en el salón —
           <strong>Tres Palmas, Aguadilla</strong> — a partir de las <strong>5:00 p.m.</strong>
         </p>
+      </div>
+
+      <div class="map-block glass" id="mapa">
+        <div class="map-head">
+          <div>
+            <p class="section-kicker" style="text-align:left;margin-bottom:0.35rem">Cómo llegar</p>
+            <h3 class="map-title">Tres Palmas · Aguadilla</h3>
+            <p class="muted">Calle Luis T. Díaz · Aguadilla, PR</p>
+          </div>
+          <div class="map-actions">
+            <a class="btn btn-gold" href="https://www.google.com/maps/dir/?api=1&amp;destination=Tres+Palmas+Aguadilla+Puerto+Rico" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
+            <a class="btn btn-outline" href="https://waze.com/ul?q=Centro%20Comunal%20Tres%20Palmas%20Aguadilla&amp;navigate=yes" target="_blank" rel="noopener noreferrer">Abrir en Waze</a>
+          </div>
+        </div>
+        <div class="map-frame">
+          <iframe
+            title="Mapa de Tres Palmas, Aguadilla"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://maps.google.com/maps?q=Tres+Palmas+Aguadilla+Puerto+Rico&amp;t=&amp;z=15&amp;ie=UTF8&amp;iwloc=&amp;output=embed"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
+
+      <div class="calendar-block glass" id="calendario">
+        <div class="calendar-copy">
+          <p class="section-kicker" style="text-align:left;margin-bottom:0.35rem">No lo olvides</p>
+          <h3 class="map-title">Añadir al calendario</h3>
+          <p class="muted">10 de octubre de 2026 · 5:00 p.m. · Tres Palmas, Aguadilla</p>
+        </div>
+        <div class="calendar-actions">
+          <a
+            class="btn btn-gold"
+            id="googleCalBtn"
+            href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=XV+Alahya+Tha%C3%ADs+Saltares+Ortega&amp;dates=20261010T170000%2F20261010T230000&amp;ctz=America%2FPuerto_Rico&amp;details=Victorian+Masquerade+Ball%0AFormal%3A+color+negro%0ASin+ceremonia+en+la+iglesia.%0Ahttps%3A%2F%2Falahya-quince.onrender.com&amp;location=Tres+Palmas%2C+Aguadilla%2C+Puerto+Rico"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Google Calendar</a>
+          <a class="btn btn-outline" id="icsCalBtn" href="/event.ics" download="Alahya-XV-2026.ics">Apple / Outlook (.ics)</a>
+        </div>
       </div>
     </div>
   </section>

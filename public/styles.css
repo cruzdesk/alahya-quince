@@ -260,6 +260,19 @@ body {
   font-weight: 500;
 }
 
+.hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-ctas .btn-outline {
+  margin-top: 0;
+  background: rgba(255, 252, 248, 0.9);
+}
+
 .scroll-hint {
   position: absolute;
   bottom: 2rem;
@@ -541,6 +554,98 @@ body {
   text-align: center;
   font-size: 0.95rem;
   color: var(--ink-soft);
+}
+
+.card-link {
+  display: inline-block;
+  margin-top: 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rose);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(155, 28, 28, 0.35);
+}
+
+.card-link:hover {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.map-block,
+.calendar-block {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+}
+
+.map-head,
+.calendar-block {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.map-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--rose);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.map-actions,
+.calendar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.map-actions .btn,
+.calendar-actions .btn {
+  font-size: 0.68rem;
+  padding: 0.85rem 1.25rem;
+  text-align: center;
+}
+
+.map-frame {
+  margin-top: 1.15rem;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  box-shadow: 0 10px 28px rgba(60, 20, 20, 0.08);
+  aspect-ratio: 16 / 9;
+  min-height: 240px;
+  background: #e8ddd2;
+}
+
+.map-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.calendar-copy {
+  flex: 1 1 220px;
+}
+
+@media (max-width: 640px) {
+  .map-frame {
+    aspect-ratio: 4 / 3;
+  }
+
+  .map-actions,
+  .calendar-actions {
+    width: 100%;
+  }
+
+  .map-actions .btn,
+  .calendar-actions .btn {
+    flex: 1 1 auto;
+  }
 }
 
 /* Timeline */
