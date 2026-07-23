@@ -533,12 +533,20 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 2.5rem;
+  min-height: 2.75rem;
+  margin-bottom: 0.85rem;
 }
 
-.info-icon-svg svg {
+.info-icon-svg svg,
+.dress-code-svg {
   display: block;
-  color: #1a1212;
+  height: 3.25rem;
+  width: auto;
+  max-width: 7rem;
+}
+
+.dress-code-icons {
+  padding: 0.35rem 0 0.15rem;
 }
 
 .info-card h3 {
