@@ -529,25 +529,26 @@ body {
   margin-bottom: 0.75rem;
 }
 
-.info-icon-svg {
+.dress-code-emoji {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 2.75rem;
-  margin-bottom: 0.85rem;
+  gap: 0.35rem;
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 0.75rem;
 }
 
-.info-icon-svg svg,
-.dress-code-svg {
-  display: block;
-  height: 3.6rem;
-  width: auto;
-  max-width: 7.5rem;
-  margin: 0 auto;
+.dress-code-emoji .emoji-formal {
+  font-size: 2.1rem;
+  line-height: 1;
 }
 
-.dress-code-icons {
-  padding: 0.5rem 0 0.25rem;
+.dress-code-emoji .emoji-sep {
+  color: var(--gold);
+  font-size: 1.1rem;
+  opacity: 0.8;
+  margin: 0 0.1rem;
 }
 
 .info-card h3 {
