@@ -31,7 +31,6 @@
       <li><a href="#itinerario">Itinerario</a></li>
       <li><a href="#reservar">Reservar</a></li>
       <li><a href="#deseos">Deseos</a></li>
-      <li><a href="#admin">Admin</a></li>
     </ul>
   </nav>
 
@@ -354,70 +353,6 @@
     </div>
   </section>
 
-  <!-- ADMIN al final -->
-  <section class="section admin-section" id="admin">
-    <div class="container narrow">
-      <div class="admin-entry">
-        <button type="button" class="btn btn-outline" id="adminOpenBtn">Admin</button>
-      </div>
-
-      <div id="adminHubPanel" class="wish-form glass admin-box" hidden>
-        <div class="admin-hub-head">
-          <p class="muted">Sesión admin activa</p>
-          <button type="button" class="btn-danger-sm" id="adminHubLogout">Salir</button>
-        </div>
-
-        <h3 class="admin-block-title">Reservas</h3>
-        <div class="admin-stats" id="adminResStats"></div>
-        <div class="admin-res-actions">
-          <button type="button" class="btn btn-gold" id="printResReportBtn">🖨 Reporte de reservas</button>
-          <button type="button" class="btn btn-outline" id="adminResRefreshBtn">Actualizar</button>
-        </div>
-        <div class="admin-res-list" id="adminResList"></div>
-
-        <h3 class="admin-block-title">Deseos</h3>
-        <label class="check-row">
-          <input type="checkbox" id="printIncludeMeta" checked />
-          <span>Incluir info del equipo al imprimir deseos</span>
-        </label>
-        <div class="admin-res-actions">
-          <button type="button" class="btn btn-outline" id="printWishesBtn">🖨 Imprimir todos los deseos</button>
-        </div>
-        <p class="form-status" id="printStatus" role="status"></p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Modal clave admin -->
-  <div class="modal-overlay" id="adminKeyModal" hidden>
-    <div class="modal-card glass modal-card-sm" role="dialog" aria-modal="true" aria-labelledby="adminKeyTitle">
-      <button type="button" class="modal-close" id="adminKeyClose" aria-label="Cerrar">×</button>
-      <h3 class="modal-title" id="adminKeyTitle">Admin</h3>
-      <div class="form-row">
-        <label for="adminHubKey">Contraseña</label>
-        <div class="pin-field">
-          <input
-            type="text"
-            id="adminHubKey"
-            class="pin-masked"
-            placeholder="Contraseña"
-            inputmode="numeric"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-            data-lpignore="true"
-            data-1p-ignore="true"
-            data-form-type="other"
-            name="admin_hub_key"
-          />
-          <button type="button" class="pin-toggle" id="adminHubKeyToggle" aria-label="Mostrar u ocultar contraseña" title="Mostrar">👑</button>
-        </div>
-      </div>
-      <button type="button" class="btn btn-gold full" id="adminHubLoginBtn">Entrar</button>
-      <p class="form-status" id="adminHubLoginStatus" role="status"></p>
-    </div>
-  </div>
-
   <footer class="footer">
     <div class="ornament">
       <span class="line"></span>
@@ -426,7 +361,10 @@
     </div>
     <p class="footer-name">Alahya Thaís Saltares Ortega</p>
     <p class="footer-sub">XV Años · Victorian Masquerade Ball · Tres Palmas, Aguadilla</p>
-    <p class="footer-copy">Hecho con 💕 · GitHub + Render + PostgreSQL</p>
+    <p class="footer-copy">
+      <a href="/admin.html" class="footer-admin-link">Admin</a>
+      · Hecho con 💕 · GitHub + Render + PostgreSQL
+    </p>
   </footer>
 
   <script src="/app.js"></script>

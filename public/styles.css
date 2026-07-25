@@ -1342,6 +1342,16 @@ body {
   color: #a09098;
 }
 
+.footer-admin-link {
+  color: #a09098;
+  text-decoration: none;
+  letter-spacing: 0.06em;
+}
+
+.footer-admin-link:hover {
+  color: var(--rose);
+}
+
 /* Animations on load */
 .fade-up {
   opacity: 0;

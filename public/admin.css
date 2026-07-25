@@ -1,0 +1,244 @@
+/* Panel admin — página aparte */
+.admin-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8f3ec 0%, #efe6dc 100%);
+  color: var(--ink);
+}
+
+.admin-login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.admin-login-card {
+  width: min(400px, 100%);
+  padding: 2rem 1.75rem;
+  text-align: center;
+}
+
+.admin-login-card .section-kicker {
+  margin-bottom: 0.35rem;
+}
+
+.admin-login-title {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  color: var(--rose);
+  margin-bottom: 1.25rem;
+  font-weight: 400;
+}
+
+.admin-login-card .form-row {
+  text-align: left;
+}
+
+.admin-back-link {
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+}
+
+.admin-back-link a {
+  color: var(--rose);
+  text-decoration: none;
+}
+
+.admin-back-link a:hover {
+  text-decoration: underline;
+}
+
+/* Shell */
+.admin-app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  background: #1a1212;
+  color: #f3e6d8;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 40;
+}
+
+.admin-brand {
+  padding: 0 0.5rem 1.25rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+  margin-bottom: 1rem;
+}
+
+.admin-brand-mark {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.18em;
+  color: #d4af37;
+}
+
+.admin-brand-sub {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(243, 230, 216, 0.55);
+}
+
+.admin-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.admin-menu-item {
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: rgba(243, 230, 216, 0.75);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.admin-menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.admin-menu-item.is-active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(155, 28, 28, 0.25));
+  color: #e8d5a3;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+.admin-sidebar-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.admin-site-link {
+  font-size: 0.75rem;
+  color: rgba(232, 213, 163, 0.8);
+  text-decoration: none;
+  text-align: center;
+}
+
+.admin-site-link:hover {
+  color: #e8d5a3;
+}
+
+.admin-main-wrap {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 252, 248, 0.9);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.28);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.admin-view-title {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  color: var(--rose);
+  font-weight: 600;
+  margin: 0;
+}
+
+.admin-menu-toggle {
+  display: none;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.admin-main {
+  padding: 1.5rem;
+  max-width: 960px;
+}
+
+.admin-view[hidden] {
+  display: none !important;
+}
+
+.admin-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.admin-quick-actions .btn {
+  font-size: 0.7rem;
+  padding: 0.8rem 1.15rem;
+}
+
+.admin-stats-compact {
+  margin: 0.75rem 0 1rem;
+}
+
+.admin-sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .admin-app {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(280px, 84vw);
+    transform: translateX(-105%);
+    transition: transform 0.3s ease;
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.25);
+  }
+
+  .admin-app.menu-open .admin-sidebar {
+    transform: translateX(0);
+  }
+
+  .admin-menu-toggle {
+    display: inline-flex;
+  }
+
+  .admin-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 18, 18, 0.45);
+    z-index: 30;
+  }
+
+  .admin-sidebar-backdrop[hidden] {
+    display: none !important;
+  }
+}

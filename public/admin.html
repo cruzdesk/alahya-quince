@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Admin · Alahya XV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/admin.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
+</head>
+<body class="admin-page">
+  <!-- Login -->
+  <div id="loginScreen" class="admin-login-wrap">
+    <div class="admin-login-card glass">
+      <p class="section-kicker">Alahya XV</p>
+      <h1 class="admin-login-title">Admin</h1>
+      <div class="form-row">
+        <label for="adminHubKey">Contraseña</label>
+        <div class="pin-field">
+          <input
+            type="text"
+            id="adminHubKey"
+            class="pin-masked"
+            placeholder="Contraseña"
+            inputmode="numeric"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-form-type="other"
+            name="admin_hub_key"
+          />
+          <button type="button" class="pin-toggle" id="adminHubKeyToggle" aria-label="Mostrar u ocultar" title="Mostrar">👑</button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-gold full" id="adminHubLoginBtn">Entrar</button>
+      <p class="form-status" id="adminHubLoginStatus" role="status"></p>
+      <p class="admin-back-link"><a href="/">← Volver al sitio</a></p>
+    </div>
+  </div>
+
+  <!-- App shell -->
+  <div id="adminApp" class="admin-app" hidden>
+    <aside class="admin-sidebar">
+      <div class="admin-brand">
+        <span class="admin-brand-mark">A · XV</span>
+        <span class="admin-brand-sub">Panel admin</span>
+      </div>
+      <nav class="admin-menu" aria-label="Menú admin">
+        <button type="button" class="admin-menu-item is-active" data-view="resumen">Resumen</button>
+        <button type="button" class="admin-menu-item" data-view="reservas">Reservas</button>
+        <button type="button" class="admin-menu-item" data-view="deseos">Deseos</button>
+      </nav>
+      <div class="admin-sidebar-foot">
+        <button type="button" class="btn-danger-sm" id="adminHubLogout">Cerrar sesión</button>
+        <a class="admin-site-link" href="/">Ver sitio público</a>
+      </div>
+    </aside>
+
+    <div class="admin-main-wrap">
+      <header class="admin-topbar">
+        <button type="button" class="admin-menu-toggle" id="adminMenuToggle" aria-label="Menú">☰</button>
+        <h1 class="admin-view-title" id="adminViewTitle">Resumen</h1>
+      </header>
+
+      <main class="admin-main">
+        <!-- RESUMEN -->
+        <section class="admin-view is-active" id="view-resumen" data-view-panel="resumen">
+          <p class="muted">Vista general del evento y las cifras actuales.</p>
+          <div class="admin-stats" id="adminResStats"></div>
+          <div class="admin-quick-actions">
+            <button type="button" class="btn btn-gold" data-goto="reservas">Ir a reservas</button>
+            <button type="button" class="btn btn-outline" data-goto="deseos">Ir a deseos</button>
+            <button type="button" class="btn btn-outline" id="printResReportBtnQuick">🖨 Reporte de reservas</button>
+          </div>
+        </section>
+
+        <!-- RESERVAS -->
+        <section class="admin-view" id="view-reservas" data-view-panel="reservas" hidden>
+          <p class="muted">Gestiona reservas activas y canceladas.</p>
+          <div class="admin-res-actions">
+            <button type="button" class="btn btn-gold" id="printResReportBtn">🖨 Reporte profesional</button>
+            <button type="button" class="btn btn-outline" id="adminResRefreshBtn">Actualizar lista</button>
+          </div>
+          <div class="admin-stats admin-stats-compact" id="adminResStats2"></div>
+          <div class="admin-res-list" id="adminResList"></div>
+        </section>
+
+        <!-- DESEOS -->
+        <section class="admin-view" id="view-deseos" data-view-panel="deseos" hidden>
+          <p class="muted">Imprime el muro de deseos del sitio.</p>
+          <label class="check-row">
+            <input type="checkbox" id="printIncludeMeta" checked />
+            <span>Incluir información del equipo en la impresión</span>
+          </label>
+          <div class="admin-res-actions">
+            <button type="button" class="btn btn-outline" id="printWishesBtn">🖨 Imprimir todos los deseos</button>
+          </div>
+          <p class="form-status" id="printStatus" role="status"></p>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop" hidden></div>
+
+  <script src="/admin.js"></script>
+</body>
+</html>
