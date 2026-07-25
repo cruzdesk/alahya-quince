@@ -32,6 +32,7 @@
   } catch (_) {}
   let idleTimer = null;
   let idleWatch = null;
+  let idleListenersBound = false;
 
   const titles = {
     resumen: "Resumen",
@@ -112,24 +113,27 @@
       if (isSessionExpired()) logoutDueToIdle();
     }, IDLE_CHECK_MS);
 
-    const events = [
-      "mousemove",
-      "mousedown",
-      "keydown",
-      "scroll",
-      "touchstart",
-      "click",
-      "wheel",
-    ];
-    events.forEach((ev) => {
-      document.addEventListener(ev, touchActivity, { passive: true });
-    });
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && adminKey) {
-        if (isSessionExpired()) logoutDueToIdle();
-        else touchActivity();
-      }
-    });
+    if (!idleListenersBound) {
+      idleListenersBound = true;
+      const events = [
+        "mousemove",
+        "mousedown",
+        "keydown",
+        "scroll",
+        "touchstart",
+        "click",
+        "wheel",
+      ];
+      events.forEach((ev) => {
+        document.addEventListener(ev, touchActivity, { passive: true });
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && adminKey) {
+          if (isSessionExpired()) logoutDueToIdle();
+          else touchActivity();
+        }
+      });
+    }
   }
 
   function showLogin() {
