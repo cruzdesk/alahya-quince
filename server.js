@@ -5,6 +5,7 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const { pool, ensureSchema } = require("./db");
 const { sendReservationAlert } = require("./email");
+const { requireAdmin } = require("./admin-auth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,19 @@ const wishLimiter = rateLimit({
   max: 15,
   message: { error: "Demasiados mensajes. Espera un momento." },
 });
+
+// Límite general de tráfico a rutas admin (además del bloqueo por fallos de clave)
+const adminTrafficLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Demasiadas peticiones al panel admin. Espera unos minutos.",
+  },
+});
+
+const adminGuard = [adminTrafficLimiter, requireAdmin(PRINT_ADMIN_KEY)];
 
 function clean(str, max = 200) {
   if (typeof str !== "string") return "";
@@ -228,19 +242,9 @@ app.post("/api/wishes", wishLimiter, async (req, res) => {
   }
 });
 
-function checkAdminKey(req) {
-  const key = String(
-    req.body?.key || req.get("X-Print-Admin-Key") || req.get("X-Admin-Key") || ""
-  ).trim();
-  return key === PRINT_ADMIN_KEY;
-}
-
 // ——— Admin: exportar todos los deseos para imprimir
-app.post("/api/admin/print-wishes", async (req, res) => {
+app.post("/api/admin/print-wishes", ...adminGuard, async (req, res) => {
   try {
-    if (!checkAdminKey(req)) {
-      return res.status(401).json({ error: "Clave de administrador incorrecta." });
-    }
     const { rows } = await pool.query(
       `SELECT id, name, message, meta, created_at
        FROM wishes
@@ -301,11 +305,8 @@ app.post("/api/reservations", rsvpLimiter, async (req, res) => {
 });
 
 // ——— Admin: listar reservas + estadísticas
-app.post("/api/admin/reservations", async (req, res) => {
+app.post("/api/admin/reservations", ...adminGuard, async (req, res) => {
   try {
-    if (!checkAdminKey(req)) {
-      return res.status(401).json({ error: "Clave de administrador incorrecta." });
-    }
     const { rows: statsRows } = await pool.query(
       `SELECT
          COUNT(*) FILTER (WHERE status = 'active')::int AS active_count,
@@ -331,11 +332,8 @@ app.post("/api/admin/reservations", async (req, res) => {
 });
 
 // ——— Admin: cancelar reserva
-app.post("/api/admin/reservations/:id/cancel", async (req, res) => {
+app.post("/api/admin/reservations/:id/cancel", ...adminGuard, async (req, res) => {
   try {
-    if (!checkAdminKey(req)) {
-      return res.status(401).json({ error: "Clave de administrador incorrecta." });
-    }
     const id = parseInt(req.params.id, 10);
     if (!id) return res.status(400).json({ error: "ID inválido" });
 
@@ -357,11 +355,8 @@ app.post("/api/admin/reservations/:id/cancel", async (req, res) => {
 });
 
 // ——— Admin: datos para reporte imprimible de reservas
-app.post("/api/admin/print-reservations", async (req, res) => {
+app.post("/api/admin/print-reservations", ...adminGuard, async (req, res) => {
   try {
-    if (!checkAdminKey(req)) {
-      return res.status(401).json({ error: "Clave de administrador incorrecta." });
-    }
     const { rows: statsRows } = await pool.query(
       `SELECT
          COUNT(*) FILTER (WHERE status = 'active')::int AS active_count,

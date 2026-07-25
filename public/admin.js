@@ -347,7 +347,17 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
     if (e.key === "Enter") adminHubLoginBtn?.click();
   });
 
+  let loginCooldown = null;
+
   adminHubLoginBtn?.addEventListener("click", async () => {
+    if (loginCooldown && Date.now() < loginCooldown) {
+      const sec = Math.ceil((loginCooldown - Date.now()) / 1000);
+      if (adminHubLoginStatus) {
+        adminHubLoginStatus.textContent = `Espera ${sec}s antes de reintentar.`;
+        adminHubLoginStatus.className = "form-status err";
+      }
+      return;
+    }
     const key = (adminHubKey?.value || "").trim();
     if (!key) {
       if (adminHubLoginStatus) {
@@ -357,6 +367,7 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
       return;
     }
     adminHubLoginBtn.disabled = true;
+    adminHubLoginBtn.textContent = "Verificando…";
     try {
       const res = await fetch("/api/admin/reservations", {
         method: "POST",
@@ -364,7 +375,16 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
         body: JSON.stringify({ key }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "No autorizado");
+      if (!res.ok) {
+        if (data.retryAfterSec) {
+          loginCooldown = Date.now() + data.retryAfterSec * 1000;
+        } else {
+          // Pequeña pausa tras fallo (ralentiza fuerza bruta en el cliente)
+          loginCooldown = Date.now() + 1500;
+        }
+        throw new Error(data.error || "No autorizado");
+      }
+      loginCooldown = null;
       adminKey = key;
       sessionStorage.setItem(KEY_STORAGE, key);
       showApp();
@@ -377,8 +397,13 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
         adminHubLoginStatus.textContent = err.message || "Contraseña incorrecta.";
         adminHubLoginStatus.className = "form-status err";
       }
+      if (adminHubKey) {
+        adminHubKey.value = "";
+        adminHubKey.classList.remove("is-visible");
+      }
     } finally {
       adminHubLoginBtn.disabled = false;
+      adminHubLoginBtn.textContent = "Entrar";
     }
   });
 
