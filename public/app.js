@@ -483,12 +483,22 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error");
       if (reserveStatus) {
-        reserveStatus.textContent = data.message || "¡Reserva guardada!";
+        reserveStatus.textContent =
+          (data.message || "¡Reserva guardada!") + " Te llevamos al calendario…";
         reserveStatus.classList.add("ok");
       }
       reserveForm.reset();
       const g = document.getElementById("resGuests");
       if (g) g.value = "1";
+      if (resPueblo) resPueblo.value = "";
+      setTimeout(() => {
+        const cal = document.getElementById("calendario");
+        if (cal) {
+          cal.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          window.location.hash = "calendario";
+        }
+      }, 2000);
     } catch (err) {
       if (reserveStatus) {
         reserveStatus.textContent = err.message || "No se pudo reservar.";
