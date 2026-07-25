@@ -315,7 +315,7 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
     <div class="stat"><span class="n">${s.total_reservations ?? 0}</span><span class="l">Total de registros</span></div>
     <div class="stat"><span class="n">${s.avg_guests ? Number(s.avg_guests).toFixed(1) : "0"}</span><span class="l">Promedio invitados / reserva activa</span></div>
   </div>
-  <p class="note">Confidencial. Solo reservas <strong>activas</strong> cuentan en invitados. Formal negro · Tres Palmas, Aguadilla · 5:00 p.m.</p>
+  <p class="note">Confidencial. Solo reservas <strong>activas</strong> cuentan en invitados. Tres Palmas, Aguadilla · 5:00 p.m.</p>
 </section>
 <section class="page">
   <h1>Detalle de reservas activas</h1>

@@ -414,6 +414,36 @@
   const reserveForm = document.getElementById("reserveForm");
   const reserveStatus = document.getElementById("reserveStatus");
   const reserveBtn = document.getElementById("reserveBtn");
+  const resPhone = document.getElementById("resPhone");
+
+  /** Formato teléfono PR/US: (787) 555-1234 */
+  function formatPhoneInput(value) {
+    const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
+    if (digits.length <= 3) {
+      return digits.length ? `(${digits}` : "";
+    }
+    if (digits.length <= 6) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    }
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+
+  resPhone?.addEventListener("input", (e) => {
+    const el = e.target;
+    const start = el.selectionStart;
+    const prev = el.value;
+    el.value = formatPhoneInput(el.value);
+    // intentar mantener el cursor al final al escribir
+    if (el.value.length >= prev.length) {
+      el.setSelectionRange(el.value.length, el.value.length);
+    } else if (typeof start === "number") {
+      el.setSelectionRange(start, start);
+    }
+  });
+
+  resPhone?.addEventListener("blur", (e) => {
+    e.target.value = formatPhoneInput(e.target.value);
+  });
 
   reserveForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
