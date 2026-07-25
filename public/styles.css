@@ -980,9 +980,18 @@ body {
   filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.55));
 }
 
+.admin-section {
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
+}
+
+.admin-entry {
+  text-align: center;
+}
+
 .admin-section .admin-box {
   max-width: 720px;
-  margin: 0 auto;
+  margin: 1.25rem auto 0;
 }
 
 .admin-hub-head {

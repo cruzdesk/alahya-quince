@@ -511,7 +511,9 @@
   const reserveForm = document.getElementById("reserveForm");
   const reserveStatus = document.getElementById("reserveStatus");
   const reserveBtn = document.getElementById("reserveBtn");
-  const adminHubLogin = document.getElementById("adminHubLogin");
+  const adminOpenBtn = document.getElementById("adminOpenBtn");
+  const adminKeyModal = document.getElementById("adminKeyModal");
+  const adminKeyClose = document.getElementById("adminKeyClose");
   const adminHubPanel = document.getElementById("adminHubPanel");
   const adminHubKey = document.getElementById("adminHubKey");
   const adminHubLoginBtn = document.getElementById("adminHubLoginBtn");
@@ -522,6 +524,27 @@
   const printResReportBtn = document.getElementById("printResReportBtn");
   const adminResRefreshBtn = document.getElementById("adminResRefreshBtn");
   let adminResKeySaved = "";
+
+  function openAdminKeyModal() {
+    if (!adminKeyModal) return;
+    if (adminHubLoginStatus) {
+      adminHubLoginStatus.textContent = "";
+      adminHubLoginStatus.className = "form-status";
+    }
+    if (adminHubKey) {
+      adminHubKey.value = "";
+      adminHubKey.classList.remove("is-visible");
+    }
+    adminKeyModal.hidden = false;
+    document.body.style.overflow = "hidden";
+    setTimeout(() => adminHubKey?.focus(), 50);
+  }
+
+  function closeAdminKeyModal() {
+    if (!adminKeyModal) return;
+    adminKeyModal.hidden = true;
+    document.body.style.overflow = "";
+  }
 
   reserveForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -634,8 +657,8 @@
       }
       if (String(err.message || "").includes("incorrecta")) {
         adminResKeySaved = "";
-        if (adminHubLogin) adminHubLogin.hidden = false;
         if (adminHubPanel) adminHubPanel.hidden = true;
+        if (adminOpenBtn) adminOpenBtn.hidden = false;
       }
     }
   }
@@ -778,6 +801,20 @@
     win.document.close();
   }
 
+  adminOpenBtn?.addEventListener("click", () => {
+    if (adminResKeySaved && adminHubPanel) {
+      adminHubPanel.hidden = false;
+      adminOpenBtn.hidden = true;
+      loadAdminReservations();
+      return;
+    }
+    openAdminKeyModal();
+  });
+
+  adminKeyClose?.addEventListener("click", closeAdminKeyModal);
+  adminKeyModal?.addEventListener("click", (e) => {
+    if (e.target === adminKeyModal) closeAdminKeyModal();
+  });
   adminHubKey?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") adminHubLoginBtn?.click();
   });
@@ -786,7 +823,7 @@
     const key = (adminHubKey?.value || "").trim();
     if (!key) {
       if (adminHubLoginStatus) {
-        adminHubLoginStatus.textContent = "Escribe la clave.";
+        adminHubLoginStatus.textContent = "Escribe la contraseña.";
         adminHubLoginStatus.className = "form-status err";
       }
       return;
@@ -801,17 +838,14 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No autorizado");
       adminResKeySaved = key;
-      if (adminHubLogin) adminHubLogin.hidden = true;
+      closeAdminKeyModal();
       if (adminHubPanel) adminHubPanel.hidden = false;
+      if (adminOpenBtn) adminOpenBtn.hidden = true;
       renderAdminStats(data.stats);
       renderAdminList(data.reservations || []);
-      if (adminHubLoginStatus) {
-        adminHubLoginStatus.textContent = "";
-        adminHubLoginStatus.className = "form-status";
-      }
     } catch (err) {
       if (adminHubLoginStatus) {
-        adminHubLoginStatus.textContent = err.message || "Clave incorrecta.";
+        adminHubLoginStatus.textContent = err.message || "Contraseña incorrecta.";
         adminHubLoginStatus.className = "form-status err";
       }
     } finally {
@@ -825,8 +859,8 @@
       adminHubKey.value = "";
       adminHubKey.classList.remove("is-visible");
     }
-    if (adminHubLogin) adminHubLogin.hidden = false;
     if (adminHubPanel) adminHubPanel.hidden = true;
+    if (adminOpenBtn) adminOpenBtn.hidden = false;
   });
 
   adminResRefreshBtn?.addEventListener("click", loadAdminReservations);
