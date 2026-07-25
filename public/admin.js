@@ -1,6 +1,10 @@
 /* Admin panel — página aparte */
 (function () {
   const KEY_STORAGE = "alahya_admin_key";
+  const LAST_ACTIVE_STORAGE = "alahya_admin_last_active";
+  /** Cierre de sesión por inactividad: 24 minutos */
+  const IDLE_MS = 24 * 60 * 1000;
+  const IDLE_CHECK_MS = 30 * 1000;
 
   const loginScreen = document.getElementById("loginScreen");
   const adminApp = document.getElementById("adminApp");
@@ -22,7 +26,12 @@
   const adminMenuToggle = document.getElementById("adminMenuToggle");
   const adminSidebarBackdrop = document.getElementById("adminSidebarBackdrop");
 
-  let adminKey = sessionStorage.getItem(KEY_STORAGE) || "";
+  let adminKey = "";
+  try {
+    adminKey = sessionStorage.getItem(KEY_STORAGE) || "";
+  } catch (_) {}
+  let idleTimer = null;
+  let idleWatch = null;
 
   const titles = {
     resumen: "Resumen",
@@ -48,10 +57,87 @@
     });
   }
 
+  function touchActivity() {
+    if (!adminKey) return;
+    try {
+      sessionStorage.setItem(LAST_ACTIVE_STORAGE, String(Date.now()));
+    } catch (_) {}
+    resetIdleTimer();
+  }
+
+  function clearIdleWatch() {
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+    if (idleWatch) {
+      clearInterval(idleWatch);
+      idleWatch = null;
+    }
+  }
+
+  function resetIdleTimer() {
+    if (idleTimer) clearTimeout(idleTimer);
+    if (!adminKey) return;
+    idleTimer = setTimeout(() => {
+      logoutDueToIdle();
+    }, IDLE_MS);
+  }
+
+  function logoutDueToIdle() {
+    showLogin();
+    if (adminHubLoginStatus) {
+      adminHubLoginStatus.textContent =
+        "Sesión cerrada por 24 minutos de inactividad. Vuelve a entrar.";
+      adminHubLoginStatus.className = "form-status err";
+    }
+  }
+
+  function isSessionExpired() {
+    try {
+      const last = Number(sessionStorage.getItem(LAST_ACTIVE_STORAGE) || 0);
+      if (!last) return true;
+      return Date.now() - last > IDLE_MS;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function startIdleWatch() {
+    clearIdleWatch();
+    touchActivity();
+    // Comprobar periódicamente (pestaña en segundo plano, etc.)
+    idleWatch = setInterval(() => {
+      if (!adminKey) return;
+      if (isSessionExpired()) logoutDueToIdle();
+    }, IDLE_CHECK_MS);
+
+    const events = [
+      "mousemove",
+      "mousedown",
+      "keydown",
+      "scroll",
+      "touchstart",
+      "click",
+      "wheel",
+    ];
+    events.forEach((ev) => {
+      document.addEventListener(ev, touchActivity, { passive: true });
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && adminKey) {
+        if (isSessionExpired()) logoutDueToIdle();
+        else touchActivity();
+      }
+    });
+  }
+
   function showLogin() {
     adminKey = "";
+    clearIdleWatch();
     try {
       sessionStorage.removeItem(KEY_STORAGE);
+      sessionStorage.removeItem(LAST_ACTIVE_STORAGE);
     } catch (_) {}
     if (loginScreen) {
       loginScreen.hidden = false;
@@ -74,6 +160,7 @@
       adminApp.hidden = false;
       adminApp.style.display = "grid";
     }
+    startIdleWatch();
   }
 
   function setView(name) {
@@ -563,9 +650,14 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
     }
   });
 
-  // Restaurar sesión
+  // Restaurar sesión (solo si no pasó el tiempo de inactividad)
   (async function init() {
-    if (!adminKey) {
+    if (!adminKey || isSessionExpired()) {
+      try {
+        sessionStorage.removeItem(KEY_STORAGE);
+        sessionStorage.removeItem(LAST_ACTIVE_STORAGE);
+      } catch (_) {}
+      adminKey = "";
       showLogin();
       return;
     }
