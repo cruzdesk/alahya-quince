@@ -50,17 +50,30 @@
 
   function showLogin() {
     adminKey = "";
-    sessionStorage.removeItem(KEY_STORAGE);
-    if (loginScreen) loginScreen.hidden = false;
-    if (adminApp) adminApp.hidden = true;
-    document.body.classList.remove("menu-open");
-    if (adminApp) adminApp.classList.remove("menu-open");
+    try {
+      sessionStorage.removeItem(KEY_STORAGE);
+    } catch (_) {}
+    if (loginScreen) {
+      loginScreen.hidden = false;
+      loginScreen.style.display = "";
+    }
+    if (adminApp) {
+      adminApp.hidden = true;
+      adminApp.style.display = "none";
+      adminApp.classList.remove("menu-open");
+    }
     if (adminSidebarBackdrop) adminSidebarBackdrop.hidden = true;
   }
 
   function showApp() {
-    if (loginScreen) loginScreen.hidden = true;
-    if (adminApp) adminApp.hidden = false;
+    if (loginScreen) {
+      loginScreen.hidden = true;
+      loginScreen.style.display = "none";
+    }
+    if (adminApp) {
+      adminApp.hidden = false;
+      adminApp.style.display = "grid";
+    }
   }
 
   function setView(name) {
@@ -368,31 +381,42 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
     }
     adminHubLoginBtn.disabled = true;
     adminHubLoginBtn.textContent = "Verificando…";
+    if (adminHubLoginStatus) {
+      adminHubLoginStatus.textContent = "";
+      adminHubLoginStatus.className = "form-status";
+    }
     try {
       const res = await fetch("/api/admin/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key }),
       });
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (_) {
+        throw new Error("Respuesta inválida del servidor (" + res.status + ").");
+      }
       if (!res.ok) {
         if (data.retryAfterSec) {
           loginCooldown = Date.now() + data.retryAfterSec * 1000;
         } else {
-          // Pequeña pausa tras fallo (ralentiza fuerza bruta en el cliente)
           loginCooldown = Date.now() + 1500;
         }
         throw new Error(data.error || "No autorizado");
       }
       loginCooldown = null;
       adminKey = key;
-      sessionStorage.setItem(KEY_STORAGE, key);
+      try {
+        sessionStorage.setItem(KEY_STORAGE, key);
+      } catch (_) {}
       showApp();
       setView("resumen");
       renderStats(data.stats, adminResStats);
       renderStats(data.stats, adminResStats2);
       renderAdminList(data.reservations || []);
     } catch (err) {
+      console.error("[admin login]", err);
       if (adminHubLoginStatus) {
         adminHubLoginStatus.textContent = err.message || "Contraseña incorrecta.";
         adminHubLoginStatus.className = "form-status err";

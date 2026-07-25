@@ -5,6 +5,14 @@
   color: var(--ink);
 }
 
+/* display:flex/grid anula [hidden] si no se fuerza */
+.admin-login-wrap[hidden],
+.admin-app[hidden],
+.admin-view[hidden],
+.admin-sidebar-backdrop[hidden] {
+  display: none !important;
+}
+
 .admin-login-wrap {
   min-height: 100vh;
   display: flex;
@@ -180,10 +188,6 @@
 .admin-main {
   padding: 1.5rem;
   max-width: 960px;
-}
-
-.admin-view[hidden] {
-  display: none !important;
 }
 
 .admin-quick-actions {
