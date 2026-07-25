@@ -31,6 +31,7 @@
       <li><a href="#itinerario">Itinerario</a></li>
       <li><a href="#reservar">Reservar</a></li>
       <li><a href="#deseos">Deseos</a></li>
+      <li><a href="#admin">Admin</a></li>
     </ul>
   </nav>
 
@@ -253,11 +254,11 @@
         <div class="form-grid">
           <div class="form-row">
             <label for="resPhone">Teléfono</label>
-            <input type="tel" id="resPhone" name="phone" autocomplete="tel" placeholder="Opcional si dejas correo" />
+            <input type="tel" id="resPhone" name="phone" autocomplete="tel" inputmode="tel" placeholder="(787) 000-0000" />
           </div>
           <div class="form-row">
             <label for="resEmail">Correo</label>
-            <input type="email" id="resEmail" name="email" autocomplete="email" placeholder="Opcional si dejas teléfono" />
+            <input type="email" id="resEmail" name="email" autocomplete="email" inputmode="email" placeholder="nombre@correo.com" />
           </div>
         </div>
         <div class="form-row">
@@ -265,80 +266,62 @@
           <input type="number" id="resGuests" name="guests" min="1" max="20" value="1" required />
         </div>
         <div class="form-row">
-          <label for="resNotes">Notas (opcional)</label>
+          <label for="resNotes">Notas</label>
           <input type="text" id="resNotes" name="notes" maxlength="400" placeholder="Alergias, mesa, mensaje…" />
         </div>
         <p class="pin-hint muted">Indica al menos teléfono o correo. Formal · <strong>negro</strong>.</p>
         <button type="submit" class="btn btn-gold full" id="reserveBtn">Enviar reserva</button>
         <p class="form-status" id="reserveStatus" role="status"></p>
       </form>
-
-      <div class="admin-print-bar">
-        <button type="button" class="btn btn-outline" id="adminResBtn">🔐 Admin reservas</button>
-        <p class="form-status" id="adminResStatus" role="status"></p>
-      </div>
     </div>
   </section>
-
-  <!-- Modal admin reservas -->
-  <div class="modal-overlay" id="adminResModal" hidden>
-    <div class="modal-card glass modal-card-wide" role="dialog" aria-modal="true" aria-labelledby="adminResTitle">
-      <button type="button" class="modal-close" id="adminResClose" aria-label="Cerrar">×</button>
-      <p class="section-kicker" style="margin-bottom:0.35rem">Solo administrador</p>
-      <h3 class="modal-title" id="adminResTitle">Reservas</h3>
-
-      <div id="adminResLogin">
-        <p class="muted" style="margin-bottom:1rem">Misma clave que “Imprimir todos los deseos”.</p>
-        <div class="form-row">
-          <label for="adminResKey">Clave admin</label>
-          <input type="password" id="adminResKey" placeholder="Clave" autocomplete="off" inputmode="numeric" />
-        </div>
-        <button type="button" class="btn btn-gold full" id="adminResLoginBtn">Entrar</button>
-        <p class="form-status" id="adminResLoginStatus" role="status"></p>
-      </div>
-
-      <div id="adminResPanel" hidden>
-        <div class="admin-stats" id="adminResStats"></div>
-        <div class="admin-res-actions">
-          <button type="button" class="btn btn-gold" id="printResReportBtn">🖨 Imprimir reporte profesional</button>
-          <button type="button" class="btn btn-outline" id="adminResRefreshBtn">Actualizar lista</button>
-        </div>
-        <div class="admin-res-list" id="adminResList"></div>
-      </div>
-    </div>
-  </div>
 
   <!-- DESEOS -->
   <section class="section wishes-section" id="deseos">
     <div class="container">
       <p class="section-kicker">Muro de cariño</p>
       <h2 class="section-title">Deja un deseo</h2>
-      <form class="wish-form glass" id="wishForm">
-        <div class="form-grid">
-          <div class="form-row">
-            <label for="wishName">Tu nombre</label>
-            <input type="text" id="wishName" required placeholder="Nombre" autocomplete="name" />
-          </div>
-          <div class="form-row">
-            <label for="wishPin">PIN para publicar</label>
-            <input type="password" id="wishPin" required placeholder="••••" inputmode="numeric" maxlength="12" autocomplete="off" />
-          </div>
+      <form class="wish-form glass" id="wishForm" autocomplete="off">
+        <div class="form-row">
+          <label for="wishName">Tu nombre</label>
+          <input type="text" id="wishName" required placeholder="Nombre" autocomplete="name" />
         </div>
         <div class="form-row">
           <label for="wishMsg">Tu mensaje</label>
           <input type="text" id="wishMsg" required placeholder="Que Dios te bendiga…" maxlength="400" />
         </div>
-        <p class="pin-hint muted">Solo quien tenga el PIN puede publicar un deseo.</p>
+        <div class="form-row">
+          <label for="wishPin">PIN para publicar</label>
+          <div class="pin-field">
+            <input
+              type="text"
+              id="wishPin"
+              class="pin-masked"
+              required
+              placeholder="••••"
+              inputmode="numeric"
+              maxlength="12"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              data-form-type="other"
+              name="wish_publish_pin"
+            />
+            <button type="button" class="pin-toggle" id="wishPinToggle" aria-label="Mostrar u ocultar PIN" title="Mostrar PIN">
+              👑
+            </button>
+          </div>
+        </div>
+        <p class="pin-hint muted">Solo quien tenga el PIN puede publicar un deseo. Toca la corona para verlo.</p>
         <button type="submit" class="btn btn-outline">Publicar deseo ✨</button>
         <p class="form-status" id="wishStatus" role="status"></p>
       </form>
       <p class="muted center wish-tap-hint">Toca un deseo para ver detalles del dispositivo</p>
       <div class="wishes-wall" id="wishesWall">
         <p class="muted center">Cargando deseos…</p>
-      </div>
-      <div class="admin-print-bar">
-        <button type="button" class="btn btn-outline" id="printWishesBtn">🖨 Imprimir todos los deseos</button>
-        <p class="form-status" id="printStatus" role="status"></p>
       </div>
     </div>
   </section>
@@ -356,25 +339,67 @@
     </div>
   </div>
 
-  <!-- Modal clave admin para imprimir -->
-  <div class="modal-overlay" id="printAuthModal" hidden>
-    <div class="modal-card glass modal-card-sm" role="dialog" aria-modal="true" aria-labelledby="printAuthTitle">
-      <button type="button" class="modal-close" id="printAuthClose" aria-label="Cerrar">×</button>
-      <p class="section-kicker" style="margin-bottom:0.35rem">Solo administrador</p>
-      <h3 class="modal-title" id="printAuthTitle">Imprimir deseos</h3>
-      <p class="muted" style="margin-bottom:1rem">Ingresa la clave de administrador para generar la impresión de todos los deseos.</p>
-      <div class="form-row">
-        <label for="printAdminKey">Clave admin</label>
-        <input type="password" id="printAdminKey" placeholder="Clave" autocomplete="off" inputmode="numeric" />
+  <!-- ADMIN unificado -->
+  <section class="section admin-section" id="admin">
+    <div class="container narrow">
+      <p class="section-kicker">Área protegida</p>
+      <h2 class="section-title">Admin</h2>
+      <div class="wish-form glass admin-box">
+        <div id="adminHubLogin">
+          <p class="muted" style="margin-bottom:1rem">
+            Un solo acceso para reservas, cancelaciones e impresión de reportes y deseos.
+          </p>
+          <div class="form-row">
+            <label for="adminHubKey">Clave admin</label>
+            <div class="pin-field">
+              <input
+                type="text"
+                id="adminHubKey"
+                class="pin-masked"
+                placeholder="Clave"
+                inputmode="numeric"
+                autocomplete="off"
+                autocorrect="off"
+                spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                data-form-type="other"
+                name="admin_hub_key"
+              />
+              <button type="button" class="pin-toggle" id="adminHubKeyToggle" aria-label="Mostrar u ocultar clave" title="Mostrar clave">👑</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-gold full" id="adminHubLoginBtn">Entrar al panel</button>
+          <p class="form-status" id="adminHubLoginStatus" role="status"></p>
+        </div>
+
+        <div id="adminHubPanel" hidden>
+          <div class="admin-hub-head">
+            <p class="muted">Sesión admin activa</p>
+            <button type="button" class="btn-danger-sm" id="adminHubLogout">Salir</button>
+          </div>
+
+          <h3 class="admin-block-title">Reservas</h3>
+          <div class="admin-stats" id="adminResStats"></div>
+          <div class="admin-res-actions">
+            <button type="button" class="btn btn-gold" id="printResReportBtn">🖨 Reporte de reservas</button>
+            <button type="button" class="btn btn-outline" id="adminResRefreshBtn">Actualizar</button>
+          </div>
+          <div class="admin-res-list" id="adminResList"></div>
+
+          <h3 class="admin-block-title">Deseos</h3>
+          <label class="check-row">
+            <input type="checkbox" id="printIncludeMeta" checked />
+            <span>Incluir info del equipo al imprimir deseos</span>
+          </label>
+          <div class="admin-res-actions">
+            <button type="button" class="btn btn-outline" id="printWishesBtn">🖨 Imprimir todos los deseos</button>
+          </div>
+          <p class="form-status" id="printStatus" role="status"></p>
+        </div>
       </div>
-      <label class="check-row">
-        <input type="checkbox" id="printIncludeMeta" checked />
-        <span>Incluir información del equipo en la impresión</span>
-      </label>
-      <button type="button" class="btn btn-gold full" id="printAuthSubmit">Continuar e imprimir</button>
-      <p class="form-status" id="printAuthStatus" role="status"></p>
     </div>
-  </div>
+  </section>
 
   <!-- REGALOS -->
   <section class="section gifts-section">

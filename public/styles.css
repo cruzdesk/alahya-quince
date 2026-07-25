@@ -916,6 +916,100 @@ body {
   font-size: 0.8rem !important;
 }
 
+/* PIN / clave: máscara propia + corona (sin ojo del navegador) */
+.pin-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pin-field input {
+  width: 100%;
+  padding-right: 3rem !important;
+}
+
+/* Oculta el “ojo” nativo de Edge/IE y autofill de contraseña */
+.pin-field input::-ms-reveal,
+.pin-field input::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.pin-field input::-webkit-credentials-auto-fill-button,
+.pin-field input::-webkit-strong-password-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
+.pin-masked {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
+.pin-masked.is-visible {
+  -webkit-text-security: none;
+  text-security: none;
+}
+
+.pin-toggle {
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.35rem 0.45rem;
+  border-radius: 8px;
+  opacity: 0.85;
+  transition: opacity 0.2s, background 0.2s, transform 0.15s;
+}
+
+.pin-toggle:hover {
+  opacity: 1;
+  background: rgba(212, 175, 55, 0.15);
+}
+
+.pin-toggle[aria-pressed="true"] {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.55));
+}
+
+.admin-section .admin-box {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.admin-hub-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(201, 162, 39, 0.3);
+}
+
+.admin-block-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--rose);
+  margin: 1.35rem 0 0.75rem;
+  border-top: 1px solid rgba(201, 162, 39, 0.25);
+  padding-top: 1rem;
+}
+
+.admin-block-title:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0.25rem;
+}
+
 /* Modal meta */
 .modal-overlay {
   position: fixed;

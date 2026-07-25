@@ -396,33 +396,25 @@
 
   loadWishes();
 
-  // ——— Admin print all wishes
+  // ——— Toggle corona (mostrar/ocultar PIN sin ojo del navegador)
+  function bindPinToggle(inputId, btnId) {
+    const input = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    if (!input || !btn) return;
+    btn.addEventListener("click", () => {
+      const show = !input.classList.contains("is-visible");
+      input.classList.toggle("is-visible", show);
+      btn.setAttribute("aria-pressed", show ? "true" : "false");
+      btn.title = show ? "Ocultar" : "Mostrar";
+    });
+  }
+  bindPinToggle("wishPin", "wishPinToggle");
+  bindPinToggle("adminHubKey", "adminHubKeyToggle");
+
+  // ——— Admin unificado + impresión deseos
   const printWishesBtn = document.getElementById("printWishesBtn");
   const printStatus = document.getElementById("printStatus");
-  const printAuthModal = document.getElementById("printAuthModal");
-  const printAuthClose = document.getElementById("printAuthClose");
-  const printAuthSubmit = document.getElementById("printAuthSubmit");
-  const printAdminKey = document.getElementById("printAdminKey");
-  const printAuthStatus = document.getElementById("printAuthStatus");
   const printIncludeMeta = document.getElementById("printIncludeMeta");
-
-  function openPrintAuth() {
-    if (!printAuthModal) return;
-    if (printAuthStatus) {
-      printAuthStatus.textContent = "";
-      printAuthStatus.className = "form-status";
-    }
-    if (printAdminKey) printAdminKey.value = "";
-    printAuthModal.hidden = false;
-    document.body.style.overflow = "hidden";
-    setTimeout(() => printAdminKey?.focus(), 50);
-  }
-
-  function closePrintAuth() {
-    if (!printAuthModal) return;
-    printAuthModal.hidden = true;
-    document.body.style.overflow = "";
-  }
 
   function metaSummary(meta) {
     if (!meta || typeof meta !== "object") return "";
@@ -515,67 +507,16 @@
     win.document.close();
   }
 
-  printWishesBtn?.addEventListener("click", openPrintAuth);
-  printAuthClose?.addEventListener("click", closePrintAuth);
-  printAuthModal?.addEventListener("click", (e) => {
-    if (e.target === printAuthModal) closePrintAuth();
-  });
-  printAdminKey?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") printAuthSubmit?.click();
-  });
-
-  printAuthSubmit?.addEventListener("click", async () => {
-    if (printAuthStatus) {
-      printAuthStatus.textContent = "";
-      printAuthStatus.className = "form-status";
-    }
-    const key = (printAdminKey?.value || "").trim();
-    if (!key) {
-      if (printAuthStatus) {
-        printAuthStatus.textContent = "Escribe la clave de administrador.";
-        printAuthStatus.classList.add("err");
-      }
-      return;
-    }
-    printAuthSubmit.disabled = true;
-    printAuthSubmit.textContent = "Cargando…";
-    try {
-      const res = await fetch("/api/admin/print-wishes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "No autorizado");
-      closePrintAuth();
-      openPrintDocument(data, !!(printIncludeMeta && printIncludeMeta.checked));
-      if (printStatus) {
-        printStatus.textContent = `Listo: ${data.total} deseo(s) para imprimir.`;
-        printStatus.className = "form-status ok";
-      }
-    } catch (err) {
-      if (printAuthStatus) {
-        printAuthStatus.textContent = err.message || "Error al imprimir.";
-        printAuthStatus.classList.add("err");
-      }
-    } finally {
-      printAuthSubmit.disabled = false;
-      printAuthSubmit.textContent = "Continuar e imprimir";
-    }
-  });
-
-  // ——— Reservas
+  // ——— Reservas + hub admin
   const reserveForm = document.getElementById("reserveForm");
   const reserveStatus = document.getElementById("reserveStatus");
   const reserveBtn = document.getElementById("reserveBtn");
-  const adminResBtn = document.getElementById("adminResBtn");
-  const adminResModal = document.getElementById("adminResModal");
-  const adminResClose = document.getElementById("adminResClose");
-  const adminResLogin = document.getElementById("adminResLogin");
-  const adminResPanel = document.getElementById("adminResPanel");
-  const adminResKey = document.getElementById("adminResKey");
-  const adminResLoginBtn = document.getElementById("adminResLoginBtn");
-  const adminResLoginStatus = document.getElementById("adminResLoginStatus");
+  const adminHubLogin = document.getElementById("adminHubLogin");
+  const adminHubPanel = document.getElementById("adminHubPanel");
+  const adminHubKey = document.getElementById("adminHubKey");
+  const adminHubLoginBtn = document.getElementById("adminHubLoginBtn");
+  const adminHubLoginStatus = document.getElementById("adminHubLoginStatus");
+  const adminHubLogout = document.getElementById("adminHubLogout");
   const adminResStats = document.getElementById("adminResStats");
   const adminResList = document.getElementById("adminResList");
   const printResReportBtn = document.getElementById("printResReportBtn");
@@ -626,31 +567,6 @@
       }
     }
   });
-
-  function openAdminRes() {
-    if (!adminResModal) return;
-    if (adminResLoginStatus) {
-      adminResLoginStatus.textContent = "";
-      adminResLoginStatus.className = "form-status";
-    }
-    if (!adminResKeySaved) {
-      if (adminResLogin) adminResLogin.hidden = false;
-      if (adminResPanel) adminResPanel.hidden = true;
-      if (adminResKey) adminResKey.value = "";
-    } else {
-      if (adminResLogin) adminResLogin.hidden = true;
-      if (adminResPanel) adminResPanel.hidden = false;
-      loadAdminReservations();
-    }
-    adminResModal.hidden = false;
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeAdminRes() {
-    if (!adminResModal) return;
-    adminResModal.hidden = true;
-    document.body.style.overflow = "";
-  }
 
   function renderAdminStats(stats) {
     if (!adminResStats || !stats) return;
@@ -718,8 +634,8 @@
       }
       if (String(err.message || "").includes("incorrecta")) {
         adminResKeySaved = "";
-        if (adminResLogin) adminResLogin.hidden = false;
-        if (adminResPanel) adminResPanel.hidden = true;
+        if (adminHubLogin) adminHubLogin.hidden = false;
+        if (adminHubPanel) adminHubPanel.hidden = true;
       }
     }
   }
@@ -862,25 +778,20 @@
     win.document.close();
   }
 
-  adminResBtn?.addEventListener("click", openAdminRes);
-  adminResClose?.addEventListener("click", closeAdminRes);
-  adminResModal?.addEventListener("click", (e) => {
-    if (e.target === adminResModal) closeAdminRes();
-  });
-  adminResKey?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") adminResLoginBtn?.click();
+  adminHubKey?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") adminHubLoginBtn?.click();
   });
 
-  adminResLoginBtn?.addEventListener("click", async () => {
-    const key = (adminResKey?.value || "").trim();
+  adminHubLoginBtn?.addEventListener("click", async () => {
+    const key = (adminHubKey?.value || "").trim();
     if (!key) {
-      if (adminResLoginStatus) {
-        adminResLoginStatus.textContent = "Escribe la clave.";
-        adminResLoginStatus.className = "form-status err";
+      if (adminHubLoginStatus) {
+        adminHubLoginStatus.textContent = "Escribe la clave.";
+        adminHubLoginStatus.className = "form-status err";
       }
       return;
     }
-    adminResLoginBtn.disabled = true;
+    adminHubLoginBtn.disabled = true;
     try {
       const res = await fetch("/api/admin/reservations", {
         method: "POST",
@@ -890,21 +801,69 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No autorizado");
       adminResKeySaved = key;
-      if (adminResLogin) adminResLogin.hidden = true;
-      if (adminResPanel) adminResPanel.hidden = false;
+      if (adminHubLogin) adminHubLogin.hidden = true;
+      if (adminHubPanel) adminHubPanel.hidden = false;
       renderAdminStats(data.stats);
       renderAdminList(data.reservations || []);
+      if (adminHubLoginStatus) {
+        adminHubLoginStatus.textContent = "";
+        adminHubLoginStatus.className = "form-status";
+      }
     } catch (err) {
-      if (adminResLoginStatus) {
-        adminResLoginStatus.textContent = err.message || "Clave incorrecta.";
-        adminResLoginStatus.className = "form-status err";
+      if (adminHubLoginStatus) {
+        adminHubLoginStatus.textContent = err.message || "Clave incorrecta.";
+        adminHubLoginStatus.className = "form-status err";
       }
     } finally {
-      adminResLoginBtn.disabled = false;
+      adminHubLoginBtn.disabled = false;
     }
   });
 
+  adminHubLogout?.addEventListener("click", () => {
+    adminResKeySaved = "";
+    if (adminHubKey) {
+      adminHubKey.value = "";
+      adminHubKey.classList.remove("is-visible");
+    }
+    if (adminHubLogin) adminHubLogin.hidden = false;
+    if (adminHubPanel) adminHubPanel.hidden = true;
+  });
+
   adminResRefreshBtn?.addEventListener("click", loadAdminReservations);
+
+  printWishesBtn?.addEventListener("click", async () => {
+    if (!adminResKeySaved) {
+      if (printStatus) {
+        printStatus.textContent = "Entra al panel admin primero.";
+        printStatus.className = "form-status err";
+      }
+      return;
+    }
+    printWishesBtn.disabled = true;
+    printWishesBtn.textContent = "Cargando…";
+    try {
+      const res = await fetch("/api/admin/print-wishes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: adminResKeySaved }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No autorizado");
+      openPrintDocument(data, !!(printIncludeMeta && printIncludeMeta.checked));
+      if (printStatus) {
+        printStatus.textContent = `Listo: ${data.total} deseo(s) para imprimir.`;
+        printStatus.className = "form-status ok";
+      }
+    } catch (err) {
+      if (printStatus) {
+        printStatus.textContent = err.message || "Error al imprimir.";
+        printStatus.className = "form-status err";
+      }
+    } finally {
+      printWishesBtn.disabled = false;
+      printWishesBtn.textContent = "🖨 Imprimir todos los deseos";
+    }
+  });
 
   adminResList?.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-cancel-id]");
