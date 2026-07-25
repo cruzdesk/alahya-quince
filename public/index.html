@@ -261,9 +261,17 @@
             <input type="email" id="resEmail" name="email" autocomplete="email" inputmode="email" placeholder="nombre@correo.com" />
           </div>
         </div>
-        <div class="form-row">
-          <label for="resGuests">Cantidad de invitados * <span class="muted">(incluyéndote)</span></label>
-          <input type="number" id="resGuests" name="guests" min="1" max="20" value="1" required />
+        <div class="form-grid">
+          <div class="form-row">
+            <label for="resPueblo">Pueblo *</label>
+            <select id="resPueblo" name="pueblo" required>
+              <option value="">Selecciona tu pueblo</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="resGuests">Cantidad de invitados * <span class="muted">(incluyéndote)</span></label>
+            <input type="number" id="resGuests" name="guests" min="1" max="20" value="1" required />
+          </div>
         </div>
         <div class="form-row">
           <label for="resNotes">Notas</label>
@@ -367,6 +375,7 @@
     </p>
   </footer>
 
+  <script src="/pr-towns.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

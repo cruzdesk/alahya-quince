@@ -81,7 +81,8 @@ function memoryQuery(text, params = []) {
       email: params[1],
       phone: params[2],
       guests: params[3],
-      notes: params[4],
+      pueblo: params[4],
+      notes: params[5],
       status: "active",
       cancelled_at: null,
       created_at: new Date().toISOString(),
@@ -195,6 +196,7 @@ async function ensureSchema() {
         email VARCHAR(160),
         phone VARCHAR(40),
         guests INTEGER NOT NULL DEFAULT 1,
+        pueblo VARCHAR(80),
         notes TEXT,
         status VARCHAR(20) NOT NULL DEFAULT 'active',
         cancelled_at TIMESTAMPTZ,
@@ -202,7 +204,13 @@ async function ensureSchema() {
       );
     `);
     await pool.query(`
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS pueblo VARCHAR(80);
+    `);
+    await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_reservations_status ON reservations (status, created_at DESC);
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_reservations_pueblo ON reservations (pueblo);
     `);
     schemaReady = true;
     console.log("✓ Schema rsvps/wishes/reservations listo");

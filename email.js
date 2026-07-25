@@ -20,6 +20,7 @@ async function sendReservationAlert(reservation) {
     "Nueva reserva registrada",
     "",
     `Nombre: ${reservation.name}`,
+    `Pueblo: ${reservation.pueblo || "—"}`,
     `Invitados: ${reservation.guests}`,
     `Teléfono: ${reservation.phone || "—"}`,
     `Correo: ${reservation.email || "—"}`,
@@ -36,6 +37,7 @@ async function sendReservationAlert(reservation) {
       <p style="margin:0 0 16px;color:#5c4a48">Victorian Masquerade Ball · 10 oct 2026</p>
       <table style="width:100%;border-collapse:collapse;font-size:15px">
         <tr><td style="padding:6px 0;color:#5c4a48">Nombre</td><td style="padding:6px 0;font-weight:600">${escapeHtml(reservation.name)}</td></tr>
+        <tr><td style="padding:6px 0;color:#5c4a48">Pueblo</td><td style="padding:6px 0;font-weight:600">${escapeHtml(reservation.pueblo || "—")}</td></tr>
         <tr><td style="padding:6px 0;color:#5c4a48">Invitados</td><td style="padding:6px 0;font-weight:600">${reservation.guests}</td></tr>
         <tr><td style="padding:6px 0;color:#5c4a48">Teléfono</td><td style="padding:6px 0">${escapeHtml(reservation.phone || "—")}</td></tr>
         <tr><td style="padding:6px 0;color:#5c4a48">Correo</td><td style="padding:6px 0">${escapeHtml(reservation.email || "—")}</td></tr>

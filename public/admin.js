@@ -33,6 +33,10 @@
   let idleTimer = null;
   let idleWatch = null;
   let idleListenersBound = false;
+  let byPuebloCache = [];
+  let mapReservas = null;
+  let mapResumen = null;
+  let mapLayers = { reservas: null, resumen: null };
 
   const titles = {
     resumen: "Resumen",
@@ -178,7 +182,111 @@
     if (adminViewTitle) adminViewTitle.textContent = titles[name] || name;
     closeMobileMenu();
     if (name === "deseos" && adminKey) loadAdminWishes();
-    if (name === "reservas" && adminKey) loadAdminReservations();
+    if (name === "reservas" && adminKey) {
+      loadAdminReservations().then(() => {
+        setTimeout(() => {
+          ensureMaps();
+          renderTownMaps(byPuebloCache);
+        }, 80);
+      });
+    }
+    if (name === "resumen" && adminKey) {
+      setTimeout(() => {
+        ensureMaps();
+        renderTownMaps(byPuebloCache);
+      }, 80);
+    }
+  }
+
+  function ensureMaps() {
+    if (typeof L === "undefined") return;
+    const prBounds = L.latLngBounds([17.85, -67.35], [18.55, -65.2]);
+
+    function makeMap(elId) {
+      const el = document.getElementById(elId);
+      if (!el) return null;
+      if (el._leaflet_id) {
+        // already initialized
+        return elId === "prMap" ? mapReservas : mapResumen;
+      }
+      const map = L.map(elId, {
+        scrollWheelZoom: false,
+        maxBounds: prBounds.pad(0.15),
+        minZoom: 8,
+        maxZoom: 12,
+      }).setView([18.22, -66.45], 8);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap",
+        maxZoom: 18,
+      }).addTo(map);
+      return map;
+    }
+
+    if (!mapReservas && document.getElementById("prMap")) {
+      mapReservas = makeMap("prMap");
+      mapLayers.reservas = L.layerGroup().addTo(mapReservas);
+    }
+    if (!mapResumen && document.getElementById("prMapResumen")) {
+      mapResumen = makeMap("prMapResumen");
+      mapLayers.resumen = L.layerGroup().addTo(mapResumen);
+    }
+  }
+
+  function showPuebloDetail(entry, detailElId) {
+    const detail = document.getElementById(detailElId);
+    if (!detail || !entry) return;
+    detail.hidden = false;
+    const list = (entry.reservations || [])
+      .map(
+        (r) =>
+          `<div class="meta-line"><strong>${escapeHtml(r.name)}</strong> · ${r.guests} inv. · ${escapeHtml(
+            [r.phone, r.email].filter(Boolean).join(" · ") || "—"
+          )}</div>`
+      )
+      .join("");
+    detail.innerHTML = `
+      <h4>${escapeHtml(entry.pueblo)}</h4>
+      <div class="pr-map-meta">${entry.count} reserva(s) · <strong>${entry.guests}</strong> invitado(s)</div>
+      ${list || "<p class='muted'>Sin detalle</p>"}
+    `;
+  }
+
+  function renderTownMaps(byPueblo) {
+    byPuebloCache = byPueblo || [];
+    ensureMaps();
+    const towns = window.PR_TOWN_BY_NAME || {};
+
+    function paint(map, layerGroup, detailId) {
+      if (!map || !layerGroup) return;
+      layerGroup.clearLayers();
+      const points = [];
+      byPuebloCache.forEach((entry) => {
+        const info = towns[(entry.pueblo || "").toLowerCase()];
+        if (!info) return;
+        points.push([info.lat, info.lng]);
+        const marker = L.circleMarker([info.lat, info.lng], {
+          radius: Math.min(14, 7 + entry.count * 1.5),
+          color: "#9b1c1c",
+          fillColor: "#d4af37",
+          fillOpacity: 0.9,
+          weight: 2,
+        });
+        marker.bindPopup(
+          `<strong>${escapeHtml(entry.pueblo)}</strong><br>${entry.count} reserva(s)<br>${entry.guests} invitado(s)<br><em>Clic para ver lista</em>`
+        );
+        marker.on("click", () => showPuebloDetail(entry, detailId));
+        layerGroup.addLayer(marker);
+      });
+      if (points.length) {
+        try {
+          map.fitBounds(points, { padding: [28, 28], maxZoom: 10 });
+        } catch (_) {}
+      }
+      setTimeout(() => map.invalidateSize(), 100);
+    }
+
+    paint(mapReservas, mapLayers.reservas, "prMapDetail");
+    paint(mapResumen, mapLayers.resumen, "prMapDetailResumen");
   }
 
   function renderAdminWishes(list) {
@@ -299,6 +407,7 @@
           ? '<span class="badge no">Cancelada</span>'
           : '<span class="badge ok">Activa</span>';
         const contact = [r.phone, r.email].filter(Boolean).join(" · ") || "—";
+        const pueblo = r.pueblo ? escapeHtml(r.pueblo) : "Sin pueblo";
         const notes = r.notes
           ? `<div class="meta-line">Notas: ${escapeHtml(r.notes)}</div>`
           : "";
@@ -308,7 +417,8 @@
         return `<article class="admin-res-item${cancelled ? " cancelled" : ""}">
           <div>
             <div class="who">${escapeHtml(r.name)} ${badge}</div>
-            <div class="meta-line"><strong>${r.guests}</strong> invitado(s) · ${escapeHtml(contact)}</div>
+            <div class="meta-line">📍 ${pueblo} · <strong>${r.guests}</strong> invitado(s)</div>
+            <div class="meta-line">${escapeHtml(contact)}</div>
             <div class="meta-line">#${r.id} · ${escapeHtml(when)}</div>
             ${notes}
           </div>
@@ -331,6 +441,7 @@
       renderStats(data.stats, adminResStats);
       renderStats(data.stats, adminResStats2);
       renderAdminList(data.reservations || []);
+      renderTownMaps(data.byPueblo || []);
       return true;
     } catch (err) {
       if (adminResList) {
@@ -425,12 +536,21 @@ ${rows || "<p>No hay deseos todavía.</p>"}
       dateStyle: "full",
       timeStyle: "short",
     });
+    const byPueblo = data.byPueblo || [];
+    const puebloRows = byPueblo
+      .map(
+        (p, i) =>
+          `<tr><td>${i + 1}</td><td>${escapeHtml(p.pueblo)}</td><td class="c">${p.count}</td><td class="c">${p.guests}</td></tr>`
+      )
+      .join("");
+
     const rows = (items) =>
       items
         .map(
           (r, i) => `<tr>
           <td>${i + 1}</td>
           <td>${escapeHtml(r.name)}</td>
+          <td>${escapeHtml(r.pueblo || "—")}</td>
           <td class="c">${r.guests}</td>
           <td>${escapeHtml(r.phone || "—")}</td>
           <td>${escapeHtml(r.email || "—")}</td>
@@ -472,18 +592,22 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
     <div class="stat"><span class="n">${s.cancelled_count ?? 0}</span><span class="l">Reservas canceladas</span></div>
     <div class="stat"><span class="n">${s.total_reservations ?? 0}</span><span class="l">Total de registros</span></div>
     <div class="stat"><span class="n">${s.avg_guests ? Number(s.avg_guests).toFixed(1) : "0"}</span><span class="l">Promedio invitados / reserva activa</span></div>
+    <div class="stat"><span class="n">${byPueblo.length}</span><span class="l">Pueblos representados</span></div>
   </div>
+  <h2>Por pueblo</h2>
+  <table><thead><tr><th>#</th><th>Pueblo</th><th>Reservas</th><th>Invitados</th></tr></thead>
+  <tbody>${puebloRows || '<tr><td colspan="4">Sin datos por pueblo</td></tr>'}</tbody></table>
   <p class="note">Confidencial. Solo reservas <strong>activas</strong> cuentan en invitados. Tres Palmas, Aguadilla · 5:00 p.m.</p>
 </section>
 <section class="page">
   <h1>Detalle de reservas activas</h1>
   <p class="sub">${active.length} reserva(s) · ${s.total_guests ?? 0} invitado(s)</p>
-  <table><thead><tr><th>#</th><th>Nombre</th><th>Inv.</th><th>Teléfono</th><th>Correo</th><th>Notas</th><th>Fecha</th></tr></thead>
-  <tbody>${rows(active) || '<tr><td colspan="7">Sin reservas activas</td></tr>'}</tbody></table>
+  <table><thead><tr><th>#</th><th>Nombre</th><th>Pueblo</th><th>Inv.</th><th>Teléfono</th><th>Correo</th><th>Notas</th><th>Fecha</th></tr></thead>
+  <tbody>${rows(active) || '<tr><td colspan="8">Sin reservas activas</td></tr>'}</tbody></table>
   ${
     cancelled.length
       ? `<h2 class="cancelled-title">Canceladas (${cancelled.length})</h2>
-  <table><thead><tr><th>#</th><th>Nombre</th><th>Inv.</th><th>Teléfono</th><th>Correo</th><th>Notas</th><th>Fecha</th></tr></thead>
+  <table><thead><tr><th>#</th><th>Nombre</th><th>Pueblo</th><th>Inv.</th><th>Teléfono</th><th>Correo</th><th>Notas</th><th>Fecha</th></tr></thead>
   <tbody>${rows(cancelled)}</tbody></table>`
       : ""
   }
@@ -573,6 +697,7 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
       renderStats(data.stats, adminResStats);
       renderStats(data.stats, adminResStats2);
       renderAdminList(data.reservations || []);
+      renderTownMaps(data.byPueblo || []);
     } catch (err) {
       console.error("[admin login]", err);
       if (adminHubLoginStatus) {

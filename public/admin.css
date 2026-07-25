@@ -210,6 +210,47 @@
   display: none;
 }
 
+.pr-map {
+  height: 340px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  margin: 0.75rem 0 1rem;
+  z-index: 1;
+  box-shadow: 0 8px 24px rgba(60, 20, 20, 0.08);
+}
+
+.pr-map-detail {
+  background: #fffcf8;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.25rem;
+}
+
+.pr-map-detail h4 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--rose);
+  margin: 0 0 0.35rem;
+}
+
+.pr-map-detail .pr-map-meta {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.75rem;
+}
+
+.leaflet-popup-content {
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-size: 0.85rem;
+  margin: 0.5rem 0.75rem;
+}
+
+.leaflet-popup-content strong {
+  color: #9b1c1c;
+}
+
 @media (max-width: 860px) {
   .admin-app {
     grid-template-columns: 1fr;

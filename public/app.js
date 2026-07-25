@@ -415,6 +415,17 @@
   const reserveStatus = document.getElementById("reserveStatus");
   const reserveBtn = document.getElementById("reserveBtn");
   const resPhone = document.getElementById("resPhone");
+  const resPueblo = document.getElementById("resPueblo");
+
+  // Llenar pueblos de PR
+  if (resPueblo && window.PR_TOWNS) {
+    window.PR_TOWNS.forEach((t) => {
+      const opt = document.createElement("option");
+      opt.value = t.name;
+      opt.textContent = t.name;
+      resPueblo.appendChild(opt);
+    });
+  }
 
   /** Formato teléfono PR/US: (787) 555-1234 */
   function formatPhoneInput(value) {
@@ -455,6 +466,7 @@
       name: document.getElementById("resName")?.value,
       phone: document.getElementById("resPhone")?.value,
       email: document.getElementById("resEmail")?.value,
+      pueblo: document.getElementById("resPueblo")?.value,
       guests: Number(document.getElementById("resGuests")?.value || 1),
       notes: document.getElementById("resNotes")?.value,
     };

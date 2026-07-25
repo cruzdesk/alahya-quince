@@ -802,7 +802,8 @@ body {
 }
 
 .form-row input,
-.form-row textarea {
+.form-row textarea,
+.form-row select {
   width: 100%;
   padding: 0.85rem 1rem;
   border: 1px solid rgba(155, 28, 28, 0.2);
@@ -814,8 +815,14 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+.form-row select {
+  cursor: pointer;
+  appearance: auto;
+}
+
 .form-row input:focus,
-.form-row textarea:focus {
+.form-row textarea:focus,
+.form-row select:focus {
   outline: none;
   border-color: var(--gold);
   box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.22);

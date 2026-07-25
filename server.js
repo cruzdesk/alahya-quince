@@ -270,21 +270,25 @@ app.post("/api/reservations", rsvpLimiter, async (req, res) => {
     const name = clean(req.body.name, 120);
     const email = clean(req.body.email, 160).toLowerCase();
     const phone = clean(req.body.phone, 40);
+    const pueblo = clean(req.body.pueblo, 80);
     const notes = clean(req.body.notes, 400);
     const guests = Math.min(Math.max(parseInt(req.body.guests, 10) || 1, 1), 20);
 
     if (!name || name.length < 2) {
       return res.status(400).json({ error: "Escribe tu nombre." });
     }
+    if (!pueblo || pueblo.length < 2) {
+      return res.status(400).json({ error: "Selecciona tu pueblo." });
+    }
     if (!phone && !email) {
       return res.status(400).json({ error: "Indica teléfono o correo de contacto." });
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO reservations (name, email, phone, guests, notes, status)
-       VALUES ($1, $2, $3, $4, $5, 'active')
-       RETURNING id, name, email, phone, guests, notes, status, created_at`,
-      [name, email || null, phone || null, guests, notes || null]
+      `INSERT INTO reservations (name, email, phone, guests, pueblo, notes, status)
+       VALUES ($1, $2, $3, $4, $5, $6, 'active')
+       RETURNING id, name, email, phone, guests, pueblo, notes, status, created_at`,
+      [name, email || null, phone || null, guests, pueblo, notes || null]
     );
     const reservation = rows[0];
 
@@ -316,14 +320,27 @@ app.post("/api/admin/reservations", ...adminGuard, async (req, res) => {
        FROM reservations`
     );
     const { rows } = await pool.query(
-      `SELECT id, name, email, phone, guests, notes, status, cancelled_at, created_at
+      `SELECT id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at
        FROM reservations
        ORDER BY created_at DESC`
     );
+    // Agregado por pueblo (solo activas) para el mapa
+    const byPueblo = {};
+    for (const r of rows) {
+      if (r.status !== "active") continue;
+      const p = (r.pueblo || "Sin pueblo").trim() || "Sin pueblo";
+      if (!byPueblo[p]) {
+        byPueblo[p] = { pueblo: p, count: 0, guests: 0, reservations: [] };
+      }
+      byPueblo[p].count += 1;
+      byPueblo[p].guests += r.guests || 0;
+      byPueblo[p].reservations.push(r);
+    }
     res.json({
       success: true,
       stats: statsRows[0],
       reservations: rows,
+      byPueblo: Object.values(byPueblo).sort((a, b) => b.guests - a.guests),
     });
   } catch (err) {
     console.error(err);
@@ -341,7 +358,7 @@ app.post("/api/admin/reservations/:id/cancel", ...adminGuard, async (req, res) =
       `UPDATE reservations
        SET status = 'cancelled', cancelled_at = NOW()
        WHERE id = $1 AND status = 'active'
-       RETURNING id, name, email, phone, guests, notes, status, cancelled_at, created_at`,
+       RETURNING id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at`,
       [id]
     );
     if (!rows.length) {
@@ -367,12 +384,21 @@ app.post("/api/admin/print-reservations", ...adminGuard, async (req, res) => {
        FROM reservations`
     );
     const { rows } = await pool.query(
-      `SELECT id, name, email, phone, guests, notes, status, cancelled_at, created_at
+      `SELECT id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at
        FROM reservations
        ORDER BY
          CASE WHEN status = 'active' THEN 0 ELSE 1 END,
+         pueblo NULLS LAST,
          created_at ASC`
     );
+    const byPueblo = {};
+    for (const r of rows) {
+      if (r.status !== "active") continue;
+      const p = (r.pueblo || "Sin pueblo").trim() || "Sin pueblo";
+      if (!byPueblo[p]) byPueblo[p] = { pueblo: p, count: 0, guests: 0 };
+      byPueblo[p].count += 1;
+      byPueblo[p].guests += r.guests || 0;
+    }
     res.json({
       success: true,
       printedAt: new Date().toISOString(),
@@ -381,6 +407,7 @@ app.post("/api/admin/print-reservations", ...adminGuard, async (req, res) => {
       theme: "Victorian Masquerade Ball",
       stats: statsRows[0],
       reservations: rows,
+      byPueblo: Object.values(byPueblo).sort((a, b) => b.guests - a.guests),
     });
   } catch (err) {
     console.error(err);
