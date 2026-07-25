@@ -93,15 +93,18 @@
 
         <!-- DESEOS -->
         <section class="admin-view" id="view-deseos" data-view-panel="deseos" hidden>
-          <p class="muted">Imprime el muro de deseos del sitio.</p>
+          <p class="muted">Todos los deseos publicados en el muro.</p>
+          <div class="admin-res-actions">
+            <button type="button" class="btn btn-outline" id="printWishesBtn">🖨 Imprimir todos los deseos</button>
+            <button type="button" class="btn btn-outline" id="adminWishesRefreshBtn">Actualizar lista</button>
+          </div>
           <label class="check-row">
             <input type="checkbox" id="printIncludeMeta" checked />
             <span>Incluir información del equipo en la impresión</span>
           </label>
-          <div class="admin-res-actions">
-            <button type="button" class="btn btn-outline" id="printWishesBtn">🖨 Imprimir todos los deseos</button>
-          </div>
           <p class="form-status" id="printStatus" role="status"></p>
+          <p class="muted" id="adminWishesCount" style="margin:0.75rem 0 0.5rem"></p>
+          <div class="admin-res-list" id="adminWishesList"></div>
         </section>
       </main>
     </div>

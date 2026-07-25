@@ -86,6 +86,70 @@
     });
     if (adminViewTitle) adminViewTitle.textContent = titles[name] || name;
     closeMobileMenu();
+    if (name === "deseos" && adminKey) loadAdminWishes();
+    if (name === "reservas" && adminKey) loadAdminReservations();
+  }
+
+  function renderAdminWishes(list) {
+    if (!adminWishesList) return;
+    const wishes = list || [];
+    if (adminWishesCount) {
+      adminWishesCount.textContent = wishes.length
+        ? `${wishes.length} deseo(s) registrado(s)`
+        : "No hay deseos todavía.";
+    }
+    if (!wishes.length) {
+      adminWishesList.innerHTML = '<p class="muted center">Sé el primero… aún no hay mensajes en el muro.</p>';
+      return;
+    }
+    adminWishesList.innerHTML = wishes
+      .map((w) => {
+        const when = w.created_at
+          ? new Date(w.created_at).toLocaleString("es", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })
+          : "";
+        const meta = w.meta || {};
+        const ip = meta.server && meta.server.ip ? meta.server.ip : "";
+        const platform =
+          (meta.client && (meta.client.platform || (meta.client.uaData && meta.client.uaData.platform))) ||
+          "";
+        const extra = [ip && `IP: ${ip}`, platform && `Plataforma: ${platform}`]
+          .filter(Boolean)
+          .join(" · ");
+        return `<article class="admin-res-item">
+          <div>
+            <div class="who">${escapeHtml(w.name)} <span class="badge ok">#${w.id}</span></div>
+            <div class="meta-line" style="color:var(--ink);margin-top:0.35rem">${escapeHtml(w.message)}</div>
+            <div class="meta-line">${escapeHtml(when)}</div>
+            ${extra ? `<div class="meta-line">${escapeHtml(extra)}</div>` : ""}
+          </div>
+        </article>`;
+      })
+      .join("");
+  }
+
+  async function loadAdminWishes() {
+    if (!adminKey) return;
+    if (adminWishesList) {
+      adminWishesList.innerHTML = '<p class="muted center">Cargando deseos…</p>';
+    }
+    try {
+      const res = await fetch("/api/admin/print-wishes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: adminKey }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      renderAdminWishes(data.wishes || []);
+    } catch (err) {
+      if (adminWishesList) {
+        adminWishesList.innerHTML = `<p class="form-status err">${escapeHtml(err.message)}</p>`;
+      }
+      if (adminWishesCount) adminWishesCount.textContent = "";
+    }
   }
 
   function openMobileMenu() {
@@ -110,6 +174,10 @@
   document.querySelectorAll("[data-goto]").forEach((btn) => {
     btn.addEventListener("click", () => setView(btn.getAttribute("data-goto")));
   });
+
+  const adminWishesList = document.getElementById("adminWishesList");
+  const adminWishesCount = document.getElementById("adminWishesCount");
+  const adminWishesRefreshBtn = document.getElementById("adminWishesRefreshBtn");
 
   function renderStats(stats, target) {
     if (!target || !stats) return;
@@ -432,6 +500,7 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
 
   adminHubLogout?.addEventListener("click", showLogin);
   adminResRefreshBtn?.addEventListener("click", loadAdminReservations);
+  adminWishesRefreshBtn?.addEventListener("click", loadAdminWishes);
   printResReportBtn?.addEventListener("click", async () => {
     printResReportBtn.disabled = true;
     printResReportBtn.textContent = "Generando…";
@@ -477,6 +546,7 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No autorizado");
+      renderAdminWishes(data.wishes || []);
       openPrintDocument(data, !!(printIncludeMeta && printIncludeMeta.checked));
       if (printStatus) {
         printStatus.textContent = `Listo: ${data.total} deseo(s) para imprimir.`;
