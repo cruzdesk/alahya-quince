@@ -1019,6 +1019,136 @@ body {
   max-height: none;
 }
 
+.modal-card-wide {
+  width: min(720px, 100%);
+  max-height: min(88vh, 820px);
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.65rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.admin-stat {
+  background: #f8f1e8;
+  border: 1px solid rgba(201, 162, 39, 0.3);
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+  text-align: center;
+}
+
+.admin-stat .n {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--rose);
+  line-height: 1.1;
+}
+
+.admin-stat .l {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.admin-res-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.admin-res-actions .btn {
+  font-size: 0.68rem;
+  padding: 0.75rem 1.1rem;
+}
+
+.admin-res-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 42vh;
+  overflow: auto;
+}
+
+.admin-res-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  padding: 0.75rem 0.9rem;
+  background: #fffcf8;
+  border: 1px solid rgba(201, 162, 39, 0.28);
+  border-radius: 12px;
+  font-size: 0.88rem;
+}
+
+.admin-res-item.cancelled {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.admin-res-item .who {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--rose);
+  font-weight: 600;
+}
+
+.admin-res-item .meta-line {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin-top: 0.15rem;
+}
+
+.admin-res-item .badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.admin-res-item .badge.ok {
+  background: rgba(27, 122, 74, 0.12);
+  color: #1b7a4a;
+}
+
+.admin-res-item .badge.no {
+  background: rgba(185, 28, 28, 0.1);
+  color: #9b1c1c;
+}
+
+.btn-danger-sm {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid rgba(185, 28, 28, 0.4);
+  background: #fff;
+  color: #9b1c1c;
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+}
+
+.btn-danger-sm:hover {
+  background: rgba(185, 28, 28, 0.08);
+}
+
+.btn-danger-sm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .check-row {
   display: flex;
   align-items: flex-start;

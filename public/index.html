@@ -29,6 +29,7 @@
       <li><a href="#detalles">Detalles</a></li>
       <li><a href="#mapa">Mapa</a></li>
       <li><a href="#itinerario">Itinerario</a></li>
+      <li><a href="#reservar">Reservar</a></li>
       <li><a href="#deseos">Deseos</a></li>
     </ul>
   </nav>
@@ -238,6 +239,74 @@
       </ol>
     </div>
   </section>
+
+  <!-- RESERVAR -->
+  <section class="section reserve-section" id="reservar">
+    <div class="container narrow">
+      <p class="section-kicker">Confirma tu lugar</p>
+      <h2 class="section-title">Reservar</h2>
+      <form class="wish-form glass" id="reserveForm" novalidate>
+        <div class="form-row">
+          <label for="resName">Nombre completo *</label>
+          <input type="text" id="resName" name="name" required autocomplete="name" placeholder="Tu nombre" />
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label for="resPhone">Teléfono</label>
+            <input type="tel" id="resPhone" name="phone" autocomplete="tel" placeholder="Opcional si dejas correo" />
+          </div>
+          <div class="form-row">
+            <label for="resEmail">Correo</label>
+            <input type="email" id="resEmail" name="email" autocomplete="email" placeholder="Opcional si dejas teléfono" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="resGuests">Cantidad de invitados * <span class="muted">(incluyéndote)</span></label>
+          <input type="number" id="resGuests" name="guests" min="1" max="20" value="1" required />
+        </div>
+        <div class="form-row">
+          <label for="resNotes">Notas (opcional)</label>
+          <input type="text" id="resNotes" name="notes" maxlength="400" placeholder="Alergias, mesa, mensaje…" />
+        </div>
+        <p class="pin-hint muted">Indica al menos teléfono o correo. Formal · <strong>negro</strong>.</p>
+        <button type="submit" class="btn btn-gold full" id="reserveBtn">Enviar reserva</button>
+        <p class="form-status" id="reserveStatus" role="status"></p>
+      </form>
+
+      <div class="admin-print-bar">
+        <button type="button" class="btn btn-outline" id="adminResBtn">🔐 Admin reservas</button>
+        <p class="form-status" id="adminResStatus" role="status"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal admin reservas -->
+  <div class="modal-overlay" id="adminResModal" hidden>
+    <div class="modal-card glass modal-card-wide" role="dialog" aria-modal="true" aria-labelledby="adminResTitle">
+      <button type="button" class="modal-close" id="adminResClose" aria-label="Cerrar">×</button>
+      <p class="section-kicker" style="margin-bottom:0.35rem">Solo administrador</p>
+      <h3 class="modal-title" id="adminResTitle">Reservas</h3>
+
+      <div id="adminResLogin">
+        <p class="muted" style="margin-bottom:1rem">Misma clave que “Imprimir todos los deseos”.</p>
+        <div class="form-row">
+          <label for="adminResKey">Clave admin</label>
+          <input type="password" id="adminResKey" placeholder="Clave" autocomplete="off" inputmode="numeric" />
+        </div>
+        <button type="button" class="btn btn-gold full" id="adminResLoginBtn">Entrar</button>
+        <p class="form-status" id="adminResLoginStatus" role="status"></p>
+      </div>
+
+      <div id="adminResPanel" hidden>
+        <div class="admin-stats" id="adminResStats"></div>
+        <div class="admin-res-actions">
+          <button type="button" class="btn btn-gold" id="printResReportBtn">🖨 Imprimir reporte profesional</button>
+          <button type="button" class="btn btn-outline" id="adminResRefreshBtn">Actualizar lista</button>
+        </div>
+        <div class="admin-res-list" id="adminResList"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- DESEOS -->
   <section class="section wishes-section" id="deseos">

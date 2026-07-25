@@ -563,4 +563,388 @@
       printAuthSubmit.textContent = "Continuar e imprimir";
     }
   });
+
+  // ——— Reservas
+  const reserveForm = document.getElementById("reserveForm");
+  const reserveStatus = document.getElementById("reserveStatus");
+  const reserveBtn = document.getElementById("reserveBtn");
+  const adminResBtn = document.getElementById("adminResBtn");
+  const adminResModal = document.getElementById("adminResModal");
+  const adminResClose = document.getElementById("adminResClose");
+  const adminResLogin = document.getElementById("adminResLogin");
+  const adminResPanel = document.getElementById("adminResPanel");
+  const adminResKey = document.getElementById("adminResKey");
+  const adminResLoginBtn = document.getElementById("adminResLoginBtn");
+  const adminResLoginStatus = document.getElementById("adminResLoginStatus");
+  const adminResStats = document.getElementById("adminResStats");
+  const adminResList = document.getElementById("adminResList");
+  const printResReportBtn = document.getElementById("printResReportBtn");
+  const adminResRefreshBtn = document.getElementById("adminResRefreshBtn");
+  let adminResKeySaved = "";
+
+  reserveForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (reserveStatus) {
+      reserveStatus.textContent = "";
+      reserveStatus.className = "form-status";
+    }
+    const body = {
+      name: document.getElementById("resName")?.value,
+      phone: document.getElementById("resPhone")?.value,
+      email: document.getElementById("resEmail")?.value,
+      guests: Number(document.getElementById("resGuests")?.value || 1),
+      notes: document.getElementById("resNotes")?.value,
+    };
+    if (reserveBtn) {
+      reserveBtn.disabled = true;
+      reserveBtn.textContent = "Enviando…";
+    }
+    try {
+      const res = await fetch("/api/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      if (reserveStatus) {
+        reserveStatus.textContent = data.message || "¡Reserva guardada!";
+        reserveStatus.classList.add("ok");
+      }
+      reserveForm.reset();
+      const g = document.getElementById("resGuests");
+      if (g) g.value = "1";
+    } catch (err) {
+      if (reserveStatus) {
+        reserveStatus.textContent = err.message || "No se pudo reservar.";
+        reserveStatus.classList.add("err");
+      }
+    } finally {
+      if (reserveBtn) {
+        reserveBtn.disabled = false;
+        reserveBtn.textContent = "Enviar reserva";
+      }
+    }
+  });
+
+  function openAdminRes() {
+    if (!adminResModal) return;
+    if (adminResLoginStatus) {
+      adminResLoginStatus.textContent = "";
+      adminResLoginStatus.className = "form-status";
+    }
+    if (!adminResKeySaved) {
+      if (adminResLogin) adminResLogin.hidden = false;
+      if (adminResPanel) adminResPanel.hidden = true;
+      if (adminResKey) adminResKey.value = "";
+    } else {
+      if (adminResLogin) adminResLogin.hidden = true;
+      if (adminResPanel) adminResPanel.hidden = false;
+      loadAdminReservations();
+    }
+    adminResModal.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeAdminRes() {
+    if (!adminResModal) return;
+    adminResModal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  function renderAdminStats(stats) {
+    if (!adminResStats || !stats) return;
+    adminResStats.innerHTML = `
+      <div class="admin-stat"><span class="n">${stats.total_guests ?? 0}</span><span class="l">Invitados (activos)</span></div>
+      <div class="admin-stat"><span class="n">${stats.active_count ?? 0}</span><span class="l">Reservas activas</span></div>
+      <div class="admin-stat"><span class="n">${stats.cancelled_count ?? 0}</span><span class="l">Canceladas</span></div>
+      <div class="admin-stat"><span class="n">${stats.total_reservations ?? 0}</span><span class="l">Total registradas</span></div>
+    `;
+  }
+
+  function renderAdminList(list) {
+    if (!adminResList) return;
+    if (!list.length) {
+      adminResList.innerHTML = '<p class="muted center">No hay reservas todavía.</p>';
+      return;
+    }
+    adminResList.innerHTML = list
+      .map((r) => {
+        const when = r.created_at
+          ? new Date(r.created_at).toLocaleString("es", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })
+          : "";
+        const cancelled = r.status === "cancelled";
+        const badge = cancelled
+          ? '<span class="badge no">Cancelada</span>'
+          : '<span class="badge ok">Activa</span>';
+        const contact = [r.phone, r.email].filter(Boolean).join(" · ") || "—";
+        const notes = r.notes
+          ? `<div class="meta-line">Notas: ${escapeHtml(r.notes)}</div>`
+          : "";
+        const cancelBtn = cancelled
+          ? ""
+          : `<button type="button" class="btn-danger-sm" data-cancel-id="${r.id}">Cancelar</button>`;
+        return `<article class="admin-res-item${cancelled ? " cancelled" : ""}">
+          <div>
+            <div class="who">${escapeHtml(r.name)} ${badge}</div>
+            <div class="meta-line"><strong>${r.guests}</strong> invitado(s) · ${escapeHtml(contact)}</div>
+            <div class="meta-line">#${r.id} · ${escapeHtml(when)}</div>
+            ${notes}
+          </div>
+          <div>${cancelBtn}</div>
+        </article>`;
+      })
+      .join("");
+  }
+
+  async function loadAdminReservations() {
+    if (!adminResKeySaved) return;
+    try {
+      const res = await fetch("/api/admin/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: adminResKeySaved }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      renderAdminStats(data.stats);
+      renderAdminList(data.reservations || []);
+    } catch (err) {
+      if (adminResList) {
+        adminResList.innerHTML = `<p class="form-status err">${escapeHtml(err.message)}</p>`;
+      }
+      if (String(err.message || "").includes("incorrecta")) {
+        adminResKeySaved = "";
+        if (adminResLogin) adminResLogin.hidden = false;
+        if (adminResPanel) adminResPanel.hidden = true;
+      }
+    }
+  }
+
+  function openReservationReport(data) {
+    const s = data.stats || {};
+    const list = data.reservations || [];
+    const active = list.filter((r) => r.status === "active");
+    const cancelled = list.filter((r) => r.status === "cancelled");
+    const printed = new Date(data.printedAt || Date.now()).toLocaleString("es", {
+      dateStyle: "full",
+      timeStyle: "short",
+    });
+
+    const rows = (items) =>
+      items
+        .map(
+          (r, i) => `<tr>
+          <td>${i + 1}</td>
+          <td>${escapeHtml(r.name)}</td>
+          <td class="c">${r.guests}</td>
+          <td>${escapeHtml(r.phone || "—")}</td>
+          <td>${escapeHtml(r.email || "—")}</td>
+          <td>${escapeHtml(r.notes || "—")}</td>
+          <td>${r.created_at ? new Date(r.created_at).toLocaleDateString("es") : "—"}</td>
+        </tr>`
+        )
+        .join("");
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reporte de reservas — Alahya XV</title>
+  <style>
+    @page { size: letter; margin: 0.7in; }
+    * { box-sizing: border-box; }
+    body { font-family: Georgia, "Times New Roman", serif; color: #1a1212; margin: 0; padding: 0; }
+    .page { page-break-after: always; padding: 8px 4px 24px; }
+    .page:last-child { page-break-after: auto; }
+    h1 { font-size: 26px; color: #9b1c1c; margin: 0 0 4px; }
+    h2 { font-size: 18px; color: #1a1212; margin: 1.2rem 0 0.5rem; border-bottom: 1px solid #d4af37; padding-bottom: 4px; }
+    .sub { color: #5c4a48; font-size: 13px; margin: 0 0 4px; }
+    .gold { color: #b8860b; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 22px 0; }
+    .stat { border: 1px solid #d4af37; border-radius: 10px; padding: 16px; text-align: center; background: #faf6ee; }
+    .stat .n { font-size: 36px; font-weight: bold; color: #9b1c1c; display: block; line-height: 1.1; }
+    .stat .l { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #5c4a48; }
+    .stat.big { grid-column: 1 / -1; background: linear-gradient(135deg, #faf6ee, #e8d5a3); }
+    .stat.big .n { font-size: 48px; }
+    .note { font-size: 12px; color: #5c4a48; margin-top: 18px; line-height: 1.45; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+    th, td { border: 1px solid #e0d4c4; padding: 6px 7px; text-align: left; vertical-align: top; }
+    th { background: #1a1212; color: #f7efe3; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+    td.c { text-align: center; font-weight: bold; }
+    tr:nth-child(even) td { background: #faf6ee; }
+    .cancelled-title { color: #9b1c1c; }
+    .no-print { margin: 12px 0 20px; }
+    @media print { .no-print { display: none !important; } body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+  </style>
+</head>
+<body>
+  <button class="no-print" onclick="window.print()">Imprimir / Guardar PDF</button>
+
+  <!-- Página 1: Estadísticas -->
+  <section class="page">
+    <h1>${escapeHtml(data.event || "Reporte de reservas")}</h1>
+    <p class="sub gold">${escapeHtml(data.theme || "Victorian Masquerade Ball")}</p>
+    <p class="sub">${escapeHtml(data.venue || "")}</p>
+    <p class="sub">Generado: ${escapeHtml(printed)}</p>
+
+    <h2>Resumen ejecutivo</h2>
+    <div class="stats">
+      <div class="stat big">
+        <span class="n">${s.total_guests ?? 0}</span>
+        <span class="l">Total de invitados confirmados (reservas activas)</span>
+      </div>
+      <div class="stat">
+        <span class="n">${s.active_count ?? 0}</span>
+        <span class="l">Reservas activas</span>
+      </div>
+      <div class="stat">
+        <span class="n">${s.cancelled_count ?? 0}</span>
+        <span class="l">Reservas canceladas</span>
+      </div>
+      <div class="stat">
+        <span class="n">${s.total_reservations ?? 0}</span>
+        <span class="l">Total de registros</span>
+      </div>
+      <div class="stat">
+        <span class="n">${s.avg_guests ? Number(s.avg_guests).toFixed(1) : "0"}</span>
+        <span class="l">Promedio invitados / reserva activa</span>
+      </div>
+    </div>
+    <p class="note">
+      Este reporte es confidencial para la organización del evento.
+      Las cifras de invitados incluyen solo reservas <strong>activas</strong> (no canceladas).
+      Formal · color negro · Tres Palmas, Aguadilla · 5:00 p.m.
+    </p>
+  </section>
+
+  <!-- Página 2+: Detalle -->
+  <section class="page">
+    <h1>Detalle de reservas activas</h1>
+    <p class="sub">${active.length} reserva(s) · ${s.total_guests ?? 0} invitado(s)</p>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Nombre</th><th>Inv.</th><th>Teléfono</th><th>Correo</th><th>Notas</th><th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows(active) || '<tr><td colspan="7">Sin reservas activas</td></tr>'}
+      </tbody>
+    </table>
+
+    ${
+      cancelled.length
+        ? `<h2 class="cancelled-title">Canceladas (${cancelled.length})</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Nombre</th><th>Inv.</th><th>Teléfono</th><th>Correo</th><th>Notas</th><th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>${rows(cancelled)}</tbody>
+    </table>`
+        : ""
+    }
+  </section>
+
+  <script>window.onload = function () { setTimeout(function () { window.print(); }, 350); };<\/script>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    if (!win) throw new Error("Permite ventanas emergentes para imprimir el reporte.");
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
+  adminResBtn?.addEventListener("click", openAdminRes);
+  adminResClose?.addEventListener("click", closeAdminRes);
+  adminResModal?.addEventListener("click", (e) => {
+    if (e.target === adminResModal) closeAdminRes();
+  });
+  adminResKey?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") adminResLoginBtn?.click();
+  });
+
+  adminResLoginBtn?.addEventListener("click", async () => {
+    const key = (adminResKey?.value || "").trim();
+    if (!key) {
+      if (adminResLoginStatus) {
+        adminResLoginStatus.textContent = "Escribe la clave.";
+        adminResLoginStatus.className = "form-status err";
+      }
+      return;
+    }
+    adminResLoginBtn.disabled = true;
+    try {
+      const res = await fetch("/api/admin/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No autorizado");
+      adminResKeySaved = key;
+      if (adminResLogin) adminResLogin.hidden = true;
+      if (adminResPanel) adminResPanel.hidden = false;
+      renderAdminStats(data.stats);
+      renderAdminList(data.reservations || []);
+    } catch (err) {
+      if (adminResLoginStatus) {
+        adminResLoginStatus.textContent = err.message || "Clave incorrecta.";
+        adminResLoginStatus.className = "form-status err";
+      }
+    } finally {
+      adminResLoginBtn.disabled = false;
+    }
+  });
+
+  adminResRefreshBtn?.addEventListener("click", loadAdminReservations);
+
+  adminResList?.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-cancel-id]");
+    if (!btn || !adminResKeySaved) return;
+    const id = btn.getAttribute("data-cancel-id");
+    if (!confirm("¿Cancelar esta reserva?")) return;
+    btn.disabled = true;
+    try {
+      const res = await fetch(`/api/admin/reservations/${id}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: adminResKeySaved }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      await loadAdminReservations();
+    } catch (err) {
+      alert(err.message || "No se pudo cancelar");
+      btn.disabled = false;
+    }
+  });
+
+  printResReportBtn?.addEventListener("click", async () => {
+    if (!adminResKeySaved) return;
+    printResReportBtn.disabled = true;
+    printResReportBtn.textContent = "Generando…";
+    try {
+      const res = await fetch("/api/admin/print-reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: adminResKeySaved }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      openReservationReport(data);
+    } catch (err) {
+      alert(err.message || "No se pudo imprimir");
+    } finally {
+      printResReportBtn.disabled = false;
+      printResReportBtn.textContent = "🖨 Imprimir reporte profesional";
+    }
+  });
 })();

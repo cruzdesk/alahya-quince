@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const { pool, ensureSchema } = require("./db");
+const { sendReservationAlert } = require("./email");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -227,13 +228,17 @@ app.post("/api/wishes", wishLimiter, async (req, res) => {
   }
 });
 
+function checkAdminKey(req) {
+  const key = String(
+    req.body?.key || req.get("X-Print-Admin-Key") || req.get("X-Admin-Key") || ""
+  ).trim();
+  return key === PRINT_ADMIN_KEY;
+}
+
 // ——— Admin: exportar todos los deseos para imprimir
 app.post("/api/admin/print-wishes", async (req, res) => {
   try {
-    const key = String(
-      req.body.key || req.get("X-Print-Admin-Key") || ""
-    ).trim();
-    if (key !== PRINT_ADMIN_KEY) {
+    if (!checkAdminKey(req)) {
       return res.status(401).json({ error: "Clave de administrador incorrecta." });
     }
     const { rows } = await pool.query(
@@ -252,6 +257,139 @@ app.post("/api/admin/print-wishes", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "No se pudo cargar los deseos." });
+  }
+});
+
+// ——— RESERVAS (públicas)
+app.post("/api/reservations", rsvpLimiter, async (req, res) => {
+  try {
+    const name = clean(req.body.name, 120);
+    const email = clean(req.body.email, 160).toLowerCase();
+    const phone = clean(req.body.phone, 40);
+    const notes = clean(req.body.notes, 400);
+    const guests = Math.min(Math.max(parseInt(req.body.guests, 10) || 1, 1), 20);
+
+    if (!name || name.length < 2) {
+      return res.status(400).json({ error: "Escribe tu nombre." });
+    }
+    if (!phone && !email) {
+      return res.status(400).json({ error: "Indica teléfono o correo de contacto." });
+    }
+
+    const { rows } = await pool.query(
+      `INSERT INTO reservations (name, email, phone, guests, notes, status)
+       VALUES ($1, $2, $3, $4, $5, 'active')
+       RETURNING id, name, email, phone, guests, notes, status, created_at`,
+      [name, email || null, phone || null, guests, notes || null]
+    );
+    const reservation = rows[0];
+
+    // Alerta por correo (no bloquea si falla)
+    sendReservationAlert(reservation).catch((e) =>
+      console.error("[email] background fail:", e.message)
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `¡Reserva confirmada! Registramos ${guests} invitado(s).`,
+      reservation,
+    });
+  } catch (err) {
+    console.error("Reservation error:", err);
+    res.status(500).json({ error: "No se pudo guardar la reserva. Intenta más tarde." });
+  }
+});
+
+// ——— Admin: listar reservas + estadísticas
+app.post("/api/admin/reservations", async (req, res) => {
+  try {
+    if (!checkAdminKey(req)) {
+      return res.status(401).json({ error: "Clave de administrador incorrecta." });
+    }
+    const { rows: statsRows } = await pool.query(
+      `SELECT
+         COUNT(*) FILTER (WHERE status = 'active')::int AS active_count,
+         COUNT(*) FILTER (WHERE status = 'cancelled')::int AS cancelled_count,
+         COUNT(*)::int AS total_reservations,
+         COALESCE(SUM(guests) FILTER (WHERE status = 'active'), 0)::int AS total_guests
+       FROM reservations`
+    );
+    const { rows } = await pool.query(
+      `SELECT id, name, email, phone, guests, notes, status, cancelled_at, created_at
+       FROM reservations
+       ORDER BY created_at DESC`
+    );
+    res.json({
+      success: true,
+      stats: statsRows[0],
+      reservations: rows,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "No se pudieron cargar las reservas." });
+  }
+});
+
+// ——— Admin: cancelar reserva
+app.post("/api/admin/reservations/:id/cancel", async (req, res) => {
+  try {
+    if (!checkAdminKey(req)) {
+      return res.status(401).json({ error: "Clave de administrador incorrecta." });
+    }
+    const id = parseInt(req.params.id, 10);
+    if (!id) return res.status(400).json({ error: "ID inválido" });
+
+    const { rows } = await pool.query(
+      `UPDATE reservations
+       SET status = 'cancelled', cancelled_at = NOW()
+       WHERE id = $1 AND status = 'active'
+       RETURNING id, name, email, phone, guests, notes, status, cancelled_at, created_at`,
+      [id]
+    );
+    if (!rows.length) {
+      return res.status(404).json({ error: "Reserva no encontrada o ya cancelada." });
+    }
+    res.json({ success: true, reservation: rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "No se pudo cancelar la reserva." });
+  }
+});
+
+// ——— Admin: datos para reporte imprimible de reservas
+app.post("/api/admin/print-reservations", async (req, res) => {
+  try {
+    if (!checkAdminKey(req)) {
+      return res.status(401).json({ error: "Clave de administrador incorrecta." });
+    }
+    const { rows: statsRows } = await pool.query(
+      `SELECT
+         COUNT(*) FILTER (WHERE status = 'active')::int AS active_count,
+         COUNT(*) FILTER (WHERE status = 'cancelled')::int AS cancelled_count,
+         COUNT(*)::int AS total_reservations,
+         COALESCE(SUM(guests) FILTER (WHERE status = 'active'), 0)::int AS total_guests,
+         COALESCE(AVG(guests) FILTER (WHERE status = 'active'), 0)::float AS avg_guests
+       FROM reservations`
+    );
+    const { rows } = await pool.query(
+      `SELECT id, name, email, phone, guests, notes, status, cancelled_at, created_at
+       FROM reservations
+       ORDER BY
+         CASE WHEN status = 'active' THEN 0 ELSE 1 END,
+         created_at ASC`
+    );
+    res.json({
+      success: true,
+      printedAt: new Date().toISOString(),
+      event: "Alahya Thaís Saltares Ortega — XV Años",
+      venue: "Tres Palmas, Aguadilla · 10 de octubre de 2026 · 5:00 p.m.",
+      theme: "Victorian Masquerade Ball",
+      stats: statsRows[0],
+      reservations: rows,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "No se pudo generar el reporte." });
   }
 });
 
