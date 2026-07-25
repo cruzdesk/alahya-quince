@@ -307,7 +307,6 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
   <p class="sub gold">${escapeHtml(data.theme || "Victorian Masquerade Ball")}</p>
   <p class="sub">${escapeHtml(data.venue || "")}</p>
   <p class="sub">Generado: ${escapeHtml(printed)}</p>
-  <h2>Resumen ejecutivo</h2>
   <div class="stats">
     <div class="stat big"><span class="n">${s.total_guests ?? 0}</span><span class="l">Total de invitados confirmados (reservas activas)</span></div>
     <div class="stat"><span class="n">${s.active_count ?? 0}</span><span class="l">Reservas activas</span></div>
