@@ -2,6 +2,7 @@ require("dotenv").config();
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
+const crypto = require("crypto");
 const rateLimit = require("express-rate-limit");
 const { pool, ensureSchema } = require("./db");
 const { sendReservationAlert } = require("./email");
@@ -149,6 +150,27 @@ function clientIp(req) {
   return (req.ip || "").slice(0, 80);
 }
 
+function deviceFingerprint(clientMeta, req) {
+  const c =
+    clientMeta && typeof clientMeta === "object" && !Array.isArray(clientMeta)
+      ? clientMeta
+      : {};
+  const parts = [
+    clientIp(req),
+    req.get("user-agent") || "",
+    c.platform || "",
+    c.userAgent || "",
+    c.language || "",
+    c.timezone || "",
+    c.hardwareConcurrency ?? "",
+    c.deviceMemory ?? "",
+    c.maxTouchPoints ?? "",
+    c.screen ? `${c.screen.width}x${c.screen.height}x${c.screen.colorDepth}` : "",
+    c.viewport ? `${c.viewport.innerWidth}x${c.viewport.devicePixelRatio}` : "",
+  ];
+  return crypto.createHash("sha256").update(parts.join("|")).digest("hex").slice(0, 64);
+}
+
 function buildWishMeta(req, clientMeta) {
   const safe =
     clientMeta && typeof clientMeta === "object" && !Array.isArray(clientMeta)
@@ -284,11 +306,45 @@ app.post("/api/reservations", rsvpLimiter, async (req, res) => {
       return res.status(400).json({ error: "Indica teléfono o correo de contacto." });
     }
 
+    const ip = clientIp(req) || null;
+    const meta = buildWishMeta(req, req.body.device || req.body.meta);
+    const clientFp = deviceFingerprint(req.body.device || req.body.meta, req);
+
+    // Una reserva activa por IP o por huella del equipo
+    const { rows: existing } = await pool.query(
+      `SELECT id, name, created_at FROM reservations
+       WHERE status = 'active'
+         AND (
+           ($1::text IS NOT NULL AND ip = $1)
+           OR ($2::text IS NOT NULL AND client_fp = $2)
+         )
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [ip || null, clientFp || null]
+    );
+    if (existing.length) {
+      return res.status(409).json({
+        error:
+          "Ya hay una reserva activa desde este equipo o esta conexión. Si necesitas cambiarla, contacta a la familia.",
+        existingId: existing[0].id,
+      });
+    }
+
     const { rows } = await pool.query(
-      `INSERT INTO reservations (name, email, phone, guests, pueblo, notes, status)
-       VALUES ($1, $2, $3, $4, $5, $6, 'active')
-       RETURNING id, name, email, phone, guests, pueblo, notes, status, created_at`,
-      [name, email || null, phone || null, guests, pueblo, notes || null]
+      `INSERT INTO reservations (name, email, phone, guests, pueblo, notes, status, meta, client_fp, ip)
+       VALUES ($1, $2, $3, $4, $5, $6, 'active', $7::jsonb, $8, $9)
+       RETURNING id, name, email, phone, guests, pueblo, notes, status, created_at, ip, client_fp`,
+      [
+        name,
+        email || null,
+        phone || null,
+        guests,
+        pueblo,
+        notes || null,
+        JSON.stringify(meta),
+        clientFp,
+        ip,
+      ]
     );
     const reservation = rows[0];
 

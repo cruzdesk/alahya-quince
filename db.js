@@ -83,12 +83,29 @@ function memoryQuery(text, params = []) {
       guests: params[3],
       pueblo: params[4],
       notes: params[5],
+      meta: params[6] ? (typeof params[6] === "string" ? JSON.parse(params[6]) : params[6]) : null,
+      client_fp: params[7] || null,
+      ip: params[8] || null,
       status: "active",
       cancelled_at: null,
       created_at: new Date().toISOString(),
     };
     memory.reservations.unshift(row);
     return Promise.resolve({ rows: [row] });
+  }
+  if (
+    text.includes("FROM reservations") &&
+    text.includes("status = 'active'") &&
+    (text.includes("ip =") || text.includes("client_fp"))
+  ) {
+    const ip = params[0];
+    const fp = params[1];
+    const hit = memory.reservations.find(
+      (r) =>
+        r.status === "active" &&
+        ((ip && r.ip === ip) || (fp && r.client_fp === fp))
+    );
+    return Promise.resolve({ rows: hit ? [hit] : [] });
   }
   if (text.includes("FROM reservations") && text.includes("status = 'active'") && text.includes("COUNT")) {
     const active = memory.reservations.filter((r) => r.status === "active");
@@ -207,10 +224,25 @@ async function ensureSchema() {
       ALTER TABLE reservations ADD COLUMN IF NOT EXISTS pueblo VARCHAR(80);
     `);
     await pool.query(`
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS meta JSONB;
+    `);
+    await pool.query(`
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS client_fp VARCHAR(64);
+    `);
+    await pool.query(`
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS ip VARCHAR(80);
+    `);
+    await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_reservations_status ON reservations (status, created_at DESC);
     `);
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_reservations_pueblo ON reservations (pueblo);
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_reservations_ip ON reservations (ip) WHERE status = 'active';
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_reservations_fp ON reservations (client_fp) WHERE status = 'active';
     `);
     schemaReady = true;
     console.log("✓ Schema rsvps/wishes/reservations listo");

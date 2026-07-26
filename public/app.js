@@ -469,6 +469,7 @@
       pueblo: document.getElementById("resPueblo")?.value,
       guests: Number(document.getElementById("resGuests")?.value || 1),
       notes: document.getElementById("resNotes")?.value,
+      device: typeof collectDeviceInfo === "function" ? collectDeviceInfo() : undefined,
     };
     if (reserveBtn) {
       reserveBtn.disabled = true;
