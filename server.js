@@ -310,24 +310,24 @@ app.post("/api/reservations", rsvpLimiter, async (req, res) => {
     const meta = buildWishMeta(req, req.body.device || req.body.meta);
     const clientFp = deviceFingerprint(req.body.device || req.body.meta, req);
 
-    // Una reserva activa por IP o por huella del equipo
-    const { rows: existing } = await pool.query(
-      `SELECT id, name, created_at FROM reservations
-       WHERE status = 'active'
-         AND (
-           ($1::text IS NOT NULL AND ip = $1)
-           OR ($2::text IS NOT NULL AND client_fp = $2)
-         )
-       ORDER BY created_at DESC
-       LIMIT 1`,
-      [ip || null, clientFp || null]
-    );
-    if (existing.length) {
-      return res.status(409).json({
-        error:
-          "Ya hay una reserva activa desde este equipo o esta conexión. Si necesitas cambiarla, contacta a la familia.",
-        existingId: existing[0].id,
-      });
+    // Una reserva activa solo si coincide el mismo equipo Y la misma conexión (IP)
+    if (ip && clientFp) {
+      const { rows: existing } = await pool.query(
+        `SELECT id, name, created_at FROM reservations
+         WHERE status = 'active'
+           AND ip = $1
+           AND client_fp = $2
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [ip, clientFp]
+      );
+      if (existing.length) {
+        return res.status(409).json({
+          error:
+            "Ya hay una reserva activa desde este mismo equipo y esta misma conexión. Si necesitas cambiarla, contacta a la familia.",
+          existingId: existing[0].id,
+        });
+      }
     }
 
     const { rows } = await pool.query(

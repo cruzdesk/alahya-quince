@@ -96,14 +96,17 @@ function memoryQuery(text, params = []) {
   if (
     text.includes("FROM reservations") &&
     text.includes("status = 'active'") &&
-    (text.includes("ip =") || text.includes("client_fp"))
+    text.includes("client_fp")
   ) {
     const ip = params[0];
     const fp = params[1];
     const hit = memory.reservations.find(
       (r) =>
         r.status === "active" &&
-        ((ip && r.ip === ip) || (fp && r.client_fp === fp))
+        ip &&
+        fp &&
+        r.ip === ip &&
+        r.client_fp === fp
     );
     return Promise.resolve({ rows: hit ? [hit] : [] });
   }
