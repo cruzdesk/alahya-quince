@@ -102,7 +102,12 @@
         "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
       ];
-      heroDate.textContent = `${eventDate.getDate()} de ${months[eventDate.getMonth()]} · ${eventDate.getFullYear()}`;
+      const h = eventDate.getHours();
+      const m = eventDate.getMinutes();
+      const ampm = h >= 12 ? "p.m." : "a.m.";
+      const h12 = h % 12 || 12;
+      const mm = String(m).padStart(2, "0");
+      heroDate.textContent = `${eventDate.getDate()} de ${months[eventDate.getMonth()].toLowerCase()} de ${eventDate.getFullYear()} · ${h12}:${mm} ${ampm}`;
     }
     if (detailDate) detailDate.textContent = cap;
     tickCountdown();
