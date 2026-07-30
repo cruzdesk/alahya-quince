@@ -264,25 +264,49 @@ app.post("/api/wishes", wishLimiter, async (req, res) => {
   }
 });
 
-// ——— Admin: exportar todos los deseos para imprimir
+// ——— Admin: listar todos los deseos (públicos y ocultos)
 app.post("/api/admin/print-wishes", ...adminGuard, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT id, name, message, meta, created_at
+      `SELECT id, name, message, meta, approved, created_at
        FROM wishes
-       WHERE approved = true
-       ORDER BY created_at ASC`
+       ORDER BY created_at DESC`
     );
+    const publicCount = rows.filter((w) => w.approved).length;
     res.json({
       success: true,
       printedAt: new Date().toISOString(),
       event: "Alahya Thaís Saltares Ortega — XV Años",
       total: rows.length,
+      publicCount,
+      hiddenCount: rows.length - publicCount,
       wishes: rows,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "No se pudo cargar los deseos." });
+  }
+});
+
+// ——— Admin: mostrar / ocultar deseo en el muro público
+app.post("/api/admin/wishes/:id/visibility", ...adminGuard, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!id) return res.status(400).json({ error: "ID inválido" });
+    const approved = req.body.approved === true || req.body.approved === "true";
+    const { rows } = await pool.query(
+      `UPDATE wishes SET approved = $2
+       WHERE id = $1
+       RETURNING id, name, message, meta, approved, created_at`,
+      [id, approved]
+    );
+    if (!rows.length) {
+      return res.status(404).json({ error: "Deseo no encontrado." });
+    }
+    res.json({ success: true, wish: rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "No se pudo actualizar el deseo." });
   }
 });
 

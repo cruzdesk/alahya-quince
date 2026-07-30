@@ -68,6 +68,21 @@ function memoryQuery(text, params = []) {
     memory.wishes.unshift(row);
     return Promise.resolve({ rows: [row] });
   }
+  if (text.includes("UPDATE wishes") && text.includes("approved")) {
+    const id = params[0];
+    const approved = params[1];
+    const row = memory.wishes.find((w) => w.id === id);
+    if (!row) return Promise.resolve({ rows: [] });
+    row.approved = !!approved;
+    return Promise.resolve({ rows: [row] });
+  }
+  if (text.includes("FROM wishes") && text.includes("ORDER BY created_at DESC") && !text.includes("approved = true")) {
+    return Promise.resolve({
+      rows: [...memory.wishes].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      ),
+    });
+  }
   if (text.includes("FROM wishes")) {
     return Promise.resolve({
       rows: memory.wishes.filter((w) => w.approved !== false).slice(0, 80),

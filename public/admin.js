@@ -292,13 +292,15 @@
   function renderAdminWishes(list) {
     if (!adminWishesList) return;
     const wishes = list || [];
+    const publicN = wishes.filter((w) => w.approved !== false).length;
+    const hiddenN = wishes.length - publicN;
     if (adminWishesCount) {
       adminWishesCount.textContent = wishes.length
-        ? `${wishes.length} deseo(s) registrado(s)`
+        ? `${wishes.length} deseo(s) · ${publicN} público(s) · ${hiddenN} oculto(s)`
         : "No hay deseos todavía.";
     }
     if (!wishes.length) {
-      adminWishesList.innerHTML = '<p class="muted center">Sé el primero… aún no hay mensajes en el muro.</p>';
+      adminWishesList.innerHTML = '<p class="muted center">Aún no hay mensajes en el muro.</p>';
       return;
     }
     adminWishesList.innerHTML = wishes
@@ -309,6 +311,10 @@
               timeStyle: "short",
             })
           : "";
+        const isPublic = w.approved !== false;
+        const badge = isPublic
+          ? '<span class="badge ok">Público</span>'
+          : '<span class="badge no">Oculto</span>';
         const meta = w.meta || {};
         const ip = meta.server && meta.server.ip ? meta.server.ip : "";
         const platform =
@@ -317,12 +323,16 @@
         const extra = [ip && `IP: ${ip}`, platform && `Plataforma: ${platform}`]
           .filter(Boolean)
           .join(" · ");
-        return `<article class="admin-res-item">
+        const toggleLabel = isPublic ? "Ocultar del muro" : "Mostrar en muro";
+        return `<article class="admin-res-item${isPublic ? "" : " cancelled"}">
           <div>
-            <div class="who">${escapeHtml(w.name)} <span class="badge ok">#${w.id}</span></div>
+            <div class="who">${escapeHtml(w.name)} ${badge} <span class="badge ok">#${w.id}</span></div>
             <div class="meta-line" style="color:var(--ink);margin-top:0.35rem">${escapeHtml(w.message)}</div>
             <div class="meta-line">${escapeHtml(when)}</div>
             ${extra ? `<div class="meta-line">${escapeHtml(extra)}</div>` : ""}
+          </div>
+          <div class="admin-item-actions">
+            <button type="button" class="btn-edit" data-wish-vis="${w.id}" data-approved="${isPublic ? "false" : "true"}">${toggleLabel}</button>
           </div>
         </article>`;
       })
@@ -1014,9 +1024,13 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No autorizado");
       renderAdminWishes(data.wishes || []);
-      openPrintDocument(data, !!(printIncludeMeta && printIncludeMeta.checked));
+      const publicWishes = (data.wishes || []).filter((w) => w.approved !== false);
+      openPrintDocument(
+        { ...data, wishes: publicWishes, total: publicWishes.length },
+        !!(printIncludeMeta && printIncludeMeta.checked)
+      );
       if (printStatus) {
-        printStatus.textContent = `Listo: ${data.total} deseo(s) para imprimir.`;
+        printStatus.textContent = `Listo: ${publicWishes.length} deseo(s) públicos para imprimir.`;
         printStatus.className = "form-status ok";
       }
     } catch (err) {
@@ -1026,7 +1040,28 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
       }
     } finally {
       printWishesBtn.disabled = false;
-      printWishesBtn.textContent = "🖨 Imprimir todos los deseos";
+      printWishesBtn.textContent = "🖨 Imprimir deseos públicos";
+    }
+  });
+
+  adminWishesList?.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-wish-vis]");
+    if (!btn || !adminKey) return;
+    const id = btn.getAttribute("data-wish-vis");
+    const approved = btn.getAttribute("data-approved") === "true";
+    btn.disabled = true;
+    try {
+      const res = await fetch(`/api/admin/wishes/${id}/visibility`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: adminKey, approved }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      await loadAdminWishes();
+    } catch (err) {
+      alert(err.message || "No se pudo actualizar");
+      btn.disabled = false;
     }
   });
 
