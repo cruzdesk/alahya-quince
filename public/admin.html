@@ -90,6 +90,7 @@
           <p class="muted">Gestiona reservas activas y canceladas.</p>
           <div class="admin-res-actions">
             <button type="button" class="btn btn-gold" id="printResReportBtn">🖨 Reporte profesional</button>
+            <button type="button" class="btn btn-outline" id="exportCsvBtn">⬇ Exportar CSV</button>
             <button type="button" class="btn btn-outline" id="adminResRefreshBtn">Actualizar lista</button>
           </div>
           <div class="admin-stats admin-stats-compact" id="adminResStats2"></div>
@@ -98,8 +99,68 @@
           <div id="prMap" class="pr-map"></div>
           <div id="prMapDetail" class="pr-map-detail" hidden></div>
           <h3 class="admin-block-title">Lista de reservas</h3>
+          <div class="admin-filters">
+            <input type="search" id="resFilterName" placeholder="Buscar por nombre…" autocomplete="off" />
+            <select id="resFilterPueblo">
+              <option value="">Todos los pueblos</option>
+            </select>
+            <select id="resFilterStatus">
+              <option value="">Todos los estados</option>
+              <option value="active">Activas</option>
+              <option value="cancelled">Canceladas</option>
+            </select>
+          </div>
+          <p class="muted" id="resFilterCount" style="margin:0.5rem 0"></p>
           <div class="admin-res-list" id="adminResList"></div>
         </section>
+
+        <!-- Modal editar reserva -->
+        <div class="modal-overlay" id="editResModal" hidden>
+          <div class="modal-card glass modal-card-sm" role="dialog" aria-modal="true">
+            <button type="button" class="modal-close" id="editResClose" aria-label="Cerrar">×</button>
+            <h3 class="modal-title">Editar reserva</h3>
+            <form id="editResForm">
+              <input type="hidden" id="editResId" />
+              <div class="form-row">
+                <label for="editResName">Nombre</label>
+                <input type="text" id="editResName" required />
+              </div>
+              <div class="form-row">
+                <label for="editResPueblo">Pueblo</label>
+                <select id="editResPueblo"></select>
+              </div>
+              <div class="form-grid">
+                <div class="form-row">
+                  <label for="editResPhone">Teléfono</label>
+                  <input type="tel" id="editResPhone" placeholder="(787) 000-0000" />
+                </div>
+                <div class="form-row">
+                  <label for="editResEmail">Correo</label>
+                  <input type="email" id="editResEmail" />
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="form-row">
+                  <label for="editResGuests">Invitados</label>
+                  <input type="number" id="editResGuests" min="1" max="20" value="1" />
+                </div>
+                <div class="form-row">
+                  <label for="editResStatus">Estado</label>
+                  <select id="editResStatus">
+                    <option value="active">Activa</option>
+                    <option value="cancelled">Cancelada</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <label for="editResNotes">Notas</label>
+                <input type="text" id="editResNotes" maxlength="400" />
+              </div>
+              <button type="submit" class="btn btn-gold full" id="editResSave">Guardar cambios</button>
+              <p class="form-status" id="editResStatusMsg" role="status"></p>
+            </form>
+          </div>
+        </div>
 
         <!-- DESEOS -->
         <section class="admin-view" id="view-deseos" data-view-panel="deseos" hidden>

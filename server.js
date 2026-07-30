@@ -427,6 +427,62 @@ app.post("/api/admin/reservations/:id/cancel", ...adminGuard, async (req, res) =
   }
 });
 
+// ——— Admin: editar reserva
+app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!id) return res.status(400).json({ error: "ID inválido" });
+
+    const name = clean(req.body.name, 120);
+    const email = clean(req.body.email, 160).toLowerCase();
+    const phone = clean(req.body.phone, 40);
+    const pueblo = clean(req.body.pueblo, 80);
+    const notes = clean(req.body.notes, 400);
+    const guests = Math.min(Math.max(parseInt(req.body.guests, 10) || 1, 1), 20);
+    let status = String(req.body.status || "active").toLowerCase();
+    if (status !== "active" && status !== "cancelled") status = "active";
+
+    if (!name || name.length < 2) {
+      return res.status(400).json({ error: "Nombre requerido." });
+    }
+
+    const { rows } = await pool.query(
+      `UPDATE reservations SET
+         name = $2,
+         email = $3,
+         phone = $4,
+         guests = $5,
+         pueblo = $6,
+         notes = $7,
+         status = $8,
+         cancelled_at = CASE
+           WHEN $8 = 'cancelled' AND (cancelled_at IS NULL OR status = 'active') THEN COALESCE(cancelled_at, NOW())
+           WHEN $8 = 'active' THEN NULL
+           ELSE cancelled_at
+         END
+       WHERE id = $1
+       RETURNING id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at`,
+      [
+        id,
+        name,
+        email || null,
+        phone || null,
+        guests,
+        pueblo || null,
+        notes || null,
+        status,
+      ]
+    );
+    if (!rows.length) {
+      return res.status(404).json({ error: "Reserva no encontrada." });
+    }
+    res.json({ success: true, reservation: rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "No se pudo actualizar la reserva." });
+  }
+});
+
 // ——— Admin: datos para reporte imprimible de reservas
 app.post("/api/admin/print-reservations", ...adminGuard, async (req, res) => {
   try {

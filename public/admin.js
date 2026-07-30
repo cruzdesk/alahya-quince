@@ -388,13 +388,112 @@
     `;
   }
 
+  let allReservations = [];
+
+  const resFilterName = document.getElementById("resFilterName");
+  const resFilterPueblo = document.getElementById("resFilterPueblo");
+  const resFilterStatus = document.getElementById("resFilterStatus");
+  const resFilterCount = document.getElementById("resFilterCount");
+  const exportCsvBtn = document.getElementById("exportCsvBtn");
+  const editResModal = document.getElementById("editResModal");
+  const editResForm = document.getElementById("editResForm");
+  const editResClose = document.getElementById("editResClose");
+  const editResStatusMsg = document.getElementById("editResStatusMsg");
+
+  function fillPuebloSelects() {
+    const towns = window.PR_TOWNS || [];
+    const editSel = document.getElementById("editResPueblo");
+    if (editSel && !editSel.options.length) {
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = "Sin pueblo";
+      editSel.appendChild(empty);
+      towns.forEach((t) => {
+        const o = document.createElement("option");
+        o.value = t.name;
+        o.textContent = t.name;
+        editSel.appendChild(o);
+      });
+    }
+  }
+
+  function populateFilterPueblos(list) {
+    if (!resFilterPueblo) return;
+    const current = resFilterPueblo.value;
+    const set = new Set();
+    (list || []).forEach((r) => {
+      if (r.pueblo) set.add(r.pueblo);
+    });
+    const towns = Array.from(set).sort((a, b) => a.localeCompare(b, "es"));
+    resFilterPueblo.innerHTML = '<option value="">Todos los pueblos</option>';
+    towns.forEach((p) => {
+      const o = document.createElement("option");
+      o.value = p;
+      o.textContent = p;
+      resFilterPueblo.appendChild(o);
+    });
+    if (current && towns.includes(current)) resFilterPueblo.value = current;
+  }
+
+  function phoneToWa(phone) {
+    let d = String(phone || "").replace(/\D/g, "");
+    if (!d) return "";
+    if (d.length === 10) d = "1" + d;
+    return d;
+  }
+
+  function waLink(r) {
+    const num = phoneToWa(r.phone);
+    if (!num) return "";
+    const text = [
+      `Hola ${r.name || ""},`,
+      "",
+      "Te recordamos los XV de Alahya Thaís Saltares Ortega:",
+      "📅 10 de octubre de 2026 · 5:00 p.m.",
+      "📍 Tres Palmas, Aguadilla",
+      "🎭 Victorian Masquerade Ball",
+      "",
+      "Invitación: https://alahya-quince.onrender.com",
+      "",
+      "¡Te esperamos!",
+    ].join("\n");
+    return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
+  }
+
+  function getFilteredReservations() {
+    const q = (resFilterName?.value || "").trim().toLowerCase();
+    const pueblo = resFilterPueblo?.value || "";
+    const status = resFilterStatus?.value || "";
+    return allReservations.filter((r) => {
+      if (q && !(r.name || "").toLowerCase().includes(q)) return false;
+      if (pueblo && r.pueblo !== pueblo) return false;
+      if (status && r.status !== status) return false;
+      return true;
+    });
+  }
+
   function renderAdminList(list) {
+    if (Array.isArray(list)) {
+      allReservations = list;
+      populateFilterPueblos(list);
+    }
     if (!adminResList) return;
-    if (!list.length) {
-      adminResList.innerHTML = '<p class="muted center">No hay reservas todavía.</p>';
+    const filtered = getFilteredReservations();
+    if (resFilterCount) {
+      resFilterCount.textContent = filtered.length
+        ? `Mostrando ${filtered.length} de ${allReservations.length}`
+        : allReservations.length
+          ? "Ninguna reserva coincide con el filtro."
+          : "No hay reservas todavía.";
+    }
+    if (!filtered.length) {
+      adminResList.innerHTML =
+        '<p class="muted center">' +
+        (allReservations.length ? "Sin resultados." : "No hay reservas todavía.") +
+        "</p>";
       return;
     }
-    adminResList.innerHTML = list
+    adminResList.innerHTML = filtered
       .map((r) => {
         const when = r.created_at
           ? new Date(r.created_at).toLocaleString("es", {
@@ -411,10 +510,14 @@
         const notes = r.notes
           ? `<div class="meta-line">Notas: ${escapeHtml(r.notes)}</div>`
           : "";
+        const wa = waLink(r);
+        const waBtn = wa
+          ? `<a class="wa" href="${wa}" target="_blank" rel="noopener noreferrer">WhatsApp</a>`
+          : `<a class="wa is-disabled" href="#" tabindex="-1">Sin teléfono</a>`;
         const cancelBtn = cancelled
           ? ""
           : `<button type="button" class="btn-danger-sm" data-cancel-id="${r.id}">Cancelar</button>`;
-        return `<article class="admin-res-item${cancelled ? " cancelled" : ""}">
+        return `<article class="admin-res-item${cancelled ? " cancelled" : ""}" data-res-id="${r.id}">
           <div>
             <div class="who">${escapeHtml(r.name)} ${badge}</div>
             <div class="meta-line">📍 ${pueblo} · <strong>${r.guests}</strong> invitado(s)</div>
@@ -422,11 +525,151 @@
             <div class="meta-line">#${r.id} · ${escapeHtml(when)}</div>
             ${notes}
           </div>
-          <div>${cancelBtn}</div>
+          <div class="admin-item-actions">
+            ${waBtn}
+            <button type="button" class="btn-edit" data-edit-id="${r.id}">Editar</button>
+            ${cancelBtn}
+          </div>
         </article>`;
       })
       .join("");
   }
+
+  function applyFilters() {
+    renderAdminList();
+  }
+
+  resFilterName?.addEventListener("input", applyFilters);
+  resFilterPueblo?.addEventListener("change", applyFilters);
+  resFilterStatus?.addEventListener("change", applyFilters);
+
+  function exportReservationsCsv() {
+    const list = getFilteredReservations();
+    if (!list.length) {
+      alert("No hay reservas para exportar con el filtro actual.");
+      return;
+    }
+    const headers = [
+      "id",
+      "nombre",
+      "pueblo",
+      "invitados",
+      "telefono",
+      "correo",
+      "notas",
+      "estado",
+      "creada",
+      "cancelada",
+    ];
+    const esc = (v) => {
+      const s = v == null ? "" : String(v);
+      if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+      return s;
+    };
+    const lines = [headers.join(",")];
+    list.forEach((r) => {
+      lines.push(
+        [
+          r.id,
+          r.name,
+          r.pueblo,
+          r.guests,
+          r.phone,
+          r.email,
+          r.notes,
+          r.status,
+          r.created_at,
+          r.cancelled_at,
+        ]
+          .map(esc)
+          .join(",")
+      );
+    });
+    // BOM para Excel
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `reservas-alahya-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  exportCsvBtn?.addEventListener("click", exportReservationsCsv);
+
+  function openEditReservation(id) {
+    fillPuebloSelects();
+    const r = allReservations.find((x) => String(x.id) === String(id));
+    if (!r || !editResModal) return;
+    document.getElementById("editResId").value = r.id;
+    document.getElementById("editResName").value = r.name || "";
+    document.getElementById("editResPhone").value = r.phone || "";
+    document.getElementById("editResEmail").value = r.email || "";
+    document.getElementById("editResGuests").value = r.guests || 1;
+    document.getElementById("editResNotes").value = r.notes || "";
+    document.getElementById("editResStatus").value = r.status || "active";
+    const puebloSel = document.getElementById("editResPueblo");
+    if (puebloSel) puebloSel.value = r.pueblo || "";
+    if (editResStatusMsg) {
+      editResStatusMsg.textContent = "";
+      editResStatusMsg.className = "form-status";
+    }
+    editResModal.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeEditReservation() {
+    if (!editResModal) return;
+    editResModal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  editResClose?.addEventListener("click", closeEditReservation);
+  editResModal?.addEventListener("click", (e) => {
+    if (e.target === editResModal) closeEditReservation();
+  });
+
+  editResForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!adminKey) return;
+    const id = document.getElementById("editResId").value;
+    const body = {
+      key: adminKey,
+      name: document.getElementById("editResName").value,
+      phone: document.getElementById("editResPhone").value,
+      email: document.getElementById("editResEmail").value,
+      pueblo: document.getElementById("editResPueblo").value,
+      guests: Number(document.getElementById("editResGuests").value || 1),
+      notes: document.getElementById("editResNotes").value,
+      status: document.getElementById("editResStatus").value,
+    };
+    const saveBtn = document.getElementById("editResSave");
+    if (saveBtn) saveBtn.disabled = true;
+    try {
+      const res = await fetch(`/api/admin/reservations/${id}/update`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      if (editResStatusMsg) {
+        editResStatusMsg.textContent = "Guardado.";
+        editResStatusMsg.className = "form-status ok";
+      }
+      await loadAdminReservations();
+      setTimeout(closeEditReservation, 400);
+    } catch (err) {
+      if (editResStatusMsg) {
+        editResStatusMsg.textContent = err.message || "No se pudo guardar.";
+        editResStatusMsg.className = "form-status err";
+      }
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
+    }
+  });
 
   async function loadAdminReservations() {
     if (!adminKey) return;
@@ -730,6 +973,11 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
   printResReportBtnQuick?.addEventListener("click", printReservationsReport);
 
   adminResList?.addEventListener("click", async (e) => {
+    const editBtn = e.target.closest("[data-edit-id]");
+    if (editBtn) {
+      openEditReservation(editBtn.getAttribute("data-edit-id"));
+      return;
+    }
     const btn = e.target.closest("[data-cancel-id]");
     if (!btn || !adminKey) return;
     const id = btn.getAttribute("data-cancel-id");
@@ -749,6 +997,9 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
       btn.disabled = false;
     }
   });
+
+  // Inicializar selects de pueblo al cargar
+  fillPuebloSelects();
 
   printWishesBtn?.addEventListener("click", async () => {
     if (!adminKey) return;
