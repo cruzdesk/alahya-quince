@@ -294,7 +294,26 @@
         </div>
         <div class="form-row">
           <label for="wishMsg">Tu mensaje</label>
-          <input type="text" id="wishMsg" required placeholder="Que Dios te bendiga…" maxlength="400" />
+          <textarea id="wishMsg" required placeholder="Que Dios te bendiga…" maxlength="400" rows="3"></textarea>
+          <div class="emoji-picker" id="emojiPicker" aria-label="Emojis">
+            <button type="button" class="emoji-btn" data-emoji="❤️" title="Corazón">❤️</button>
+            <button type="button" class="emoji-btn" data-emoji="💕" title="Corazones">💕</button>
+            <button type="button" class="emoji-btn" data-emoji="💖" title="Brillo">💖</button>
+            <button type="button" class="emoji-btn" data-emoji="✨" title="Estrellas">✨</button>
+            <button type="button" class="emoji-btn" data-emoji="🌟" title="Estrella">🌟</button>
+            <button type="button" class="emoji-btn" data-emoji="👑" title="Corona">👑</button>
+            <button type="button" class="emoji-btn" data-emoji="🎉" title="Fiesta">🎉</button>
+            <button type="button" class="emoji-btn" data-emoji="🥳" title="Celebrar">🥳</button>
+            <button type="button" class="emoji-btn" data-emoji="🎂" title="Pastel">🎂</button>
+            <button type="button" class="emoji-btn" data-emoji="💐" title="Flores">💐</button>
+            <button type="button" class="emoji-btn" data-emoji="🌹" title="Rosa">🌹</button>
+            <button type="button" class="emoji-btn" data-emoji="🙏" title="Bendición">🙏</button>
+            <button type="button" class="emoji-btn" data-emoji="😊" title="Sonrisa">😊</button>
+            <button type="button" class="emoji-btn" data-emoji="🥰" title="Amor">🥰</button>
+            <button type="button" class="emoji-btn" data-emoji="💃" title="Baile">💃</button>
+            <button type="button" class="emoji-btn" data-emoji="🎭" title="Máscara">🎭</button>
+          </div>
+          <p class="emoji-hint muted">Toca un emoji para añadirlo al mensaje</p>
         </div>
         <div class="form-row">
           <label for="wishPin">PIN para publicar</label>

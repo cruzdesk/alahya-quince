@@ -209,6 +209,32 @@
   const wishesWall = document.getElementById("wishesWall");
   const wishForm = document.getElementById("wishForm");
   const wishStatus = document.getElementById("wishStatus");
+  const wishMsg = document.getElementById("wishMsg");
+  const emojiPicker = document.getElementById("emojiPicker");
+
+  function insertEmojiAtCursor(input, emoji) {
+    if (!input || !emoji) return;
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? input.value.length;
+    const max = Number(input.getAttribute("maxlength") || 400);
+    const before = input.value.slice(0, start);
+    const after = input.value.slice(end);
+    const next = before + emoji + after;
+    if (next.length > max) return;
+    input.value = next;
+    const pos = start + emoji.length;
+    input.focus();
+    try {
+      input.setSelectionRange(pos, pos);
+    } catch (_) {}
+  }
+
+  emojiPicker?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".emoji-btn");
+    if (!btn) return;
+    e.preventDefault();
+    insertEmojiAtCursor(wishMsg, btn.getAttribute("data-emoji"));
+  });
   const wishModal = document.getElementById("wishModal");
   const wishModalTitle = document.getElementById("wishModalTitle");
   const wishModalMsg = document.getElementById("wishModalMsg");
