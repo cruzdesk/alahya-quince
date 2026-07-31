@@ -37,17 +37,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.1rem;
 }
 
 .he-envelope {
   position: relative;
   width: 100%;
   max-width: 480px;
-  height: min(340px, 48vh);
+  height: min(320px, 44vh);
   margin: 0 auto;
   transform-style: preserve-3d;
-  transform: rotateX(4deg);
+  transform: rotateX(3deg);
+  /* Permite que la carta salga ARRIBA; recorta todo lo que se meta ABAJO del sobre */
+  clip-path: inset(-160% -8% 0 -8%);
+  -webkit-clip-path: inset(-160% -8% 0 -8%);
 }
 
 .he-back {
@@ -60,13 +63,15 @@
   z-index: 1;
 }
 
+/* Tarjeta: metida (out=0) o completamente fuera hacia arriba (out=1) */
 .he-card {
   position: absolute;
-  left: 5%;
-  right: 5%;
-  top: 4%;
+  left: 6%;
+  right: 6%;
+  top: 8%;
   z-index: 2;
-  transform: translate3d(0, calc(52% - var(--out) * 110%), 0);
+  /* out=0: empuja la tarjeta hacia abajo (oculta bajo el frente); out=1: sube del todo */
+  transform: translate3d(0, calc(58% - var(--out) * 118%), 0);
   will-change: transform;
   pointer-events: none;
 }
@@ -78,47 +83,49 @@
 .he-card-inner {
   max-width: none !important;
   width: 100%;
-  padding: 1.75rem 1.35rem 1.9rem !important;
+  padding: 1.6rem 1.25rem 1.75rem !important;
   box-shadow: 0 14px 36px rgba(40, 10, 15, 0.18);
   background: #fffcf8 !important;
 }
 
 .he-card-inner .hero-name .first {
-  font-size: clamp(2.4rem, 9vw, 3.8rem);
+  font-size: clamp(2.3rem, 8.5vw, 3.5rem);
 }
 
 .he-card-inner .hero-name .middle {
-  font-size: clamp(0.85rem, 2.8vw, 1.15rem);
+  font-size: clamp(0.82rem, 2.6vw, 1.1rem);
 }
 
 .he-card-inner .hero-tagline {
-  font-size: clamp(1.15rem, 3.2vw, 1.55rem);
+  font-size: clamp(1.1rem, 3vw, 1.45rem);
+  margin-bottom: 0.35rem;
 }
 
 .he-card-inner .eyebrow {
-  font-size: 0.62rem;
-  margin-bottom: 0.85rem;
+  font-size: 0.6rem;
+  margin-bottom: 0.75rem;
   line-height: 1.45;
 }
 
 .he-card-inner .hero-date {
-  margin-bottom: 1.25rem;
-  font-size: 0.75rem;
+  margin-bottom: 0;
+  font-size: 0.72rem;
 }
 
+/* Frente del sobre — opaco, tapa la tarjeta cuando está adentro */
 .he-front {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 62%;
+  height: 68%;
   z-index: 3;
   border-radius: 0 0 10px 10px;
-  background: linear-gradient(180deg, #a01828 0%, #6b1018 55%, #4a0c12 100%);
+  background: linear-gradient(180deg, #b01a2a 0%, #6b1018 50%, #4a0c12 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.4);
   border-top: none;
-  clip-path: polygon(0 28%, 50% 0, 100% 28%, 100% 100%, 0 100%);
-  box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.08);
+  clip-path: polygon(0 30%, 50% 0, 100% 30%, 100% 100%, 0 100%);
+  box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.1);
   pointer-events: none;
 }
 
@@ -132,6 +139,7 @@
   background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.4), transparent);
 }
 
+/* Solapa roja */
 .he-flap {
   position: absolute;
   left: 0;
@@ -206,12 +214,25 @@
   visibility: hidden;
 }
 
+/* Botón Reservar — debajo del sobre, aparte */
+.he-reserve {
+  margin-top: 0.35rem;
+  opacity: calc(0.35 + var(--out) * 0.65);
+  transform: translateY(calc((1 - var(--out)) * 8px));
+  transition: opacity 0.15s linear;
+  pointer-events: auto;
+}
+
+.he-reserve .btn {
+  min-width: 160px;
+}
+
 @media (max-width: 540px) {
   .he-envelope {
-    height: min(300px, 46vh);
+    height: min(280px, 42vh);
   }
   .he-card-inner {
-    padding: 1.35rem 1rem 1.5rem !important;
+    padding: 1.25rem 0.95rem 1.4rem !important;
   }
   .he-seal {
     width: 48px;
@@ -252,6 +273,11 @@
   }
   .he-envelope {
     height: auto;
+    transform: none;
+    clip-path: none;
+  }
+  .he-reserve {
+    opacity: 1;
     transform: none;
   }
 }
