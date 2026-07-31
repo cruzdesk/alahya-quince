@@ -295,11 +295,30 @@
   .he-track {
     height: 125vh;
   }
+  /*
+   * Baja el sobre: más aire arriba (nav A.XV + menú) para que la
+   * invitación abierta no quede tapada por la barra blanca fija.
+   */
   .he-sticky {
-    padding: 4.5rem 0.85rem 1.25rem;
+    padding: 6.75rem 0.85rem 2.5rem;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .he-stage {
+    /* Empuja el bloque un poco más abajo del centro */
+    margin-bottom: 0.35rem;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    width: min(520px, 94vw);
   }
   .he-envelope {
-    height: min(280px, 42vh);
+    height: min(260px, 38vh);
+  }
+  /* La carta no sube tanto: deja espacio libre bajo el nav */
+  .he-card {
+    transform: translateY(calc(52% - var(--out) * 100%));
+  }
+  .hero-envelope.is-open .he-card {
+    transform: translateY(-48%);
   }
   .he-card-inner {
     padding: 1.35rem 1rem 2.85rem !important;
