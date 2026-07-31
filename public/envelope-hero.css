@@ -25,7 +25,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  /* No recortar la solapa abierta (triángulo) hacia arriba */
+  overflow-x: hidden;
+  overflow-y: visible;
   padding: 5.5rem 1rem 2rem;
   background:
     radial-gradient(ellipse 75% 50% at 50% 30%, rgba(212, 175, 55, 0.14), transparent 60%),
@@ -46,12 +48,12 @@
   max-width: 480px;
   height: min(320px, 44vh);
   margin: 0 auto;
-  /* Sin perspective / preserve-3d en el contenedor: evita texto borroso en GPU */
+  /* perspective solo para la solapa; la tarjeta usa transform-style: flat */
+  perspective: 900px;
   transform-style: flat;
-  perspective: none;
-  /* Permite que la carta salga ARRIBA; recorta todo lo que se meta ABAJO del sobre */
-  clip-path: inset(-180% -8% 0 -8%);
-  -webkit-clip-path: inset(-180% -8% 0 -8%);
+  /* Permite que la carta salga ARRIBA; recorta lo que asoma ABAJO del sobre */
+  clip-path: inset(-200% -10% 0 -10%);
+  -webkit-clip-path: inset(-200% -10% 0 -10%);
 }
 
 .he-back {
@@ -177,9 +179,9 @@
 }
 
 /*
- * Solapa superior del sobre.
- * Antes: scaleY(0.02) + opacity 0.15 al abrir → hilo rojo delante del papel blanco.
- * Ahora: cierra a 0 total; is-open la oculta del todo (solo la solapa, nada más).
+ * Solapa superior (triángulo del sobre).
+ * No usar scaleY(0) ni visibility:hidden al abrir: eso “cortaba” el triángulo.
+ * Se abre con rotateX (queda arriba, fuera del papel blanco).
  */
 .he-flap {
   position: absolute;
@@ -189,8 +191,8 @@
   height: 58%;
   z-index: 4;
   transform-origin: top center;
-  transform: scaleY(calc(1 - var(--flap)));
-  transform-style: flat;
+  transform: rotateX(calc(var(--flap) * -168deg));
+  transform-style: preserve-3d;
   background: linear-gradient(180deg, #c41e3a 0%, #8b1520 60%, #5c1018 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.5);
@@ -198,15 +200,14 @@
   pointer-events: none;
   backface-visibility: hidden;
   will-change: transform;
-  opacity: calc(1 - var(--flap));
+  opacity: 1;
 }
 
+/* Al abrir del todo: solapa abierta arriba (triángulo intacto), sin ocultarla */
 .hero-envelope.is-open .he-flap {
-  opacity: 0;
-  visibility: hidden;
-  transform: scaleY(0);
-  border: none;
-  box-shadow: none;
+  transform: rotateX(-168deg);
+  opacity: 1;
+  visibility: visible;
 }
 
 .he-flap::after {
