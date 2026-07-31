@@ -46,7 +46,9 @@
   max-width: 480px;
   height: min(320px, 44vh);
   margin: 0 auto;
-  /* Sin rotateX en el sobre: evita texto borroso */
+  /* Sin perspective / preserve-3d en el contenedor: evita texto borroso en GPU */
+  transform-style: flat;
+  perspective: none;
   /* Permite que la carta salga ARRIBA; recorta todo lo que se meta ABAJO del sobre */
   clip-path: inset(-180% -8% 0 -8%);
   -webkit-clip-path: inset(-180% -8% 0 -8%);
@@ -62,52 +64,75 @@
   z-index: 1;
 }
 
-/* Tarjeta: metida (out=0) o fuera hacia arriba (out=1) — solo translateY (más nítido) */
+/* Tarjeta: metida (out=0) o fuera hacia arriba (out=1) — solo translateY 2D (nítido) */
 .he-card {
   position: absolute;
   left: 6%;
   right: 6%;
   top: 8%;
   z-index: 2;
+  /* translateY 2D (no 3d) + isolation: evita subpixel blur del compositing */
   transform: translateY(calc(58% - var(--out) * 118%));
+  transform-style: flat;
+  isolation: isolate;
   pointer-events: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
   backface-visibility: hidden;
+  will-change: auto;
+  filter: none;
 }
 
 .hero-envelope.is-open .he-card {
   pointer-events: auto;
-  /* Al abrir, quita will-change / GPU blur residual */
-  transform: translateY(calc(58% - 118%));
+  /* Valor fijo sin var() al estar abierta: composición más limpia */
+  transform: translateY(-60%);
+  will-change: auto;
+  filter: none;
 }
 
 .he-card-inner {
   max-width: none !important;
   width: 100%;
-  padding: 1.65rem 1.3rem 2.6rem !important;
+  /* Más aire abajo (debajo de la fecha) */
+  padding: 1.65rem 1.3rem 3.25rem !important;
   box-shadow: 0 14px 36px rgba(40, 10, 15, 0.18);
+  /* Opaco sólido: sin glass ni blur */
   background: #fffcf8 !important;
-  /* Sin blur de glass */
+  background-image: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   filter: none !important;
-  transform: translateZ(0);
+  /* Sin translateZ (a veces desenfoca texto en algunos browsers) */
+  transform: none !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
 }
 
+/* Nombre nítido: color sólido (clip de gradiente + transform padre = borroso) */
 .he-card-inner .hero-name .first {
   font-size: clamp(2.3rem, 8.5vw, 3.5rem);
-  /* Gradient text a veces se ve borroso con transform padre: forzar capa limpia */
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: #9b1c1c;
+  color: #9b1c1c !important;
   -webkit-font-smoothing: antialiased;
+  text-shadow: none;
+  filter: none;
 }
 
 .he-card-inner .hero-name .middle {
   font-size: clamp(0.82rem, 2.6vw, 1.1rem);
+  -webkit-font-smoothing: antialiased;
 }
 
 .he-card-inner .hero-tagline {
   font-size: clamp(1.1rem, 3vw, 1.45rem);
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.55rem;
+  -webkit-font-smoothing: antialiased;
 }
 
 .he-card-inner .eyebrow {
@@ -116,11 +141,12 @@
   line-height: 1.45;
 }
 
-/* Más espacio en blanco debajo de la fecha */
+/* Mucho más espacio en blanco debajo de la fecha */
 .he-card-inner .hero-date {
-  margin-bottom: 0;
-  padding-bottom: 1.75rem;
+  margin-bottom: 0 !important;
+  padding-bottom: 2.75rem;
   font-size: 0.75rem;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Frente del sobre — opaco, tapa la tarjeta cuando está adentro */
@@ -150,7 +176,7 @@
   background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.4), transparent);
 }
 
-/* Solapa roja */
+/* Solapa roja — 3D solo en la solapa (no afecta a la tarjeta) */
 .he-flap {
   position: absolute;
   left: 0;
@@ -159,15 +185,17 @@
   height: 58%;
   z-index: 4;
   transform-origin: top center;
-  /* Solo la solapa usa 3D; la tarjeta no (evita blur) */
-  transform: rotateX(calc(var(--flap) * -170deg));
-  transform-style: preserve-3d;
+  /* Escala 2D en vez de rotateX 3D: menos blur residual en siblings */
+  transform: scaleY(calc(1 - var(--flap) * 0.98));
+  transform-style: flat;
   background: linear-gradient(180deg, #c41e3a 0%, #8b1520 60%, #5c1018 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.5);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
   pointer-events: none;
   backface-visibility: hidden;
+  will-change: transform;
+  opacity: calc(1 - var(--flap) * 0.85);
 }
 
 .he-flap::after {
@@ -244,10 +272,10 @@
     height: min(280px, 42vh);
   }
   .he-card-inner {
-    padding: 1.35rem 1rem 2.2rem !important;
+    padding: 1.35rem 1rem 2.85rem !important;
   }
   .he-card-inner .hero-date {
-    padding-bottom: 1.5rem;
+    padding-bottom: 2.35rem;
   }
   .he-seal {
     width: 48px;
