@@ -42,6 +42,327 @@ body {
   overflow-x: hidden;
 }
 
+/* ========== CARTA 3D (scroll) ========== */
+.letter-intro {
+  height: 220vh;
+  position: relative;
+  z-index: 5;
+}
+
+.letter-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 40%, rgba(212, 175, 55, 0.18), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(155, 28, 28, 0.12), transparent 55%),
+    linear-gradient(180deg, #1a1212 0%, #2a1818 45%, #1a1212 100%);
+}
+
+.letter-stage {
+  --p: 0;
+  width: min(420px, 88vw);
+  perspective: 1400px;
+  perspective-origin: 50% 40%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.letter-env {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 3.4;
+  transform-style: preserve-3d;
+  transform:
+    rotateX(calc(8deg - var(--p) * 6deg))
+    scale(calc(0.92 + var(--p) * 0.12));
+  transition: none;
+  filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.45));
+}
+
+.letter-env-shadow {
+  position: absolute;
+  inset: 8% 6% -6%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.45), transparent 70%);
+  transform: translateZ(-40px) scale(1.05);
+  opacity: calc(0.9 - var(--p) * 0.5);
+  pointer-events: none;
+}
+
+.letter-pocket {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px 6px 10px 10px;
+  background:
+    linear-gradient(145deg, #6b1520 0%, #4a0f16 40%, #2a0a0e 100%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transform: translateZ(0);
+}
+
+.letter-pocket::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
+}
+
+.letter-sheet {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 10%;
+  height: 92%;
+  transform-origin: 50% 100%;
+  transform:
+    translateY(calc(42% - var(--p) * 78%))
+    translateZ(12px)
+    rotateX(calc(-4deg + var(--p) * 2deg));
+  z-index: 2;
+  pointer-events: none;
+}
+
+.letter-sheet-inner {
+  height: 100%;
+  background:
+    linear-gradient(180deg, #fffcf8 0%, #f7efe3 50%, #f0e6d8 100%);
+  border: 1px solid rgba(201, 162, 39, 0.45);
+  border-radius: 4px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.2),
+    inset 0 0 40px rgba(212, 175, 55, 0.08);
+  padding: 1.1rem 1rem 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  color: #1a1212;
+}
+
+.letter-mono {
+  font-family: var(--font-display);
+  letter-spacing: 0.35em;
+  font-size: 0.85rem;
+  color: #9b1c1c;
+  font-weight: 600;
+}
+
+.letter-line-orn {
+  color: #c9a227;
+  font-size: 0.75rem;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.letter-invite {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #5c4a48;
+  font-weight: 500;
+}
+
+.letter-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 5vw, 1.85rem);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.2;
+  color: #7a1515;
+  margin: 0.25rem 0;
+}
+
+.letter-event {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: #1a1212;
+}
+
+.letter-theme {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9b1c1c;
+  font-weight: 500;
+  margin-top: 0.15rem;
+}
+
+.letter-when,
+.letter-where {
+  font-size: 0.72rem;
+  color: #5c4a48;
+  margin-top: 0.2rem;
+}
+
+.letter-flap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 52%;
+  transform-origin: 50% 0%;
+  transform:
+    rotateX(calc(0deg - var(--p) * 168deg))
+    translateZ(1px);
+  z-index: 4;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.letter-flap-face {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background:
+    linear-gradient(160deg, #8b1a1a 0%, #5c1212 45%, #3d0c10 100%);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.25);
+  backface-visibility: hidden;
+}
+
+.letter-flap-face::after {
+  content: "";
+  position: absolute;
+  inset: 12% 22% 35%;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  opacity: 0.7;
+}
+
+.letter-seal {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 52px;
+  height: 52px;
+  margin-left: -26px;
+  margin-top: -10px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, #e8d5a3, #d4af37 40%, #8a7020 100%);
+  border: 2px solid rgba(255, 252, 248, 0.35);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transform: translateZ(20px) scale(calc(1 - var(--p) * 0.35));
+  opacity: calc(1 - var(--p) * 1.4);
+  pointer-events: none;
+}
+
+.letter-seal span {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #3d2010;
+  letter-spacing: 0.05em;
+}
+
+.letter-hint {
+  text-align: center;
+  color: rgba(247, 239, 227, 0.85);
+  opacity: calc(1 - var(--p) * 1.5);
+  transform: translateY(calc(var(--p) * -12px));
+  pointer-events: none;
+}
+
+.letter-hint-main {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.letter-hint-sub {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1rem;
+  color: #e8d5a3;
+}
+
+.letter-skip {
+  margin-top: 0.25rem;
+  font-size: 0.68rem !important;
+  padding: 0.65rem 1.15rem !important;
+  color: #e8d5a3 !important;
+  border-color: rgba(232, 213, 163, 0.45) !important;
+  background: rgba(0, 0, 0, 0.25) !important;
+  opacity: calc(0.85 - var(--p) * 1.2);
+  pointer-events: auto;
+  position: relative;
+  z-index: 6;
+}
+
+.letter-skip:hover {
+  background: rgba(212, 175, 55, 0.15) !important;
+}
+
+.letter-intro.is-done {
+  height: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.letter-intro.is-done .letter-sticky {
+  display: none;
+}
+
+body.letter-done .nav {
+  /* normal nav after letter */
+}
+
+@media (max-width: 480px) {
+  .letter-sheet-inner {
+    padding: 0.85rem 0.7rem;
+  }
+  .letter-name {
+    font-size: 1.25rem;
+  }
+  .letter-seal {
+    width: 44px;
+    height: 44px;
+    margin-left: -22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letter-intro {
+    height: auto;
+  }
+  .letter-sticky {
+    position: relative;
+    height: auto;
+    min-height: 70vh;
+    padding: 3rem 1rem;
+  }
+  .letter-stage {
+    --p: 1 !important;
+  }
+  .letter-hint,
+  .letter-skip {
+    display: none;
+  }
+}
+
 .bg-glow {
   position: fixed;
   inset: 0;

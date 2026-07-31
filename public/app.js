@@ -1,10 +1,83 @@
 /* Alahya XV — client */
 (function () {
   const EVENT_FALLBACK = "2026-10-10T17:00:00-04:00";
+  const LETTER_DONE_KEY = "alahya_letter_opened";
+
+  // ——— Carta 3D (scroll)
+  const letterIntro = document.getElementById("letterIntro");
+  const letterStage = document.getElementById("letterStage");
+  const letterSkip = document.getElementById("letterSkip");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function setLetterProgress(p) {
+    if (!letterStage) return;
+    const v = Math.max(0, Math.min(1, p));
+    letterStage.style.setProperty("--p", v.toFixed(4));
+  }
+
+  function finishLetter(instant) {
+    if (!letterIntro) return;
+    setLetterProgress(1);
+    letterIntro.classList.add("is-done");
+    document.body.classList.add("letter-done");
+    try {
+      sessionStorage.setItem(LETTER_DONE_KEY, "1");
+    } catch (_) {}
+    if (instant) {
+      // already collapsed
+    }
+  }
+
+  function updateLetterFromScroll() {
+    if (!letterIntro || letterIntro.classList.contains("is-done")) return;
+    const rect = letterIntro.getBoundingClientRect();
+    const total = letterIntro.offsetHeight - window.innerHeight;
+    if (total <= 0) {
+      setLetterProgress(1);
+      return;
+    }
+    // progress as we scroll through the letter section
+    const scrolled = -rect.top;
+    const p = scrolled / total;
+    setLetterProgress(p);
+    if (p >= 0.98) {
+      // keep visual open; section still occupies space until near end
+    }
+  }
+
+  if (letterIntro && letterStage && !reduceMotion) {
+    let already = false;
+    try {
+      already = sessionStorage.getItem(LETTER_DONE_KEY) === "1";
+    } catch (_) {}
+    if (already) {
+      finishLetter(true);
+    } else {
+      updateLetterFromScroll();
+      window.addEventListener("scroll", updateLetterFromScroll, { passive: true });
+      window.addEventListener("resize", updateLetterFromScroll, { passive: true });
+    }
+  } else if (letterIntro && reduceMotion) {
+    setLetterProgress(1);
+  }
+
+  letterSkip?.addEventListener("click", () => {
+    finishLetter(false);
+    const hero = document.getElementById("inicio");
+    if (hero) {
+      hero.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
+    }
+    // After skip, collapse letter spacer shortly so page feels normal
+    setTimeout(() => {
+      if (letterIntro) letterIntro.classList.add("is-done");
+    }, 600);
+  });
 
   // ——— Particles
   const particlesEl = document.getElementById("particles");
-  if (particlesEl && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (particlesEl && !reduceMotion) {
     const n = window.innerWidth < 600 ? 18 : 36;
     for (let i = 0; i < n; i++) {
       const p = document.createElement("span");
