@@ -31,15 +31,36 @@
     heroEnvelope.classList.toggle("is-open", out > 0.92);
   }
 
+  function envelopeScrollTotal() {
+    if (!heTrack) return 0;
+    return Math.max(1, heTrack.offsetHeight - window.innerHeight);
+  }
+
   function updateEnvelopeScroll() {
     if (!heTrack || !heroEnvelope || reduceMotion) return;
-    const total = heTrack.offsetHeight - window.innerHeight;
-    if (total <= 1) {
+    const total = envelopeScrollTotal();
+    const scrolled = -heTrack.getBoundingClientRect().top;
+    // En móvil el progreso avanza un poco más rápido (menos “pegado”)
+    const boost = window.matchMedia("(max-width: 540px)").matches ? 1.12 : 1;
+    setEnvelopeProgress((scrolled / total) * boost);
+  }
+
+  /** Lleva el scroll al final del sobre (abrir completo) — útil en móvil */
+  function scrollEnvelopeOpen(smooth) {
+    if (!heTrack || reduceMotion) {
       setEnvelopeProgress(1);
       return;
     }
-    const scrolled = -heTrack.getBoundingClientRect().top;
-    setEnvelopeProgress(scrolled / total);
+    const top =
+      heTrack.getBoundingClientRect().top +
+      (window.pageYOffset || document.documentElement.scrollTop || 0);
+    const target = top + envelopeScrollTotal() + 4;
+    window.scrollTo({ top: Math.max(0, target), behavior: smooth ? "smooth" : "auto" });
+    // Asegura estado abierto al terminar el gesto
+    if (!smooth) setEnvelopeProgress(1);
+    else {
+      window.setTimeout(() => setEnvelopeProgress(1), 450);
+    }
   }
 
   if (heTrack && heroEnvelope) {
@@ -50,6 +71,24 @@
       updateEnvelopeScroll();
       window.addEventListener("scroll", updateEnvelopeScroll, { passive: true });
       window.addEventListener("resize", updateEnvelopeScroll, { passive: true });
+
+      // Toque / clic en el sobre o el hint: abre del todo (evita pelear con el scroll largo)
+      const openTargets = [heStage, document.getElementById("heHint"), document.getElementById("heEnvelope")].filter(
+        Boolean
+      );
+      openTargets.forEach((el) => {
+        el.style.cursor = el.id === "heHint" || el === heStage ? "pointer" : el.style.cursor;
+        el.addEventListener(
+          "click",
+          (e) => {
+            if (e.target.closest("a, button, input, textarea, select, label")) return;
+            if (heroEnvelope.classList.contains("is-open")) return;
+            e.preventDefault();
+            scrollEnvelopeOpen(true);
+          },
+          { passive: false }
+        );
+      });
     }
   }
 

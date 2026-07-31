@@ -13,8 +13,10 @@
 }
 
 .he-track {
-  height: 210vh;
+  /* Desktop: un poco de scroll para la animación */
+  height: 175vh;
   position: relative;
+  touch-action: pan-y;
 }
 
 .he-sticky {
@@ -25,10 +27,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* No recortar la solapa abierta (triángulo) hacia arriba */
-  overflow-x: hidden;
-  overflow-y: visible;
+  /* overflow hidden: scroll táctil más fluido en móvil (overflow-y:visible lo trababa) */
+  overflow: hidden;
   padding: 5.5rem 1rem 2rem;
+  touch-action: pan-y;
   background:
     radial-gradient(ellipse 75% 50% at 50% 30%, rgba(212, 175, 55, 0.14), transparent 60%),
     linear-gradient(165deg, #f8f3ec 0%, #efe6dc 55%, #e8ddd2 100%);
@@ -259,6 +261,15 @@
   color: var(--ink-soft);
   opacity: var(--hint);
   transition: opacity 0.2s;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 0.5rem 0.75rem;
+  /* Área táctil más grande en móvil */
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hero-envelope.is-open .he-hint {
@@ -280,6 +291,13 @@
 }
 
 @media (max-width: 540px) {
+  /* Menos altura de pista = menos deslizar para abrir el sobre */
+  .he-track {
+    height: 125vh;
+  }
+  .he-sticky {
+    padding: 4.5rem 0.85rem 1.25rem;
+  }
   .he-envelope {
     height: min(280px, 42vh);
   }
@@ -293,6 +311,10 @@
     width: 48px;
     height: 48px;
     margin-left: -24px;
+  }
+  .he-hint {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
   }
 }
 
