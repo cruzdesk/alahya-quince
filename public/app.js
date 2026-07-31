@@ -3,76 +3,79 @@
   const EVENT_FALLBACK = "2026-10-10T17:00:00-04:00";
   const LETTER_DONE_KEY = "alahya_letter_opened";
 
-  // ——— Carta 3D (scroll)
+  // ——— Carta / sobre (scroll por fases)
   const letterIntro = document.getElementById("letterIntro");
-  const letterStage = document.getElementById("letterStage");
   const letterSkip = document.getElementById("letterSkip");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  function setLetterProgress(p) {
-    if (!letterStage) return;
-    const v = Math.max(0, Math.min(1, p));
-    letterStage.style.setProperty("--p", v.toFixed(4));
+  function clamp01(x) {
+    return Math.max(0, Math.min(1, x));
   }
 
-  function finishLetter(instant) {
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function setLetterVars(p) {
     if (!letterIntro) return;
-    setLetterProgress(1);
+    const t = clamp01(p);
+    // Fase 1 (0–0.4): sello se va + solapa abre
+    const flap = easeOutCubic(clamp01(t / 0.4));
+    // Fase 2 (0.25–1): carta sale
+    const lift = easeOutCubic(clamp01((t - 0.25) / 0.75));
+    const seal = clamp01(1 - t / 0.28);
+    const hint = clamp01(1 - t / 0.35);
+    letterIntro.style.setProperty("--flap", flap.toFixed(4));
+    letterIntro.style.setProperty("--lift", lift.toFixed(4));
+    letterIntro.style.setProperty("--seal", seal.toFixed(4));
+    letterIntro.style.setProperty("--hint", hint.toFixed(4));
+  }
+
+  function finishLetter() {
+    if (!letterIntro) return;
+    setLetterVars(1);
     letterIntro.classList.add("is-done");
     document.body.classList.add("letter-done");
     try {
       sessionStorage.setItem(LETTER_DONE_KEY, "1");
     } catch (_) {}
-    if (instant) {
-      // already collapsed
-    }
   }
 
   function updateLetterFromScroll() {
     if (!letterIntro || letterIntro.classList.contains("is-done")) return;
-    const rect = letterIntro.getBoundingClientRect();
     const total = letterIntro.offsetHeight - window.innerHeight;
-    if (total <= 0) {
-      setLetterProgress(1);
+    if (total <= 1) {
+      setLetterVars(1);
       return;
     }
-    // progress as we scroll through the letter section
-    const scrolled = -rect.top;
-    const p = scrolled / total;
-    setLetterProgress(p);
-    if (p >= 0.98) {
-      // keep visual open; section still occupies space until near end
-    }
+    const scrolled = -letterIntro.getBoundingClientRect().top;
+    setLetterVars(scrolled / total);
   }
 
-  if (letterIntro && letterStage && !reduceMotion) {
+  if (letterIntro && !reduceMotion) {
     let already = false;
     try {
       already = sessionStorage.getItem(LETTER_DONE_KEY) === "1";
     } catch (_) {}
     if (already) {
-      finishLetter(true);
+      finishLetter();
     } else {
+      setLetterVars(0);
       updateLetterFromScroll();
       window.addEventListener("scroll", updateLetterFromScroll, { passive: true });
       window.addEventListener("resize", updateLetterFromScroll, { passive: true });
     }
   } else if (letterIntro && reduceMotion) {
-    setLetterProgress(1);
+    setLetterVars(1);
   }
 
   letterSkip?.addEventListener("click", () => {
-    finishLetter(false);
+    try {
+      sessionStorage.setItem(LETTER_DONE_KEY, "1");
+    } catch (_) {}
+    finishLetter();
     const hero = document.getElementById("inicio");
-    if (hero) {
-      hero.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
-    }
-    // After skip, collapse letter spacer shortly so page feels normal
-    setTimeout(() => {
-      if (letterIntro) letterIntro.classList.add("is-done");
-    }, 600);
+    if (hero) hero.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   // ——— Particles

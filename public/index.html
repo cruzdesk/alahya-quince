@@ -34,15 +34,16 @@
     </ul>
   </nav>
 
-  <!-- CARTA 3D — se abre al hacer scroll (se puede revertir: backup/before-letter-3d-*) -->
+  <!-- CARTA 3D — scroll (backup: before-letter-3d-*) -->
   <section class="letter-intro" id="letterIntro" aria-label="Abrir invitación">
     <div class="letter-sticky">
-      <div class="letter-stage" id="letterStage" style="--p: 0">
-        <div class="letter-env" id="letterEnv">
-          <div class="letter-env-shadow" aria-hidden="true"></div>
-          <div class="letter-pocket" aria-hidden="true"></div>
-          <div class="letter-sheet" id="letterSheet">
-            <div class="letter-sheet-inner">
+      <div class="letter-stage" id="letterStage">
+        <div class="envelope" id="letterEnv">
+          <!-- Fondo del sobre -->
+          <div class="env-back"></div>
+          <!-- Carta -->
+          <div class="env-letter" id="letterSheet">
+            <div class="env-letter-paper">
               <p class="letter-mono">A · XV</p>
               <p class="letter-line-orn">✦</p>
               <p class="letter-invite">Estás cordialmente invitado</p>
@@ -53,18 +54,18 @@
               <p class="letter-where">Tres Palmas · Aguadilla</p>
             </div>
           </div>
-          <div class="letter-flap" id="letterFlap" aria-hidden="true">
-            <div class="letter-flap-face"></div>
-          </div>
-          <div class="letter-seal" id="letterSeal" aria-hidden="true">
-            <span>A</span>
-          </div>
+          <!-- Frente del sobre (bolsillo) -->
+          <div class="env-front"></div>
+          <!-- Solapa superior -->
+          <div class="env-flap" id="letterFlap"></div>
+          <!-- Sello de cera -->
+          <div class="env-seal" id="letterSeal"><span>A</span></div>
         </div>
         <p class="letter-hint" id="letterHint">
-          <span class="letter-hint-main">Desliza hacia abajo para abrir la carta</span>
-          <span class="letter-hint-sub">Invitación de gala</span>
+          <span class="letter-hint-main">Desliza para abrir</span>
+          <span class="letter-hint-sub">Tu invitación de gala</span>
         </p>
-        <button type="button" class="letter-skip btn btn-outline" id="letterSkip">Saltar</button>
+        <button type="button" class="letter-skip" id="letterSkip">Saltar intro</button>
       </div>
     </div>
   </section>
