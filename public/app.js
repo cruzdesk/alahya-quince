@@ -1,82 +1,57 @@
 /* Alahya XV — client */
 (function () {
   const EVENT_FALLBACK = "2026-10-10T17:00:00-04:00";
-  const LETTER_DONE_KEY = "alahya_letter_opened";
-
-  // ——— Carta / sobre (scroll por fases)
-  const letterIntro = document.getElementById("letterIntro");
-  const letterSkip = document.getElementById("letterSkip");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ——— Sobre rojo: una invitación que sale al scroll
+  const heTrack = document.getElementById("heTrack");
+  const heStage = document.getElementById("heStage");
+  const heroEnvelope = document.getElementById("inicio");
 
   function clamp01(x) {
     return Math.max(0, Math.min(1, x));
   }
-
   function easeOutCubic(t) {
     return 1 - Math.pow(1 - t, 3);
   }
 
-  function setLetterVars(p) {
-    if (!letterIntro) return;
+  function setEnvelopeProgress(p) {
+    if (!heroEnvelope) return;
     const t = clamp01(p);
-    // Fase 1 (0–0.4): sello se va + solapa abre
-    const flap = easeOutCubic(clamp01(t / 0.4));
-    // Fase 2 (0.25–1): carta sale
-    const lift = easeOutCubic(clamp01((t - 0.25) / 0.75));
-    const seal = clamp01(1 - t / 0.28);
-    const hint = clamp01(1 - t / 0.35);
-    letterIntro.style.setProperty("--flap", flap.toFixed(4));
-    letterIntro.style.setProperty("--lift", lift.toFixed(4));
-    letterIntro.style.setProperty("--seal", seal.toFixed(4));
-    letterIntro.style.setProperty("--hint", hint.toFixed(4));
+    // 0–0.35: abre solapa y sello
+    const flap = easeOutCubic(clamp01(t / 0.35));
+    // 0.2–1: saca la tarjeta por completo
+    const out = easeOutCubic(clamp01((t - 0.18) / 0.82));
+    const seal = clamp01(1 - t / 0.25);
+    const hint = clamp01(1 - t / 0.4);
+    heroEnvelope.style.setProperty("--flap", flap.toFixed(4));
+    heroEnvelope.style.setProperty("--out", out.toFixed(4));
+    heroEnvelope.style.setProperty("--seal", seal.toFixed(4));
+    heroEnvelope.style.setProperty("--hint", hint.toFixed(4));
+    heroEnvelope.classList.toggle("is-open", out > 0.92);
   }
 
-  function finishLetter() {
-    if (!letterIntro) return;
-    setLetterVars(1);
-    letterIntro.classList.add("is-done");
-    document.body.classList.add("letter-done");
-    try {
-      sessionStorage.setItem(LETTER_DONE_KEY, "1");
-    } catch (_) {}
-  }
-
-  function updateLetterFromScroll() {
-    if (!letterIntro || letterIntro.classList.contains("is-done")) return;
-    const total = letterIntro.offsetHeight - window.innerHeight;
+  function updateEnvelopeScroll() {
+    if (!heTrack || !heroEnvelope || reduceMotion) return;
+    const total = heTrack.offsetHeight - window.innerHeight;
     if (total <= 1) {
-      setLetterVars(1);
+      setEnvelopeProgress(1);
       return;
     }
-    const scrolled = -letterIntro.getBoundingClientRect().top;
-    setLetterVars(scrolled / total);
+    const scrolled = -heTrack.getBoundingClientRect().top;
+    setEnvelopeProgress(scrolled / total);
   }
 
-  if (letterIntro && !reduceMotion) {
-    let already = false;
-    try {
-      already = sessionStorage.getItem(LETTER_DONE_KEY) === "1";
-    } catch (_) {}
-    if (already) {
-      finishLetter();
+  if (heTrack && heroEnvelope) {
+    if (reduceMotion) {
+      setEnvelopeProgress(1);
     } else {
-      setLetterVars(0);
-      updateLetterFromScroll();
-      window.addEventListener("scroll", updateLetterFromScroll, { passive: true });
-      window.addEventListener("resize", updateLetterFromScroll, { passive: true });
+      setEnvelopeProgress(0);
+      updateEnvelopeScroll();
+      window.addEventListener("scroll", updateEnvelopeScroll, { passive: true });
+      window.addEventListener("resize", updateEnvelopeScroll, { passive: true });
     }
-  } else if (letterIntro && reduceMotion) {
-    setLetterVars(1);
   }
-
-  letterSkip?.addEventListener("click", () => {
-    try {
-      sessionStorage.setItem(LETTER_DONE_KEY, "1");
-    } catch (_) {}
-    finishLetter();
-    const hero = document.getElementById("inicio");
-    if (hero) hero.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
 
   // ——— Particles
   const particlesEl = document.getElementById("particles");

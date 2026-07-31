@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/envelope-hero.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
 </head>
 <body>
@@ -34,64 +35,40 @@
     </ul>
   </nav>
 
-  <!-- CARTA 3D — scroll (backup: before-letter-3d-*) -->
-  <section class="letter-intro" id="letterIntro" aria-label="Abrir invitación">
-    <div class="letter-sticky">
-      <div class="letter-stage" id="letterStage">
-        <div class="envelope" id="letterEnv">
-          <!-- Fondo del sobre -->
-          <div class="env-back"></div>
-          <!-- Carta -->
-          <div class="env-letter" id="letterSheet">
-            <div class="env-letter-paper">
-              <p class="letter-mono">A · XV</p>
-              <p class="letter-line-orn">✦</p>
-              <p class="letter-invite">Estás cordialmente invitado</p>
-              <h2 class="letter-name">Alahya Thaís<br />Saltares Ortega</h2>
-              <p class="letter-event">Mis Quince Años</p>
-              <p class="letter-theme">Victorian Masquerade Ball</p>
-              <p class="letter-when">10 de octubre de 2026 · 5:00 p.m.</p>
-              <p class="letter-where">Tres Palmas · Aguadilla</p>
+  <!-- UNA sola invitación: sobre rojo → al scroll sale la tarjeta completa -->
+  <header class="hero hero-envelope" id="inicio">
+    <div class="he-track" id="heTrack">
+      <div class="he-sticky">
+        <div class="he-stage" id="heStage">
+          <div class="he-envelope" id="heEnvelope">
+            <div class="he-back" aria-hidden="true"></div>
+            <!-- Tarjeta = única invitación -->
+            <div class="he-card" id="heCard">
+              <div class="hero-frame he-card-inner">
+                <p class="eyebrow">Con la bendición de Dios y el amor de mi familia</p>
+                <div class="ornament">
+                  <span class="line"></span>
+                  <span class="diamond">✦</span>
+                  <span class="line"></span>
+                </div>
+                <h1 class="hero-name">
+                  <span class="first">Alahya</span>
+                  <span class="middle">Thaís Saltares Ortega</span>
+                </h1>
+                <p class="hero-tagline">Mis Quince Años · Victorian Masquerade Ball</p>
+                <p class="hero-date" id="heroDate">10 de octubre de 2026 · 5:00 p.m.</p>
+                <div class="hero-ctas">
+                  <a href="#reservar" class="btn btn-gold">Reservar</a>
+                </div>
+              </div>
             </div>
+            <div class="he-front" aria-hidden="true"></div>
+            <div class="he-flap" aria-hidden="true"></div>
+            <div class="he-seal" aria-hidden="true"><span>A</span></div>
           </div>
-          <!-- Frente del sobre (bolsillo) -->
-          <div class="env-front"></div>
-          <!-- Solapa superior -->
-          <div class="env-flap" id="letterFlap"></div>
-          <!-- Sello de cera -->
-          <div class="env-seal" id="letterSeal"><span>A</span></div>
+          <p class="he-hint" id="heHint">Desliza para sacar la invitación del sobre</p>
         </div>
-        <p class="letter-hint" id="letterHint">
-          <span class="letter-hint-main">Desliza para abrir</span>
-          <span class="letter-hint-sub">Tu invitación de gala</span>
-        </p>
-        <button type="button" class="letter-skip" id="letterSkip">Saltar intro</button>
       </div>
-    </div>
-  </section>
-
-  <!-- HERO -->
-  <header class="hero" id="inicio">
-    <div class="hero-frame">
-      <p class="eyebrow fade-up">Con la bendición de Dios y el amor de mi familia</p>
-      <div class="ornament fade-up delay-1">
-        <span class="line"></span>
-        <span class="diamond">✦</span>
-        <span class="line"></span>
-      </div>
-      <h1 class="hero-name fade-up delay-2">
-        <span class="first">Alahya</span>
-        <span class="middle">Thaís Saltares Ortega</span>
-      </h1>
-      <p class="hero-tagline fade-up delay-3">Mis Quince Años · Victorian Masquerade Ball</p>
-      <p class="hero-date fade-up delay-4" id="heroDate">10 de octubre de 2026 · 5:00 p.m.</p>
-      <div class="hero-ctas fade-up delay-5">
-        <a href="#reservar" class="btn btn-gold">Reservar</a>
-      </div>
-    </div>
-    <div class="scroll-hint" aria-hidden="true">
-      <span>Descubre</span>
-      <div class="scroll-line"></div>
     </div>
   </header>
 
