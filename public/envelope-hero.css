@@ -46,11 +46,10 @@
   max-width: 480px;
   height: min(320px, 44vh);
   margin: 0 auto;
-  transform-style: preserve-3d;
-  transform: rotateX(3deg);
+  /* Sin rotateX en el sobre: evita texto borroso */
   /* Permite que la carta salga ARRIBA; recorta todo lo que se meta ABAJO del sobre */
-  clip-path: inset(-160% -8% 0 -8%);
-  -webkit-clip-path: inset(-160% -8% 0 -8%);
+  clip-path: inset(-180% -8% 0 -8%);
+  -webkit-clip-path: inset(-180% -8% 0 -8%);
 }
 
 .he-back {
@@ -63,33 +62,43 @@
   z-index: 1;
 }
 
-/* Tarjeta: metida (out=0) o completamente fuera hacia arriba (out=1) */
+/* Tarjeta: metida (out=0) o fuera hacia arriba (out=1) — solo translateY (más nítido) */
 .he-card {
   position: absolute;
   left: 6%;
   right: 6%;
   top: 8%;
   z-index: 2;
-  /* out=0: empuja la tarjeta hacia abajo (oculta bajo el frente); out=1: sube del todo */
-  transform: translate3d(0, calc(58% - var(--out) * 118%), 0);
-  will-change: transform;
+  transform: translateY(calc(58% - var(--out) * 118%));
   pointer-events: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
 }
 
 .hero-envelope.is-open .he-card {
   pointer-events: auto;
+  /* Al abrir, quita will-change / GPU blur residual */
+  transform: translateY(calc(58% - 118%));
 }
 
 .he-card-inner {
   max-width: none !important;
   width: 100%;
-  padding: 1.6rem 1.25rem 1.75rem !important;
+  padding: 1.65rem 1.3rem 2.6rem !important;
   box-shadow: 0 14px 36px rgba(40, 10, 15, 0.18);
   background: #fffcf8 !important;
+  /* Sin blur de glass */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  transform: translateZ(0);
 }
 
 .he-card-inner .hero-name .first {
   font-size: clamp(2.3rem, 8.5vw, 3.5rem);
+  /* Gradient text a veces se ve borroso con transform padre: forzar capa limpia */
+  -webkit-font-smoothing: antialiased;
 }
 
 .he-card-inner .hero-name .middle {
@@ -98,7 +107,7 @@
 
 .he-card-inner .hero-tagline {
   font-size: clamp(1.1rem, 3vw, 1.45rem);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.45rem;
 }
 
 .he-card-inner .eyebrow {
@@ -107,9 +116,11 @@
   line-height: 1.45;
 }
 
+/* Más espacio en blanco debajo de la fecha */
 .he-card-inner .hero-date {
   margin-bottom: 0;
-  font-size: 0.72rem;
+  padding-bottom: 1.75rem;
+  font-size: 0.75rem;
 }
 
 /* Frente del sobre — opaco, tapa la tarjeta cuando está adentro */
@@ -148,8 +159,9 @@
   height: 58%;
   z-index: 4;
   transform-origin: top center;
-  transform: rotateX(calc(var(--flap) * -172deg));
-  will-change: transform;
+  /* Solo la solapa usa 3D; la tarjeta no (evita blur) */
+  transform: rotateX(calc(var(--flap) * -170deg));
+  transform-style: preserve-3d;
   background: linear-gradient(180deg, #c41e3a 0%, #8b1520 60%, #5c1018 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.5);
@@ -232,7 +244,10 @@
     height: min(280px, 42vh);
   }
   .he-card-inner {
-    padding: 1.25rem 0.95rem 1.4rem !important;
+    padding: 1.35rem 1rem 2.2rem !important;
+  }
+  .he-card-inner .hero-date {
+    padding-bottom: 1.5rem;
   }
   .he-seal {
     width: 48px;
