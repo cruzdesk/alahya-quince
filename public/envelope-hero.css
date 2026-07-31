@@ -145,10 +145,10 @@
   line-height: 1.45;
 }
 
-/* Mucho más espacio en blanco debajo de la fecha */
+/* Espacio en blanco debajo de la fecha (la punta del sobre no debe tapar el texto) */
 .he-card-inner .hero-date {
   margin-bottom: 0 !important;
-  padding-bottom: 2.75rem;
+  padding-bottom: 3.25rem;
   font-size: 0.75rem;
   -webkit-font-smoothing: antialiased;
 }
@@ -321,10 +321,11 @@
     transform: translateY(-48%);
   }
   .he-card-inner {
-    padding: 1.35rem 1rem 2.85rem !important;
+    /* Más papel blanco abajo: la punta roja del sobre cae en el vacío, no en “octubre” */
+    padding: 1.35rem 1rem 4.25rem !important;
   }
   .he-card-inner .hero-date {
-    padding-bottom: 2.35rem;
+    padding-bottom: 4.5rem;
   }
   .he-seal {
     width: 48px;
