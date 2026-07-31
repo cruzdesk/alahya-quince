@@ -176,7 +176,11 @@
   background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.4), transparent);
 }
 
-/* Solapa roja — 3D solo en la solapa (no afecta a la tarjeta) */
+/*
+ * Solapa superior del sobre.
+ * Antes: scaleY(0.02) + opacity 0.15 al abrir → hilo rojo delante del papel blanco.
+ * Ahora: cierra a 0 total; is-open la oculta del todo (solo la solapa, nada más).
+ */
 .he-flap {
   position: absolute;
   left: 0;
@@ -185,8 +189,7 @@
   height: 58%;
   z-index: 4;
   transform-origin: top center;
-  /* Escala 2D en vez de rotateX 3D: menos blur residual en siblings */
-  transform: scaleY(calc(1 - var(--flap) * 0.98));
+  transform: scaleY(calc(1 - var(--flap)));
   transform-style: flat;
   background: linear-gradient(180deg, #c41e3a 0%, #8b1520 60%, #5c1018 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
@@ -195,7 +198,15 @@
   pointer-events: none;
   backface-visibility: hidden;
   will-change: transform;
-  opacity: calc(1 - var(--flap) * 0.85);
+  opacity: calc(1 - var(--flap));
+}
+
+.hero-envelope.is-open .he-flap {
+  opacity: 0;
+  visibility: hidden;
+  transform: scaleY(0);
+  border: none;
+  box-shadow: none;
 }
 
 .he-flap::after {
