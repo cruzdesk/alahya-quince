@@ -101,11 +101,30 @@ function memoryQuery(text, params = []) {
       meta: params[6] ? (typeof params[6] === "string" ? JSON.parse(params[6]) : params[6]) : null,
       client_fp: params[7] || null,
       ip: params[8] || null,
+      mesa: null,
       status: "active",
       cancelled_at: null,
       created_at: new Date().toISOString(),
     };
     memory.reservations.unshift(row);
+    return Promise.resolve({ rows: [row] });
+  }
+  if (text.includes("UPDATE reservations SET") && text.includes("name =")) {
+    const id = params[0];
+    const row = memory.reservations.find((r) => r.id === id);
+    if (!row) return Promise.resolve({ rows: [] });
+    row.name = params[1];
+    row.email = params[2];
+    row.phone = params[3];
+    row.guests = params[4];
+    row.pueblo = params[5];
+    row.notes = params[6];
+    row.status = params[7];
+    if (params.length >= 9) row.mesa = params[8] || null;
+    if (row.status === "cancelled" && !row.cancelled_at) {
+      row.cancelled_at = new Date().toISOString();
+    }
+    if (row.status === "active") row.cancelled_at = null;
     return Promise.resolve({ rows: [row] });
   }
   if (
@@ -249,6 +268,12 @@ async function ensureSchema() {
     `);
     await pool.query(`
       ALTER TABLE reservations ADD COLUMN IF NOT EXISTS ip VARCHAR(80);
+    `);
+    await pool.query(`
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS mesa VARCHAR(40);
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_reservations_mesa ON reservations (mesa) WHERE status = 'active';
     `);
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_reservations_status ON reservations (status, created_at DESC);

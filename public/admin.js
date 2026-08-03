@@ -18,7 +18,10 @@
   const adminResList = document.getElementById("adminResList");
   const printResReportBtn = document.getElementById("printResReportBtn");
   const printResReportBtnQuick = document.getElementById("printResReportBtnQuick");
+  const printSeatingBtn = document.getElementById("printSeatingBtn");
   const adminResRefreshBtn = document.getElementById("adminResRefreshBtn");
+  const resFilterMesa = document.getElementById("resFilterMesa");
+  const adminSeatingSummary = document.getElementById("adminSeatingSummary");
   const printWishesBtn = document.getElementById("printWishesBtn");
   const printIncludeMeta = document.getElementById("printIncludeMeta");
   const printStatus = document.getElementById("printStatus");
@@ -445,6 +448,87 @@
     if (current && towns.includes(current)) resFilterPueblo.value = current;
   }
 
+  function mesaLabel(m) {
+    return String(m || "").trim();
+  }
+
+  function sortMesaKeys(keys) {
+    return keys.sort((a, b) => {
+      if (a === "__none__") return 1;
+      if (b === "__none__") return -1;
+      return String(a).localeCompare(String(b), "es", { numeric: true, sensitivity: "base" });
+    });
+  }
+
+  function groupActiveByMesa(list) {
+    const map = new Map();
+    (list || [])
+      .filter((r) => r.status === "active")
+      .forEach((r) => {
+        const key = mesaLabel(r.mesa) || "__none__";
+        if (!map.has(key)) {
+          map.set(key, {
+            mesa: key === "__none__" ? "Sin mesa" : key,
+            reservations: [],
+            guests: 0,
+          });
+        }
+        const g = map.get(key);
+        g.reservations.push(r);
+        g.guests += r.guests || 0;
+      });
+    return sortMesaKeys([...map.keys()]).map((k) => map.get(k));
+  }
+
+  function populateFilterMesas(list) {
+    if (!resFilterMesa) return;
+    const set = new Set();
+    (list || []).forEach((r) => {
+      const m = mesaLabel(r.mesa);
+      if (m) set.add(m);
+    });
+    const current = resFilterMesa.value;
+    resFilterMesa.innerHTML =
+      '<option value="">Todas las mesas</option><option value="__none__">Sin mesa</option>';
+    sortMesaKeys([...set]).forEach((m) => {
+      const o = document.createElement("option");
+      o.value = m;
+      o.textContent = `Mesa ${m}`;
+      resFilterMesa.appendChild(o);
+    });
+    if (current) resFilterMesa.value = current;
+
+    const dl = document.getElementById("mesaSuggestions");
+    if (dl) {
+      dl.innerHTML = "";
+      sortMesaKeys([...set]).forEach((m) => {
+        const o = document.createElement("option");
+        o.value = m;
+        dl.appendChild(o);
+      });
+    }
+  }
+
+  function renderSeatingSummary(list) {
+    if (!adminSeatingSummary) return;
+    const groups = groupActiveByMesa(list || allReservations);
+    if (!groups.length) {
+      adminSeatingSummary.hidden = true;
+      adminSeatingSummary.innerHTML = "";
+      return;
+    }
+    adminSeatingSummary.hidden = false;
+    adminSeatingSummary.innerHTML = groups
+      .map((g) => {
+        const none = g.mesa === "Sin mesa";
+        return `<span class="admin-mesa-chip${none ? " is-none" : ""}">
+          ${none ? "Sin mesa" : `Mesa <strong>${escapeHtml(g.mesa)}</strong>`}
+          · ${g.guests} inv.
+        </span>`;
+      })
+      .join("");
+  }
+
   function phoneToWa(phone) {
     let d = String(phone || "").replace(/\D/g, "");
     if (!d) return "";
@@ -474,10 +558,13 @@
     const q = (resFilterName?.value || "").trim().toLowerCase();
     const pueblo = resFilterPueblo?.value || "";
     const status = resFilterStatus?.value || "";
+    const mesaF = resFilterMesa?.value || "";
     return allReservations.filter((r) => {
       if (q && !(r.name || "").toLowerCase().includes(q)) return false;
       if (pueblo && r.pueblo !== pueblo) return false;
       if (status && r.status !== status) return false;
+      if (mesaF === "__none__" && mesaLabel(r.mesa)) return false;
+      if (mesaF && mesaF !== "__none__" && mesaLabel(r.mesa) !== mesaF) return false;
       return true;
     });
   }
@@ -486,6 +573,8 @@
     if (Array.isArray(list)) {
       allReservations = list;
       populateFilterPueblos(list);
+      populateFilterMesas(list);
+      renderSeatingSummary(list);
     }
     if (!adminResList) return;
     const filtered = getFilteredReservations();
@@ -515,6 +604,10 @@
         const badge = cancelled
           ? '<span class="badge no">Cancelada</span>'
           : '<span class="badge ok">Activa</span>';
+        const m = mesaLabel(r.mesa);
+        const mesaBadge = m
+          ? `<span class="mesa-badge">Mesa ${escapeHtml(m)}</span>`
+          : `<span class="mesa-badge is-empty">Sin mesa</span>`;
         const contact = [r.phone, r.email].filter(Boolean).join(" · ") || "—";
         const pueblo = r.pueblo ? escapeHtml(r.pueblo) : "Sin pueblo";
         const notes = r.notes
@@ -527,13 +620,20 @@
         const cancelBtn = cancelled
           ? ""
           : `<button type="button" class="btn-danger-sm" data-cancel-id="${r.id}">Cancelar</button>`;
+        const mesaQuick = cancelled
+          ? ""
+          : `<div class="admin-mesa-quick">
+              <input type="text" data-mesa-input="${r.id}" value="${escapeHtml(m)}" placeholder="Mesa #" maxlength="40" list="mesaSuggestions" />
+              <button type="button" data-mesa-save="${r.id}">Mesa</button>
+            </div>`;
         return `<article class="admin-res-item${cancelled ? " cancelled" : ""}" data-res-id="${r.id}">
           <div>
-            <div class="who">${escapeHtml(r.name)} ${badge}</div>
+            <div class="who">${escapeHtml(r.name)} ${badge} ${mesaBadge}</div>
             <div class="meta-line">📍 ${pueblo} · <strong>${r.guests}</strong> invitado(s)</div>
             <div class="meta-line">${escapeHtml(contact)}</div>
             <div class="meta-line">#${r.id} · ${escapeHtml(when)}</div>
             ${notes}
+            ${mesaQuick}
           </div>
           <div class="admin-item-actions">
             ${waBtn}
@@ -552,6 +652,7 @@
   resFilterName?.addEventListener("input", applyFilters);
   resFilterPueblo?.addEventListener("change", applyFilters);
   resFilterStatus?.addEventListener("change", applyFilters);
+  resFilterMesa?.addEventListener("change", applyFilters);
 
   function exportReservationsCsv() {
     const list = getFilteredReservations();
@@ -563,6 +664,7 @@
       "id",
       "nombre",
       "pueblo",
+      "mesa",
       "invitados",
       "telefono",
       "correo",
@@ -583,6 +685,7 @@
           r.id,
           r.name,
           r.pueblo,
+          r.mesa || "",
           r.guests,
           r.phone,
           r.email,
@@ -618,6 +721,8 @@
     document.getElementById("editResPhone").value = r.phone || "";
     document.getElementById("editResEmail").value = r.email || "";
     document.getElementById("editResGuests").value = r.guests || 1;
+    const mesaInput = document.getElementById("editResMesa");
+    if (mesaInput) mesaInput.value = r.mesa || "";
     document.getElementById("editResNotes").value = r.notes || "";
     document.getElementById("editResStatus").value = r.status || "active";
     const puebloSel = document.getElementById("editResPueblo");
@@ -652,6 +757,7 @@
       email: document.getElementById("editResEmail").value,
       pueblo: document.getElementById("editResPueblo").value,
       guests: Number(document.getElementById("editResGuests").value || 1),
+      mesa: (document.getElementById("editResMesa")?.value || "").trim(),
       notes: document.getElementById("editResNotes").value,
       status: document.getElementById("editResStatus").value,
     };
@@ -804,6 +910,7 @@ ${rows || "<p>No hay deseos todavía.</p>"}
           <td>${i + 1}</td>
           <td>${escapeHtml(r.name)}</td>
           <td>${escapeHtml(r.pueblo || "—")}</td>
+          <td class="c">${escapeHtml(r.mesa || "—")}</td>
           <td class="c">${r.guests}</td>
           <td>${escapeHtml(r.phone || "—")}</td>
           <td>${escapeHtml(r.email || "—")}</td>
@@ -855,12 +962,12 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
 <section class="page">
   <h1>Detalle de reservas activas</h1>
   <p class="sub">${active.length} reserva(s) · ${s.total_guests ?? 0} invitado(s)</p>
-  <table><thead><tr><th>#</th><th>Nombre</th><th>Pueblo</th><th>Inv.</th><th>Teléfono</th><th>Correo</th><th>Notas</th><th>Fecha</th></tr></thead>
-  <tbody>${rows(active) || '<tr><td colspan="8">Sin reservas activas</td></tr>'}</tbody></table>
+  <table><thead><tr><th>#</th><th>Nombre</th><th>Pueblo</th><th>Mesa</th><th>Inv.</th><th>Teléfono</th><th>Correo</th><th>Notas</th><th>Fecha</th></tr></thead>
+  <tbody>${rows(active) || '<tr><td colspan="9">Sin reservas activas</td></tr>'}</tbody></table>
   ${
     cancelled.length
       ? `<h2 class="cancelled-title">Canceladas (${cancelled.length})</h2>
-  <table><thead><tr><th>#</th><th>Nombre</th><th>Pueblo</th><th>Inv.</th><th>Teléfono</th><th>Correo</th><th>Notas</th><th>Fecha</th></tr></thead>
+  <table><thead><tr><th>#</th><th>Nombre</th><th>Pueblo</th><th>Mesa</th><th>Inv.</th><th>Teléfono</th><th>Correo</th><th>Notas</th><th>Fecha</th></tr></thead>
   <tbody>${rows(cancelled)}</tbody></table>`
       : ""
   }
@@ -982,7 +1089,135 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
   });
   printResReportBtnQuick?.addEventListener("click", printReservationsReport);
 
+  function openSeatingPdf() {
+    const groups = groupActiveByMesa(allReservations);
+    const active = allReservations.filter((r) => r.status === "active");
+    const unassigned = active.filter((r) => !mesaLabel(r.mesa));
+    const printed = new Date().toLocaleString("es", {
+      dateStyle: "full",
+      timeStyle: "short",
+    });
+    const totalGuests = active.reduce((s, r) => s + (r.guests || 0), 0);
+    const tableBlocks = groups
+      .map((g) => {
+        const rows = g.reservations
+          .slice()
+          .sort((a, b) => (a.name || "").localeCompare(b.name || "", "es"))
+          .map(
+            (r, i) => `<tr>
+            <td>${i + 1}</td>
+            <td>${escapeHtml(r.name)}</td>
+            <td>${escapeHtml(r.pueblo || "—")}</td>
+            <td class="c">${r.guests}</td>
+            <td>${escapeHtml(r.phone || "—")}</td>
+            <td>${escapeHtml(r.notes || "—")}</td>
+          </tr>`
+          )
+          .join("");
+        return `<section class="mesa-block">
+          <h2>${g.mesa === "Sin mesa" ? "Sin mesa asignada" : `Mesa ${escapeHtml(g.mesa)}`}
+            <span class="meta">${g.reservations.length} reserva(s) · ${g.guests} asiento(s)</span>
+          </h2>
+          <table><thead><tr><th>#</th><th>Nombre</th><th>Pueblo</th><th>Inv.</th><th>Teléfono</th><th>Notas</th></tr></thead>
+          <tbody>${rows}</tbody></table>
+        </section>`;
+      })
+      .join("");
+
+    const html = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8" /><title>Mesas / salón — Alahya XV</title>
+<style>
+@page{size:letter;margin:.65in}*{box-sizing:border-box}
+body{font-family:Georgia,serif;color:#1a1212;margin:0;padding:12px 8px}
+h1{font-size:24px;color:#9b1c1c;margin:0 0 4px}
+.sub{color:#5c4a48;font-size:13px;margin:0 0 6px}.gold{color:#b8860b}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 18px}
+.stat{border:1px solid #d4af37;border-radius:8px;padding:10px 14px;background:#faf6ee;font-size:13px}
+.stat strong{display:block;font-size:22px;color:#9b1c1c}
+.mesa-block{margin:0 0 18px;page-break-inside:avoid}
+h2{font-size:16px;margin:0 0 8px;padding:8px 10px;background:#1a1212;color:#f7efe3;border-radius:6px}
+h2 .meta{float:right;font-size:12px;font-weight:normal;opacity:.9;color:#e8d5a3}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border:1px solid #e0d4c4;padding:5px 6px;text-align:left}
+th{background:#f3ebe0;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+td.c{text-align:center;font-weight:bold}
+.note{font-size:11px;color:#5c4a48;margin-top:16px}
+.no-print{margin:0 0 14px}
+@media print{.no-print{display:none!important}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+</style></head><body>
+<button class="no-print" onclick="window.print()">Imprimir / Guardar PDF</button>
+<h1>Lista de mesas · Salón</h1>
+<p class="sub gold">XV Alahya Thaís Saltares Ortega · Victorian Masquerade Ball</p>
+<p class="sub">Tres Palmas, Aguadilla · 10 de octubre de 2026 · 5:00 p.m.</p>
+<p class="sub">Generado: ${escapeHtml(printed)}</p>
+<div class="stats">
+  <div class="stat"><strong>${active.length}</strong>Reservas activas</div>
+  <div class="stat"><strong>${totalGuests}</strong>Invitados (asientos)</div>
+  <div class="stat"><strong>${groups.filter((g) => g.mesa !== "Sin mesa").length}</strong>Mesas usadas</div>
+  <div class="stat"><strong>${unassigned.length}</strong>Sin mesa</div>
+</div>
+${tableBlocks || "<p>No hay reservas activas.</p>"}
+<p class="note">Documento para el salón. Solo reservas <strong>activas</strong>. Confidencial.</p>
+<script>window.onload=function(){setTimeout(function(){window.print()},350)};<\/script>
+</body></html>`;
+
+    const win = window.open("", "_blank");
+    if (!win) throw new Error("Permite ventanas emergentes para el PDF de mesas.");
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
+  async function saveMesaQuick(id, mesaValue, btn) {
+    if (!adminKey) return;
+    const r = allReservations.find((x) => String(x.id) === String(id));
+    if (!r) return;
+    if (btn) btn.disabled = true;
+    try {
+      const res = await fetch(`/api/admin/reservations/${id}/update`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: adminKey,
+          name: r.name,
+          email: r.email || "",
+          phone: r.phone || "",
+          pueblo: r.pueblo || "",
+          guests: r.guests || 1,
+          notes: r.notes || "",
+          status: r.status || "active",
+          mesa: String(mesaValue || "").trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      await loadAdminReservations();
+    } catch (err) {
+      alert(err.message || "No se pudo guardar la mesa.");
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  printSeatingBtn?.addEventListener("click", () => {
+    try {
+      if (!allReservations.length) {
+        alert("No hay reservas cargadas. Actualiza la lista primero.");
+        return;
+      }
+      openSeatingPdf();
+    } catch (err) {
+      alert(err.message || "No se pudo abrir el PDF de mesas.");
+    }
+  });
+
   adminResList?.addEventListener("click", async (e) => {
+    const mesaSave = e.target.closest("[data-mesa-save]");
+    if (mesaSave) {
+      const id = mesaSave.getAttribute("data-mesa-save");
+      const input = adminResList.querySelector(`[data-mesa-input="${id}"]`);
+      await saveMesaQuick(id, input ? input.value : "", mesaSave);
+      return;
+    }
     const editBtn = e.target.closest("[data-edit-id]");
     if (editBtn) {
       openEditReservation(editBtn.getAttribute("data-edit-id"));
@@ -1006,6 +1241,16 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
       alert(err.message || "No se pudo cancelar");
       btn.disabled = false;
     }
+  });
+
+  adminResList?.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    const input = e.target.closest("[data-mesa-input]");
+    if (!input) return;
+    e.preventDefault();
+    const id = input.getAttribute("data-mesa-input");
+    const btn = adminResList.querySelector(`[data-mesa-save="${id}"]`);
+    saveMesaQuick(id, input.value, btn);
   });
 
   // Inicializar selects de pueblo al cargar

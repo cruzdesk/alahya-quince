@@ -212,9 +212,81 @@
 
 .admin-filters {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 0.9fr;
+  grid-template-columns: 1.2fr 1fr 0.85fr 0.9fr;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
+}
+
+.admin-seating-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.35rem 0 0.9rem;
+}
+
+.admin-mesa-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  background: #fffaf3;
+  font-size: 0.72rem;
+  color: var(--ink);
+}
+
+.admin-mesa-chip strong {
+  color: var(--rose);
+  font-weight: 700;
+}
+
+.admin-mesa-chip.is-none {
+  background: #f5f0ea;
+  border-style: dashed;
+  opacity: 0.9;
+}
+
+.admin-res-item .mesa-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #e8d5a3, #d4af37);
+  color: #3a2410;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
+.admin-res-item .mesa-badge.is-empty {
+  background: #efe8df;
+  color: #7a6a62;
+  font-weight: 500;
+}
+
+.admin-mesa-quick {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  margin-top: 0.45rem;
+}
+
+.admin-mesa-quick input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(155, 28, 28, 0.18);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-family: var(--font-body);
+}
+
+.admin-mesa-quick button {
+  flex-shrink: 0;
+  font-size: 0.62rem !important;
+  padding: 0.35rem 0.55rem !important;
 }
 
 .admin-filters input,

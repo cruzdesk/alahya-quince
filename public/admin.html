@@ -90,6 +90,7 @@
           <p class="muted">Gestiona reservas activas y canceladas.</p>
           <div class="admin-res-actions">
             <button type="button" class="btn btn-gold" id="printResReportBtn">🖨 Reporte profesional</button>
+            <button type="button" class="btn btn-outline" id="printSeatingBtn">🪑 PDF mesas / salón</button>
             <button type="button" class="btn btn-outline" id="exportCsvBtn">⬇ Exportar CSV</button>
             <button type="button" class="btn btn-outline" id="adminResRefreshBtn">Actualizar lista</button>
           </div>
@@ -109,8 +110,13 @@
               <option value="active">Activas</option>
               <option value="cancelled">Canceladas</option>
             </select>
+            <select id="resFilterMesa">
+              <option value="">Todas las mesas</option>
+              <option value="__none__">Sin mesa</option>
+            </select>
           </div>
           <p class="muted" id="resFilterCount" style="margin:0.5rem 0"></p>
+          <div class="admin-seating-summary" id="adminSeatingSummary" hidden></div>
           <div class="admin-res-list" id="adminResList"></div>
         </section>
 
@@ -145,12 +151,17 @@
                   <input type="number" id="editResGuests" min="1" max="20" value="1" />
                 </div>
                 <div class="form-row">
-                  <label for="editResStatus">Estado</label>
-                  <select id="editResStatus">
-                    <option value="active">Activa</option>
-                    <option value="cancelled">Cancelada</option>
-                  </select>
+                  <label for="editResMesa">Mesa / asiento</label>
+                  <input type="text" id="editResMesa" maxlength="40" placeholder="Ej. 1, 12, VIP, A" list="mesaSuggestions" />
                 </div>
+              </div>
+              <datalist id="mesaSuggestions"></datalist>
+              <div class="form-row">
+                <label for="editResStatus">Estado</label>
+                <select id="editResStatus">
+                  <option value="active">Activa</option>
+                  <option value="cancelled">Cancelada</option>
+                </select>
               </div>
               <div class="form-row">
                 <label for="editResNotes">Notas</label>

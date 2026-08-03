@@ -400,7 +400,7 @@ app.post("/api/admin/reservations", ...adminGuard, async (req, res) => {
        FROM reservations`
     );
     const { rows } = await pool.query(
-      `SELECT id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at
+      `SELECT id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at, mesa
        FROM reservations
        ORDER BY created_at DESC`
     );
@@ -438,7 +438,7 @@ app.post("/api/admin/reservations/:id/cancel", ...adminGuard, async (req, res) =
       `UPDATE reservations
        SET status = 'cancelled', cancelled_at = NOW()
        WHERE id = $1 AND status = 'active'
-       RETURNING id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at`,
+       RETURNING id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at, mesa`,
       [id]
     );
     if (!rows.length) {
@@ -462,6 +462,7 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
     const phone = clean(req.body.phone, 40);
     const pueblo = clean(req.body.pueblo, 80);
     const notes = clean(req.body.notes, 400);
+    const mesa = clean(req.body.mesa, 40);
     const guests = Math.min(Math.max(parseInt(req.body.guests, 10) || 1, 1), 20);
     let status = String(req.body.status || "active").toLowerCase();
     if (status !== "active" && status !== "cancelled") status = "active";
@@ -479,13 +480,14 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
          pueblo = $6,
          notes = $7,
          status = $8,
+         mesa = $9,
          cancelled_at = CASE
            WHEN $8 = 'cancelled' AND (cancelled_at IS NULL OR status = 'active') THEN COALESCE(cancelled_at, NOW())
            WHEN $8 = 'active' THEN NULL
            ELSE cancelled_at
          END
        WHERE id = $1
-       RETURNING id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at`,
+       RETURNING id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at, mesa`,
       [
         id,
         name,
@@ -495,6 +497,7 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
         pueblo || null,
         notes || null,
         status,
+        mesa || null,
       ]
     );
     if (!rows.length) {
@@ -520,7 +523,7 @@ app.post("/api/admin/print-reservations", ...adminGuard, async (req, res) => {
        FROM reservations`
     );
     const { rows } = await pool.query(
-      `SELECT id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at
+      `SELECT id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at, mesa
        FROM reservations
        ORDER BY
          CASE WHEN status = 'active' THEN 0 ELSE 1 END,
