@@ -548,6 +548,7 @@
       if (el.id === "reserveStatus") return;
       el.disabled = !!closed;
     });
+    const openHint = document.getElementById("reserveOpenHint");
     if (reserveClosedBanner) {
       if (closed) {
         reserveClosedBanner.hidden = false;
@@ -555,10 +556,12 @@
           message ||
           "Las reservas están cerradas. El evento es hoy o ya pasó. ¡Gracias por tu interés!";
         reserveClosedBanner.className = "form-status err";
+        if (openHint) openHint.hidden = true;
       } else {
         reserveClosedBanner.hidden = true;
         reserveClosedBanner.textContent = "";
         reserveClosedBanner.className = "form-status";
+        if (openHint) openHint.hidden = false;
       }
     }
     if (reserveBtn && closed) {
