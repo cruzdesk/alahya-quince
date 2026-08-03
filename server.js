@@ -15,6 +15,27 @@ const PRINT_ADMIN_KEY = process.env.PRINT_ADMIN_KEY || "7874204160";
 const WISH_PIN = process.env.WISH_PIN || "2026";
 const EVENT_DATE =
   process.env.EVENT_DATE || "2026-10-10T17:00:00-04:00";
+const EVENT_TZ = "America/Puerto_Rico";
+
+/** YYYY-MM-DD en zona de Puerto Rico */
+function dateYmdInTz(date, timeZone = EVENT_TZ) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+/**
+ * Reservas cerradas el día del evento y después (hora de Puerto Rico).
+ * Abiertas solo mientras la fecha local PR sea anterior al 10 oct 2026.
+ */
+function areReservationsClosed(now = new Date()) {
+  const todayPr = dateYmdInTz(now);
+  const eventDay = dateYmdInTz(new Date(EVENT_DATE));
+  return todayPr >= eventDay;
+}
 
 app.set("trust proxy", 1);
 app.use(cors());
@@ -64,10 +85,13 @@ app.get("/api/health", async (_req, res) => {
 });
 
 app.get("/api/event", (_req, res) => {
+  const closed = areReservationsClosed();
   res.json({
     name: "Alahya Thaís Saltares Ortega",
     title: "Mis XV Años",
     eventDate: EVENT_DATE,
+    reservationsOpen: !closed,
+    reservationsClosed: closed,
     venue: {
       location: "Tres Palmas, Aguadilla",
       theme: "Victorian Masquerade Ball",
@@ -313,6 +337,14 @@ app.post("/api/admin/wishes/:id/visibility", ...adminGuard, async (req, res) => 
 // ——— RESERVAS (públicas)
 app.post("/api/reservations", rsvpLimiter, async (req, res) => {
   try {
+    if (areReservationsClosed()) {
+      return res.status(403).json({
+        error:
+          "Las reservas están cerradas. El evento es hoy o ya pasó. Si necesitas ayuda, contacta a la familia.",
+        reservationsClosed: true,
+      });
+    }
+
     const name = clean(req.body.name, 120);
     const email = clean(req.body.email, 160).toLowerCase();
     const phone = clean(req.body.phone, 40);

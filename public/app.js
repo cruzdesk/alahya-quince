@@ -537,6 +537,44 @@
   const reserveBtn = document.getElementById("reserveBtn");
   const resPhone = document.getElementById("resPhone");
   const resPueblo = document.getElementById("resPueblo");
+  const reserveClosedBanner = document.getElementById("reserveClosedBanner");
+  let reservationsClosed = false;
+
+  function lockReserveForm(closed, message) {
+    reservationsClosed = !!closed;
+    if (!reserveForm) return;
+    const fields = reserveForm.querySelectorAll("input, select, textarea, button");
+    fields.forEach((el) => {
+      if (el.id === "reserveStatus") return;
+      el.disabled = !!closed;
+    });
+    if (reserveClosedBanner) {
+      if (closed) {
+        reserveClosedBanner.hidden = false;
+        reserveClosedBanner.textContent =
+          message ||
+          "Las reservas están cerradas. El evento es hoy o ya pasó. ¡Gracias por tu interés!";
+        reserveClosedBanner.className = "form-status err";
+      } else {
+        reserveClosedBanner.hidden = true;
+        reserveClosedBanner.textContent = "";
+        reserveClosedBanner.className = "form-status";
+      }
+    }
+    if (reserveBtn && closed) {
+      reserveBtn.textContent = "Reservas cerradas";
+    }
+  }
+
+  // Cierre el día del evento y después (según /api/event)
+  fetch("/api/event")
+    .then((r) => r.json())
+    .then((data) => {
+      if (data && data.reservationsClosed) {
+        lockReserveForm(true, data.reservationsClosedMessage);
+      }
+    })
+    .catch(() => {});
 
   // Llenar pueblos de PR
   if (resPueblo && window.PR_TOWNS) {
@@ -583,6 +621,14 @@
       reserveStatus.textContent = "";
       reserveStatus.className = "form-status";
     }
+    if (reservationsClosed) {
+      if (reserveStatus) {
+        reserveStatus.textContent =
+          "Las reservas están cerradas. El evento es hoy o ya pasó.";
+        reserveStatus.className = "form-status err";
+      }
+      return;
+    }
     const phoneVal = document.getElementById("resPhone")?.value || "";
     const phoneDigits = String(phoneVal).replace(/\D/g, "");
     if (phoneDigits.length < 10) {
@@ -614,7 +660,12 @@
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error");
+      if (!res.ok) {
+        if (data.reservationsClosed) {
+          lockReserveForm(true, data.error);
+        }
+        throw new Error(data.error || "Error");
+      }
       if (reserveStatus) {
         reserveStatus.textContent =
           (data.message || "¡Reserva guardada!") + " Te llevamos al calendario…";
