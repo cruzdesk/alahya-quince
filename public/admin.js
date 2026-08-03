@@ -700,8 +700,24 @@
           ? `<div class="meta-line">Notas: ${escapeHtml(r.notes)}</div>`
           : "";
         const wa = waLink(r);
+        const waCount = Math.max(0, parseInt(r.wa_sent_count, 10) || 0);
+        const waSent = waCount > 0;
+        const waWhen = r.wa_sent_at
+          ? new Date(r.wa_sent_at).toLocaleString("es", {
+              dateStyle: "short",
+              timeStyle: "short",
+            })
+          : "";
+        const waMark = waSent
+          ? `<span class="wa-sent-mark" title="WhatsApp enviado ${waCount} vez/veces${
+              waWhen ? " · última: " + waWhen : ""
+            }" aria-label="WhatsApp enviado ${waCount} veces">✓ ${waCount}</span>`
+          : `<span class="wa-sent-mark is-pending" title="Aún no se ha abierto WhatsApp">—</span>`;
         const waBtn = wa
-          ? `<a class="wa" href="${wa}" target="_blank" rel="noopener noreferrer">WhatsApp</a>`
+          ? `<a class="wa${waSent ? " is-sent" : ""}" href="${wa}" target="_blank" rel="noopener noreferrer" data-wa-id="${r.id}">
+              ${waSent ? "✓ WhatsApp" : "WhatsApp"}
+              <span class="wa-count" data-wa-count="${r.id}">#${waCount}</span>
+            </a>`
           : `<a class="wa is-disabled" href="#" tabindex="-1">Sin teléfono</a>`;
         const cancelBtn = cancelled
           ? ""
@@ -715,12 +731,18 @@
               </select>
               <button type="button" data-mesa-save="${r.id}">Guardar</button>
             </div>`;
-        return `<article class="admin-res-item${cancelled ? " cancelled" : ""}" data-res-id="${r.id}">
+        return `<article class="admin-res-item${cancelled ? " cancelled" : ""}${
+          waSent ? " has-wa-sent" : ""
+        }" data-res-id="${r.id}">
           <div>
-            <div class="who">${escapeHtml(r.name)} ${badge} ${mesaBadge}</div>
+            <div class="who">${escapeHtml(r.name)} ${badge} ${mesaBadge} ${waMark}</div>
             <div class="meta-line">📍 ${pueblo} · <strong>${gCount}</strong> invitado(s)</div>
             <div class="meta-line">${escapeHtml(contact)}</div>
-            <div class="meta-line">#${r.id} · ${escapeHtml(when)}</div>
+            <div class="meta-line">#${r.id} · ${escapeHtml(when)}${
+          waSent
+            ? ` · <span class="wa-meta">WA ×${waCount}${waWhen ? " · " + escapeHtml(waWhen) : ""}</span>`
+            : ""
+        }</div>
             ${notes}
             ${mesaQuick}
           </div>
@@ -1347,7 +1369,53 @@ ${tableBlocks || "<p>No hay reservas activas.</p>"}
     }
   });
 
+  async function registerWaSent(id) {
+    if (!adminKey || !id) return null;
+    try {
+      const res = await fetch(`/api/admin/reservations/${id}/wa-sent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: adminKey }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Error");
+      const row = allReservations.find((x) => String(x.id) === String(id));
+      if (row && data.reservation) {
+        row.wa_sent_count = data.reservation.wa_sent_count;
+        row.wa_sent_at = data.reservation.wa_sent_at;
+      }
+      // Actualizar solo la UI de esa tarjeta sin recargar todo
+      const article = adminResList?.querySelector(`[data-res-id="${id}"]`);
+      const count = data.reservation?.wa_sent_count ?? (row ? row.wa_sent_count : 0);
+      if (article) {
+        article.classList.add("has-wa-sent");
+        const waLinkEl = article.querySelector(`a.wa[data-wa-id="${id}"]`);
+        if (waLinkEl) {
+          waLinkEl.classList.add("is-sent");
+          waLinkEl.innerHTML = `✓ WhatsApp <span class="wa-count" data-wa-count="${id}">#${count}</span>`;
+        }
+        let mark = article.querySelector(".wa-sent-mark");
+        if (mark) {
+          mark.classList.remove("is-pending");
+          mark.textContent = `✓ ${count}`;
+          mark.title = `WhatsApp enviado ${count} vez/veces`;
+        }
+      }
+      return data.reservation;
+    } catch (err) {
+      console.warn("[wa-sent]", err.message);
+      return null;
+    }
+  }
+
   adminResList?.addEventListener("click", async (e) => {
+    const waA = e.target.closest("a.wa[data-wa-id]");
+    if (waA && !waA.classList.contains("is-disabled")) {
+      const id = waA.getAttribute("data-wa-id");
+      // Registrar y dejar que el navegador abra WhatsApp (no preventDefault)
+      registerWaSent(id);
+      return;
+    }
     const mesaSave = e.target.closest("[data-mesa-save]");
     if (mesaSave) {
       const id = mesaSave.getAttribute("data-mesa-save");

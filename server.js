@@ -408,7 +408,8 @@ app.post("/api/admin/reservations", ...adminGuard, async (req, res) => {
        FROM reservations`
     );
     const { rows } = await pool.query(
-      `SELECT id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at, mesa
+      `SELECT id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at, mesa,
+              COALESCE(wa_sent_count, 0)::int AS wa_sent_count, wa_sent_at
        FROM reservations
        ORDER BY created_at DESC`
     );
@@ -433,6 +434,38 @@ app.post("/api/admin/reservations", ...adminGuard, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "No se pudieron cargar las reservas." });
+  }
+});
+
+// ——— Admin: registrar clic/envío de WhatsApp
+app.post("/api/admin/reservations/:id/wa-sent", ...adminGuard, async (req, res) => {
+  try {
+    try {
+      await ensureReservationsExtras();
+    } catch (migErr) {
+      console.error("[wa migrate]", migErr.message);
+    }
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id) || id < 1) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+    const { rows } = await pool.query(
+      `UPDATE reservations
+       SET wa_sent_count = COALESCE(wa_sent_count, 0) + 1,
+           wa_sent_at = NOW()
+       WHERE id = $1
+       RETURNING id, wa_sent_count, wa_sent_at`,
+      [id]
+    );
+    if (!rows.length) {
+      return res.status(404).json({ error: "Reserva no encontrada." });
+    }
+    res.json({ success: true, reservation: rows[0] });
+  } catch (err) {
+    console.error("[wa-sent]", err);
+    res.status(500).json({
+      error: "No se pudo registrar el WhatsApp: " + String(err.message || "").slice(0, 160),
+    });
   }
 });
 

@@ -102,6 +102,8 @@ function memoryQuery(text, params = []) {
       client_fp: params[7] || null,
       ip: params[8] || null,
       mesa: null,
+      wa_sent_count: 0,
+      wa_sent_at: null,
       status: "active",
       cancelled_at: null,
       created_at: new Date().toISOString(),
@@ -135,6 +137,16 @@ function memoryQuery(text, params = []) {
     const id = params[0];
     const row = memory.reservations.find((r) => r.id === Number(id) || r.id === id);
     return Promise.resolve({ rows: row ? [{ status: row.status, cancelled_at: row.cancelled_at }] : [] });
+  }
+  if (text.includes("wa_sent_count") && text.includes("UPDATE reservations")) {
+    const id = params[0];
+    const row = memory.reservations.find((r) => r.id === Number(id) || r.id === id);
+    if (!row) return Promise.resolve({ rows: [] });
+    row.wa_sent_count = (Number(row.wa_sent_count) || 0) + 1;
+    row.wa_sent_at = new Date().toISOString();
+    return Promise.resolve({
+      rows: [{ id: row.id, wa_sent_count: row.wa_sent_count, wa_sent_at: row.wa_sent_at }],
+    });
   }
   if (
     text.includes("FROM reservations") &&
@@ -223,6 +235,20 @@ async function ensureReservationsExtras() {
     );
   } catch (e) {
     // Si la tabla aún no existe, ensureSchema la creará
+    if (!/does not exist/i.test(String(e.message))) throw e;
+  }
+  try {
+    await pool.query(
+      `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS wa_sent_count INTEGER NOT NULL DEFAULT 0`
+    );
+  } catch (e) {
+    if (!/does not exist/i.test(String(e.message))) throw e;
+  }
+  try {
+    await pool.query(
+      `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS wa_sent_at TIMESTAMPTZ`
+    );
+  } catch (e) {
     if (!/does not exist/i.test(String(e.message))) throw e;
   }
   try {

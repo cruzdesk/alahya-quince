@@ -338,6 +338,10 @@
   background: #25d366;
   border-color: #1ebe57;
   color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 .admin-item-actions a.wa:hover {
@@ -347,6 +351,52 @@
 .admin-item-actions a.wa.is-disabled {
   opacity: 0.4;
   pointer-events: none;
+}
+
+/* Ya se abrió WhatsApp al menos una vez */
+.admin-item-actions a.wa.is-sent {
+  background: #128c7e;
+  border-color: #0e6b60;
+}
+
+.admin-item-actions a.wa .wa-count {
+  font-size: 0.62rem;
+  font-weight: 700;
+  opacity: 0.95;
+  background: rgba(0, 0, 0, 0.18);
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+}
+
+.wa-sent-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-left: 0.3rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+  vertical-align: middle;
+}
+
+.wa-sent-mark.is-pending {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  font-weight: 500;
+}
+
+.wa-meta {
+  color: #0e6b60;
+  font-weight: 600;
+}
+
+.admin-res-item.has-wa-sent {
+  border-left: 3px solid #25d366;
 }
 
 .admin-item-actions .btn-edit {
