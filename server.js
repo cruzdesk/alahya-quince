@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const crypto = require("crypto");
 const rateLimit = require("express-rate-limit");
-const { pool, ensureSchema } = require("./db");
+const { pool, ensureSchema, ensureReservationsExtras } = require("./db");
 const { sendReservationAlert } = require("./email");
 const { requireAdmin } = require("./admin-auth");
 
@@ -391,6 +391,11 @@ app.post("/api/reservations", rsvpLimiter, async (req, res) => {
 // ——— Admin: listar reservas + estadísticas
 app.post("/api/admin/reservations", ...adminGuard, async (req, res) => {
   try {
+    try {
+      await ensureReservationsExtras();
+    } catch (migErr) {
+      console.error("[mesa migrate list]", migErr.message);
+    }
     const { rows: statsRows } = await pool.query(
       `SELECT
          COUNT(*) FILTER (WHERE status = 'active')::int AS active_count,
@@ -457,6 +462,13 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
     const id = parseInt(req.params.id, 10);
     if (!id) return res.status(400).json({ error: "ID inválido" });
 
+    // Asegura columna mesa aunque el schema se haya cacheado antes del deploy
+    try {
+      await ensureReservationsExtras();
+    } catch (migErr) {
+      console.error("[mesa migrate]", migErr.message);
+    }
+
     const name = clean(req.body.name, 120);
     const email = clean(req.body.email, 160).toLowerCase();
     const phone = clean(req.body.phone, 40);
@@ -468,14 +480,18 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
 
     const MESA_MAX = 10;
     const MESA_ALAHYA = "Mesa de Alahya";
-    let mesaRaw = clean(req.body.mesa, 40);
+    // Acepta string o número del body
+    let mesaRaw =
+      typeof req.body.mesa === "number" && Number.isFinite(req.body.mesa)
+        ? String(req.body.mesa)
+        : clean(req.body.mesa, 40);
     let mesa = null;
     if (mesaRaw) {
       if (mesaRaw === MESA_ALAHYA || /^mesa\s+de\s+alahya$/i.test(mesaRaw)) {
         mesa = MESA_ALAHYA;
       } else {
-        const n = parseInt(mesaRaw, 10);
-        if (Number.isFinite(n) && n >= 1 && n <= 50 && String(n) === String(parseInt(mesaRaw, 10))) {
+        const n = parseInt(String(mesaRaw).trim(), 10);
+        if (Number.isFinite(n) && n >= 1 && n <= 50 && String(n) === String(mesaRaw).trim()) {
           mesa = String(n);
         } else {
           return res.status(400).json({
@@ -497,7 +513,7 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
          WHERE status = 'active' AND mesa = $1 AND id <> $2`,
         [mesa, id]
       );
-      const used = capRows[0]?.used || 0;
+      const used = Number(capRows[0]?.used) || 0;
       if (used + guests > MESA_MAX) {
         const free = Math.max(0, MESA_MAX - used);
         return res.status(400).json({
@@ -520,8 +536,8 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
          status = $8,
          mesa = $9,
          cancelled_at = CASE
-           WHEN $8 = 'cancelled' AND (cancelled_at IS NULL OR status = 'active') THEN COALESCE(cancelled_at, NOW())
-           WHEN $8 = 'active' THEN NULL
+           WHEN $8::text = 'cancelled' AND (cancelled_at IS NULL OR status = 'active') THEN COALESCE(cancelled_at, NOW())
+           WHEN $8::text = 'active' THEN NULL
            ELSE cancelled_at
          END
        WHERE id = $1
@@ -535,7 +551,7 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
         pueblo || null,
         notes || null,
         status,
-        mesa || null,
+        mesa,
       ]
     );
     if (!rows.length) {
@@ -543,8 +559,18 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
     }
     res.json({ success: true, reservation: rows[0] });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "No se pudo actualizar la reserva." });
+    console.error("[reservation update]", err);
+    const msg = String(err && err.message ? err.message : "");
+    // Mensajes útiles sin filtrar secretos
+    if (/column ["']?mesa["']? does not exist/i.test(msg)) {
+      return res.status(500).json({
+        error:
+          "Falta la columna mesa en la base de datos. Reinicia el servicio en Render o espera un momento e intenta de nuevo.",
+      });
+    }
+    res.status(500).json({
+      error: "No se pudo actualizar la reserva. " + (msg.includes("reservations") ? msg.slice(0, 160) : "Intenta de nuevo."),
+    });
   }
 });
 

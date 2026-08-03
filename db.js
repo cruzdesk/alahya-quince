@@ -144,6 +144,23 @@ function memoryQuery(text, params = []) {
     );
     return Promise.resolve({ rows: hit ? [hit] : [] });
   }
+  if (
+    text.includes("FROM reservations") &&
+    text.includes("SUM(guests)") &&
+    text.includes("mesa")
+  ) {
+    const mesa = params[0];
+    const excludeId = params[1];
+    const used = memory.reservations
+      .filter(
+        (r) =>
+          r.status === "active" &&
+          (r.mesa || null) === mesa &&
+          r.id !== excludeId
+      )
+      .reduce((s, r) => s + (r.guests || 0), 0);
+    return Promise.resolve({ rows: [{ used }] });
+  }
   if (text.includes("FROM reservations") && text.includes("status = 'active'") && text.includes("COUNT")) {
     const active = memory.reservations.filter((r) => r.status === "active");
     const cancelled = memory.reservations.filter((r) => r.status === "cancelled");
@@ -187,6 +204,17 @@ function memoryQuery(text, params = []) {
 let schemaReady = false;
 let schemaPromise = null;
 
+/** Migraciones ligeras que deben poder repetirse (columnas nuevas) */
+async function ensureReservationsExtras() {
+  if (!pool) return;
+  await pool.query(`
+    ALTER TABLE reservations ADD COLUMN IF NOT EXISTS mesa VARCHAR(40);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_reservations_mesa ON reservations (mesa) WHERE status = 'active';
+  `);
+}
+
 const db = {
   query: async (text, params) => {
     if (pool) {
@@ -206,7 +234,11 @@ async function ensureSchema() {
     schemaReady = true;
     return;
   }
-  if (schemaReady) return;
+  if (schemaReady) {
+    // Columnas añadidas en deploys posteriores (ej. mesa)
+    await ensureReservationsExtras();
+    return;
+  }
   if (schemaPromise) return schemaPromise;
 
   schemaPromise = (async () => {
@@ -269,12 +301,7 @@ async function ensureSchema() {
     await pool.query(`
       ALTER TABLE reservations ADD COLUMN IF NOT EXISTS ip VARCHAR(80);
     `);
-    await pool.query(`
-      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS mesa VARCHAR(40);
-    `);
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_reservations_mesa ON reservations (mesa) WHERE status = 'active';
-    `);
+    await ensureReservationsExtras();
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_reservations_status ON reservations (status, created_at DESC);
     `);
@@ -298,4 +325,4 @@ async function ensureSchema() {
   return schemaPromise;
 }
 
-module.exports = { pool: db, ensureSchema, rawPool: pool };
+module.exports = { pool: db, ensureSchema, ensureReservationsExtras, rawPool: pool };
