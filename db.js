@@ -109,9 +109,12 @@ function memoryQuery(text, params = []) {
     memory.reservations.unshift(row);
     return Promise.resolve({ rows: [row] });
   }
-  if (text.includes("UPDATE reservations SET") && text.includes("name =")) {
+  if (
+    (text.includes("UPDATE reservations SET") || text.includes("UPDATE reservations\n") || text.includes("UPDATE reservations\r")) &&
+    text.includes("name")
+  ) {
     const id = params[0];
-    const row = memory.reservations.find((r) => r.id === id);
+    const row = memory.reservations.find((r) => r.id === Number(id) || r.id === id);
     if (!row) return Promise.resolve({ rows: [] });
     row.name = params[1];
     row.email = params[2];
@@ -121,11 +124,17 @@ function memoryQuery(text, params = []) {
     row.notes = params[6];
     row.status = params[7];
     if (params.length >= 9) row.mesa = params[8] || null;
-    if (row.status === "cancelled" && !row.cancelled_at) {
+    if (params.length >= 10) row.cancelled_at = params[9];
+    else if (row.status === "active") row.cancelled_at = null;
+    else if (row.status === "cancelled" && !row.cancelled_at) {
       row.cancelled_at = new Date().toISOString();
     }
-    if (row.status === "active") row.cancelled_at = null;
     return Promise.resolve({ rows: [row] });
+  }
+  if (text.includes("SELECT status, cancelled_at FROM reservations")) {
+    const id = params[0];
+    const row = memory.reservations.find((r) => r.id === Number(id) || r.id === id);
+    return Promise.resolve({ rows: row ? [{ status: row.status, cancelled_at: row.cancelled_at }] : [] });
   }
   if (
     text.includes("FROM reservations") &&
