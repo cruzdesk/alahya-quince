@@ -53,8 +53,7 @@
         <span class="admin-brand-sub">Panel admin</span>
       </div>
       <nav class="admin-menu" aria-label="Menú admin">
-        <button type="button" class="admin-menu-item is-active" data-view="resumen">Resumen</button>
-        <button type="button" class="admin-menu-item" data-view="reservas">Reservas</button>
+        <button type="button" class="admin-menu-item is-active" data-view="reservas">Reservas</button>
         <button type="button" class="admin-menu-item" data-view="deseos">Deseos</button>
       </nav>
       <div class="admin-sidebar-foot">
@@ -66,27 +65,12 @@
     <div class="admin-main-wrap">
       <header class="admin-topbar">
         <button type="button" class="admin-menu-toggle" id="adminMenuToggle" aria-label="Menú">☰</button>
-        <h1 class="admin-view-title" id="adminViewTitle">Resumen</h1>
+        <h1 class="admin-view-title" id="adminViewTitle">Reservas</h1>
       </header>
 
       <main class="admin-main">
-        <!-- RESUMEN -->
-        <section class="admin-view is-active" id="view-resumen" data-view-panel="resumen">
-          <p class="muted">Vista general del evento y las cifras actuales.</p>
-          <div class="admin-stats" id="adminResStats"></div>
-          <div class="admin-quick-actions">
-            <button type="button" class="btn btn-gold" data-goto="reservas">Ir a reservas</button>
-            <button type="button" class="btn btn-outline" data-goto="deseos">Ir a deseos</button>
-            <button type="button" class="btn btn-outline" id="printResReportBtnQuick">🖨 Reporte de reservas</button>
-          </div>
-          <h3 class="admin-block-title">Mapa por pueblo</h3>
-          <p class="muted">Pines en municipios con reservas activas. Toca un pin para ver el detalle.</p>
-          <div id="prMapResumen" class="pr-map"></div>
-          <div id="prMapDetailResumen" class="pr-map-detail" hidden></div>
-        </section>
-
         <!-- RESERVAS -->
-        <section class="admin-view" id="view-reservas" data-view-panel="reservas" hidden>
+        <section class="admin-view is-active" id="view-reservas" data-view-panel="reservas">
           <p class="muted">Gestiona reservas activas y canceladas.</p>
           <div class="admin-res-actions">
             <button type="button" class="btn btn-gold" id="printResReportBtn">🖨 Reporte profesional</button>

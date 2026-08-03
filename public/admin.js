@@ -13,11 +13,9 @@
   const adminHubLoginBtn = document.getElementById("adminHubLoginBtn");
   const adminHubLoginStatus = document.getElementById("adminHubLoginStatus");
   const adminHubLogout = document.getElementById("adminHubLogout");
-  const adminResStats = document.getElementById("adminResStats");
   const adminResStats2 = document.getElementById("adminResStats2");
   const adminResList = document.getElementById("adminResList");
   const printResReportBtn = document.getElementById("printResReportBtn");
-  const printResReportBtnQuick = document.getElementById("printResReportBtnQuick");
   const printSeatingBtn = document.getElementById("printSeatingBtn");
   const adminResRefreshBtn = document.getElementById("adminResRefreshBtn");
   const resFilterMesa = document.getElementById("resFilterMesa");
@@ -38,11 +36,9 @@
   let idleListenersBound = false;
   let byPuebloCache = [];
   let mapReservas = null;
-  let mapResumen = null;
-  let mapLayers = { reservas: null, resumen: null };
+  let mapLayers = { reservas: null };
 
   const titles = {
-    resumen: "Resumen",
     reservas: "Reservas",
     deseos: "Deseos",
   };
@@ -193,12 +189,6 @@
         }, 80);
       });
     }
-    if (name === "resumen" && adminKey) {
-      setTimeout(() => {
-        ensureMaps();
-        renderTownMaps(byPuebloCache);
-      }, 80);
-    }
   }
 
   function ensureMaps() {
@@ -209,8 +199,7 @@
       const el = document.getElementById(elId);
       if (!el) return null;
       if (el._leaflet_id) {
-        // already initialized
-        return elId === "prMap" ? mapReservas : mapResumen;
+        return mapReservas;
       }
       const map = L.map(elId, {
         scrollWheelZoom: false,
@@ -228,10 +217,6 @@
     if (!mapReservas && document.getElementById("prMap")) {
       mapReservas = makeMap("prMap");
       mapLayers.reservas = L.layerGroup().addTo(mapReservas);
-    }
-    if (!mapResumen && document.getElementById("prMapResumen")) {
-      mapResumen = makeMap("prMapResumen");
-      mapLayers.resumen = L.layerGroup().addTo(mapResumen);
     }
   }
 
@@ -289,7 +274,6 @@
     }
 
     paint(mapReservas, mapLayers.reservas, "prMapDetail");
-    paint(mapResumen, mapLayers.resumen, "prMapDetailResumen");
   }
 
   function renderAdminWishes(list) {
@@ -902,7 +886,6 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error");
-      renderStats(data.stats, adminResStats);
       renderStats(data.stats, adminResStats2);
       renderAdminList(data.reservations || []);
       renderTownMaps(data.byPueblo || []);
@@ -1158,8 +1141,7 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
         sessionStorage.setItem(KEY_STORAGE, key);
       } catch (_) {}
       showApp();
-      setView("resumen");
-      renderStats(data.stats, adminResStats);
+      setView("reservas");
       renderStats(data.stats, adminResStats2);
       renderAdminList(data.reservations || []);
       renderTownMaps(data.byPueblo || []);
@@ -1192,8 +1174,6 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
       printResReportBtn.textContent = "🖨 Reporte profesional";
     }
   });
-  printResReportBtnQuick?.addEventListener("click", printReservationsReport);
-
   function openSeatingPdf() {
     const groups = groupActiveByMesa(allReservations);
     const active = allReservations.filter((r) => r.status === "active");
@@ -1438,7 +1418,7 @@ ${tableBlocks || "<p>No hay reservas activas.</p>"}
       return;
     }
     showApp();
-    setView("resumen");
+    setView("reservas");
     const ok = await loadAdminReservations();
     if (!ok) showLogin();
   })();
