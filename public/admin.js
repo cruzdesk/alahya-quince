@@ -457,62 +457,82 @@
     });
   }
 
-  /** Suma de invitados activos en una mesa (opcional: excluir una reserva) */
+  /** Invitados de una reserva (siempre número) */
+  function guestsOf(r) {
+    const n = parseInt(r && r.guests, 10);
+    return Number.isFinite(n) && n > 0 ? n : 1;
+  }
+
+  /**
+   * Suma de invitados activos en una mesa.
+   * excludeId: no cuenta esa reserva (para ver si “cabe” al mover/asignar).
+   */
   function getMesaUsed(mesa, excludeId) {
     const key = mesaLabel(mesa);
     if (!key) return 0;
-    return allReservations
-      .filter(
-        (r) =>
-          r.status === "active" &&
-          mesaLabel(r.mesa) === key &&
-          String(r.id) !== String(excludeId || "")
-      )
-      .reduce((s, r) => s + (Number(r.guests) || 0), 0);
-  }
-
-  function getMesaFree(mesa, excludeId) {
-    return Math.max(0, MESA_MAX - getMesaUsed(mesa, excludeId));
+    let sum = 0;
+    for (const r of allReservations) {
+      if (r.status !== "active") continue;
+      if (mesaLabel(r.mesa) !== key) continue;
+      if (excludeId != null && String(r.id) === String(excludeId)) continue;
+      sum += guestsOf(r);
+    }
+    return sum;
   }
 
   /**
    * ¿Cabe esta reserva en la mesa?
-   * @returns {{ ok: boolean, used: number, free: number, message?: string }}
+   * used = ocupados por OTROS; need = invitados de ESTA reserva.
    */
   function checkMesaCapacity(mesa, guests, excludeId) {
     const key = mesaLabel(mesa);
-    if (!key) return { ok: true, used: 0, free: MESA_MAX };
-    const used = getMesaUsed(key, excludeId);
-    const need = Math.min(Math.max(Number(guests) || 1, 1), 20);
-    const free = Math.max(0, MESA_MAX - used);
-    if (used + need > MESA_MAX) {
+    if (!key) return { ok: true, used: 0, free: MESA_MAX, need: 0 };
+    const usedOthers = getMesaUsed(key, excludeId);
+    const need = Math.min(Math.max(parseInt(guests, 10) || 1, 1), 20);
+    const free = Math.max(0, MESA_MAX - usedOthers);
+    if (usedOthers + need > MESA_MAX) {
       return {
         ok: false,
-        used,
+        used: usedOthers,
         free,
+        need,
         message:
           free === 0
             ? `La mesa «${formatMesaDisplay(key)}» ya está llena (máximo ${MESA_MAX} asientos). Elige otra mesa.`
-            : `La mesa «${formatMesaDisplay(key)}» no tiene cupo. Ocupados: ${used}/${MESA_MAX}, libres: ${free}. Esta reserva pide ${need} invitado(s).`,
+            : `La mesa «${formatMesaDisplay(key)}» no tiene cupo. Ocupados por otros: ${usedOthers}/${MESA_MAX}, libres: ${free}. Esta reserva pide ${need} invitado(s).`,
       };
     }
-    return { ok: true, used, free };
+    return { ok: true, used: usedOthers, free, need };
   }
 
-  /** Opciones del combo: Sin mesa + Mesa de Alahya + 1–50 (con cupo libre) */
+  /**
+   * Opciones del combo: Sin mesa + Mesa de Alahya + 1–50.
+   * Muestra ocupados REALES (incluye esta reserva si ya está en esa mesa)
+   * y libera restando el campo invitados al decidir si cabe.
+   */
   function buildMesaSelectOptions(selected, excludeId, guests) {
     const sel = mesaLabel(selected);
-    const need = Math.min(Math.max(Number(guests) || 1, 1), 20);
+    const need = Math.min(Math.max(parseInt(guests, 10) || 1, 1), 20);
     const opts = [`<option value="">Sin mesa</option>`];
 
     const addOpt = (value, labelBase) => {
-      const used = getMesaUsed(value, excludeId);
-      const free = Math.max(0, MESA_MAX - used);
+      const usedOthers = getMesaUsed(value, excludeId);
+      // Total real en la mesa: otros + esta reserva si ya está asignada ahí
+      const usedTotal = usedOthers + (sel === value ? need : 0);
+      const freeDisplay = Math.max(0, MESA_MAX - usedTotal);
+      // Cupo para asignar/quedarse: solo cuenta a los demás; esta reserva “gasta” `need`
+      const freeForAssign = Math.max(0, MESA_MAX - usedOthers);
       const isSel = sel === value;
-      const full = free < need && !isSel;
-      const label = `${labelBase} · ${used}/${MESA_MAX} · ${free} libre(s)${full ? " · LLENA" : ""}`;
+      const full = freeForAssign < need;
+      // Si ya está en esta mesa y cabe con su cupo actual, no la deshabilites
+      const disable = full && !isSel;
+      const label = `${labelBase} · ${usedTotal}/${MESA_MAX} · ${freeDisplay} libre(s)${
+        full && !isSel ? " · LLENA" : ""
+      }`;
       opts.push(
-        `<option value="${escapeHtml(value)}"${isSel ? " selected" : ""}${full ? " disabled" : ""}>${escapeHtml(label)}</option>`
+        `<option value="${escapeHtml(value)}"${isSel ? " selected" : ""}${
+          disable ? " disabled" : ""
+        }>${escapeHtml(label)}</option>`
       );
     };
 
@@ -542,7 +562,7 @@
         }
         const g = map.get(key);
         g.reservations.push(r);
-        g.guests += r.guests || 0;
+        g.guests += guestsOf(r);
       });
     return sortMesaKeys([...map.keys()]).map((k) => map.get(k));
   }
@@ -686,18 +706,19 @@
         const cancelBtn = cancelled
           ? ""
           : `<button type="button" class="btn-danger-sm" data-cancel-id="${r.id}">Cancelar</button>`;
+        const gCount = guestsOf(r);
         const mesaQuick = cancelled
           ? ""
           : `<div class="admin-mesa-quick">
-              <select data-mesa-input="${r.id}" aria-label="Asignar mesa">
-                ${buildMesaSelectOptions(m, r.id, r.guests || 1)}
+              <select data-mesa-input="${r.id}" data-mesa-guests="${gCount}" aria-label="Asignar mesa">
+                ${buildMesaSelectOptions(m, r.id, gCount)}
               </select>
               <button type="button" data-mesa-save="${r.id}">Guardar</button>
             </div>`;
         return `<article class="admin-res-item${cancelled ? " cancelled" : ""}" data-res-id="${r.id}">
           <div>
             <div class="who">${escapeHtml(r.name)} ${badge} ${mesaBadge}</div>
-            <div class="meta-line">📍 ${pueblo} · <strong>${r.guests}</strong> invitado(s)</div>
+            <div class="meta-line">📍 ${pueblo} · <strong>${gCount}</strong> invitado(s)</div>
             <div class="meta-line">${escapeHtml(contact)}</div>
             <div class="meta-line">#${r.id} · ${escapeHtml(when)}</div>
             ${notes}
@@ -788,8 +809,8 @@
     document.getElementById("editResName").value = r.name || "";
     document.getElementById("editResPhone").value = r.phone || "";
     document.getElementById("editResEmail").value = r.email || "";
-    document.getElementById("editResGuests").value = r.guests || 1;
-    fillEditMesaSelect(r.mesa || "", r.id, r.guests || 1);
+    document.getElementById("editResGuests").value = guestsOf(r);
+    fillEditMesaSelect(r.mesa || "", r.id, guestsOf(r));
     document.getElementById("editResNotes").value = r.notes || "";
     document.getElementById("editResStatus").value = r.status || "active";
     const puebloSel = document.getElementById("editResPueblo");
@@ -1258,17 +1279,23 @@ ${tableBlocks || "<p>No hay reservas activas.</p>"}
     const r = allReservations.find((x) => String(x.id) === String(id));
     if (!r) return;
     const mesa = String(mesaValue || "").trim();
-    const guests = r.guests || 1;
+    const guests = guestsOf(r);
     if (mesa && (r.status || "active") === "active") {
       const cap = checkMesaCapacity(mesa, guests, id);
       if (!cap.ok) {
         alert(cap.message);
-        // Restaurar select a la mesa anterior
         const sel = adminResList?.querySelector(`[data-mesa-input="${id}"]`);
         if (sel) sel.innerHTML = buildMesaSelectOptions(r.mesa || "", r.id, guests);
         return;
       }
     }
+    // Actualización optimista local: resta invitados de la mesa al instante
+    const prevMesa = mesaLabel(r.mesa);
+    r.mesa = mesa || null;
+    r.guests = guests;
+    renderSeatingSummary(allReservations);
+    populateFilterMesas(allReservations);
+
     if (btn) btn.disabled = true;
     try {
       const res = await fetch(`/api/admin/reservations/${id}/update`, {
@@ -1286,11 +1313,24 @@ ${tableBlocks || "<p>No hay reservas activas.</p>"}
           mesa,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error");
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (_) {
+        data = {};
+      }
+      if (!res.ok) {
+        r.mesa = prevMesa || null;
+        throw new Error(data.error || "Error");
+      }
+      if (data.reservation) {
+        Object.assign(r, data.reservation);
+      }
       await loadAdminReservations();
     } catch (err) {
+      r.mesa = prevMesa || null;
       alert(err.message || "No se pudo guardar la mesa.");
+      renderAdminList();
       if (btn) btn.disabled = false;
     }
   }

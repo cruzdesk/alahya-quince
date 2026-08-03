@@ -478,7 +478,8 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
     const phone = clean(req.body.phone, 40) || null;
     const pueblo = clean(req.body.pueblo, 80) || null;
     const notes = clean(req.body.notes, 400) || null;
-    const guests = Math.min(Math.max(parseInt(req.body.guests, 10) || 1, 1), 20);
+    // Siempre número entero (evita sumas raras si viene string)
+    const guests = Math.min(Math.max(parseInt(String(req.body.guests ?? "1"), 10) || 1, 1), 20);
     let status = String(req.body.status || "active").toLowerCase();
     if (status !== "active" && status !== "cancelled") status = "active";
 
