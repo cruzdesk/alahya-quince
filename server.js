@@ -326,8 +326,11 @@ app.post("/api/reservations", rsvpLimiter, async (req, res) => {
     if (!pueblo || pueblo.length < 2) {
       return res.status(400).json({ error: "Selecciona tu pueblo." });
     }
-    if (!phone && !email) {
-      return res.status(400).json({ error: "Indica teléfono o correo de contacto." });
+    const phoneDigits = String(phone || "").replace(/\D/g, "");
+    if (!phone || phoneDigits.length < 10) {
+      return res.status(400).json({
+        error: "El teléfono es obligatorio (mínimo 10 dígitos, ej. 7870000000).",
+      });
     }
 
     const ip = clientIp(req) || null;

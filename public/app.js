@@ -583,9 +583,20 @@
       reserveStatus.textContent = "";
       reserveStatus.className = "form-status";
     }
+    const phoneVal = document.getElementById("resPhone")?.value || "";
+    const phoneDigits = String(phoneVal).replace(/\D/g, "");
+    if (phoneDigits.length < 10) {
+      if (reserveStatus) {
+        reserveStatus.textContent =
+          "El teléfono es obligatorio (mínimo 10 dígitos).";
+        reserveStatus.className = "form-status err";
+      }
+      document.getElementById("resPhone")?.focus();
+      return;
+    }
     const body = {
       name: document.getElementById("resName")?.value,
-      phone: document.getElementById("resPhone")?.value,
+      phone: phoneVal,
       email: document.getElementById("resEmail")?.value,
       pueblo: document.getElementById("resPueblo")?.value,
       guests: Number(document.getElementById("resGuests")?.value || 1),
