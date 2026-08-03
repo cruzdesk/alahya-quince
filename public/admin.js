@@ -448,16 +448,99 @@
     if (current && towns.includes(current)) resFilterPueblo.value = current;
   }
 
+  const MESA_MAX = 10;
+  const MESA_ALAHYA = "Mesa de Alahya";
+  const MESA_NUMBERS = Array.from({ length: 50 }, (_, i) => String(i + 1));
+
   function mesaLabel(m) {
     return String(m || "").trim();
+  }
+
+  function formatMesaDisplay(m) {
+    const t = mesaLabel(m);
+    if (!t) return "Sin mesa";
+    if (t === MESA_ALAHYA) return MESA_ALAHYA;
+    return `Mesa ${t}`;
   }
 
   function sortMesaKeys(keys) {
     return keys.sort((a, b) => {
       if (a === "__none__") return 1;
       if (b === "__none__") return -1;
+      if (a === MESA_ALAHYA) return -1;
+      if (b === MESA_ALAHYA) return 1;
       return String(a).localeCompare(String(b), "es", { numeric: true, sensitivity: "base" });
     });
+  }
+
+  /** Suma de invitados activos en una mesa (opcional: excluir una reserva) */
+  function getMesaUsed(mesa, excludeId) {
+    const key = mesaLabel(mesa);
+    if (!key) return 0;
+    return allReservations
+      .filter(
+        (r) =>
+          r.status === "active" &&
+          mesaLabel(r.mesa) === key &&
+          String(r.id) !== String(excludeId || "")
+      )
+      .reduce((s, r) => s + (Number(r.guests) || 0), 0);
+  }
+
+  function getMesaFree(mesa, excludeId) {
+    return Math.max(0, MESA_MAX - getMesaUsed(mesa, excludeId));
+  }
+
+  /**
+   * ¿Cabe esta reserva en la mesa?
+   * @returns {{ ok: boolean, used: number, free: number, message?: string }}
+   */
+  function checkMesaCapacity(mesa, guests, excludeId) {
+    const key = mesaLabel(mesa);
+    if (!key) return { ok: true, used: 0, free: MESA_MAX };
+    const used = getMesaUsed(key, excludeId);
+    const need = Math.min(Math.max(Number(guests) || 1, 1), 20);
+    const free = Math.max(0, MESA_MAX - used);
+    if (used + need > MESA_MAX) {
+      return {
+        ok: false,
+        used,
+        free,
+        message:
+          free === 0
+            ? `La mesa «${formatMesaDisplay(key)}» ya está llena (máximo ${MESA_MAX} asientos). Elige otra mesa.`
+            : `La mesa «${formatMesaDisplay(key)}» no tiene cupo. Ocupados: ${used}/${MESA_MAX}, libres: ${free}. Esta reserva pide ${need} invitado(s).`,
+      };
+    }
+    return { ok: true, used, free };
+  }
+
+  /** Opciones del combo: Sin mesa + Mesa de Alahya + 1–50 (con cupo libre) */
+  function buildMesaSelectOptions(selected, excludeId, guests) {
+    const sel = mesaLabel(selected);
+    const need = Math.min(Math.max(Number(guests) || 1, 1), 20);
+    const opts = [`<option value="">Sin mesa</option>`];
+
+    const addOpt = (value, labelBase) => {
+      const used = getMesaUsed(value, excludeId);
+      const free = Math.max(0, MESA_MAX - used);
+      const isSel = sel === value;
+      const full = free < need && !isSel;
+      const label = `${labelBase} · ${used}/${MESA_MAX} · ${free} libre(s)${full ? " · LLENA" : ""}`;
+      opts.push(
+        `<option value="${escapeHtml(value)}"${isSel ? " selected" : ""}${full ? " disabled" : ""}>${escapeHtml(label)}</option>`
+      );
+    };
+
+    addOpt(MESA_ALAHYA, MESA_ALAHYA);
+    MESA_NUMBERS.forEach((n) => addOpt(n, `Mesa ${n}`));
+    return opts.join("");
+  }
+
+  function fillEditMesaSelect(selected, excludeId, guests) {
+    const el = document.getElementById("editResMesa");
+    if (!el) return;
+    el.innerHTML = buildMesaSelectOptions(selected, excludeId, guests);
   }
 
   function groupActiveByMesa(list) {
@@ -490,23 +573,16 @@
     const current = resFilterMesa.value;
     resFilterMesa.innerHTML =
       '<option value="">Todas las mesas</option><option value="__none__">Sin mesa</option>';
-    sortMesaKeys([...set]).forEach((m) => {
+    // Siempre incluir Mesa de Alahya y 1–50 en el filtro
+    const allKeys = new Set([MESA_ALAHYA, ...MESA_NUMBERS, ...set]);
+    sortMesaKeys([...allKeys]).forEach((m) => {
+      const used = getMesaUsed(m);
       const o = document.createElement("option");
       o.value = m;
-      o.textContent = `Mesa ${m}`;
+      o.textContent = `${formatMesaDisplay(m)} (${used}/${MESA_MAX})`;
       resFilterMesa.appendChild(o);
     });
     if (current) resFilterMesa.value = current;
-
-    const dl = document.getElementById("mesaSuggestions");
-    if (dl) {
-      dl.innerHTML = "";
-      sortMesaKeys([...set]).forEach((m) => {
-        const o = document.createElement("option");
-        o.value = m;
-        dl.appendChild(o);
-      });
-    }
   }
 
   function renderSeatingSummary(list) {
@@ -521,9 +597,11 @@
     adminSeatingSummary.innerHTML = groups
       .map((g) => {
         const none = g.mesa === "Sin mesa";
-        return `<span class="admin-mesa-chip${none ? " is-none" : ""}">
-          ${none ? "Sin mesa" : `Mesa <strong>${escapeHtml(g.mesa)}</strong>`}
-          · ${g.guests} inv.
+        const free = none ? "—" : Math.max(0, MESA_MAX - g.guests);
+        const full = !none && g.guests >= MESA_MAX;
+        return `<span class="admin-mesa-chip${none ? " is-none" : ""}${full ? " is-full" : ""}">
+          ${none ? "Sin mesa" : `<strong>${escapeHtml(formatMesaDisplay(g.mesa))}</strong>`}
+          · ${g.guests}${none ? " inv." : `/${MESA_MAX} · ${free} libre(s)`}
         </span>`;
       })
       .join("");
@@ -606,7 +684,7 @@
           : '<span class="badge ok">Activa</span>';
         const m = mesaLabel(r.mesa);
         const mesaBadge = m
-          ? `<span class="mesa-badge">Mesa ${escapeHtml(m)}</span>`
+          ? `<span class="mesa-badge">${escapeHtml(formatMesaDisplay(m))}</span>`
           : `<span class="mesa-badge is-empty">Sin mesa</span>`;
         const contact = [r.phone, r.email].filter(Boolean).join(" · ") || "—";
         const pueblo = r.pueblo ? escapeHtml(r.pueblo) : "Sin pueblo";
@@ -623,8 +701,10 @@
         const mesaQuick = cancelled
           ? ""
           : `<div class="admin-mesa-quick">
-              <input type="text" data-mesa-input="${r.id}" value="${escapeHtml(m)}" placeholder="Mesa #" maxlength="40" list="mesaSuggestions" />
-              <button type="button" data-mesa-save="${r.id}">Mesa</button>
+              <select data-mesa-input="${r.id}" aria-label="Asignar mesa">
+                ${buildMesaSelectOptions(m, r.id, r.guests || 1)}
+              </select>
+              <button type="button" data-mesa-save="${r.id}">Guardar</button>
             </div>`;
         return `<article class="admin-res-item${cancelled ? " cancelled" : ""}" data-res-id="${r.id}">
           <div>
@@ -721,8 +801,7 @@
     document.getElementById("editResPhone").value = r.phone || "";
     document.getElementById("editResEmail").value = r.email || "";
     document.getElementById("editResGuests").value = r.guests || 1;
-    const mesaInput = document.getElementById("editResMesa");
-    if (mesaInput) mesaInput.value = r.mesa || "";
+    fillEditMesaSelect(r.mesa || "", r.id, r.guests || 1);
     document.getElementById("editResNotes").value = r.notes || "";
     document.getElementById("editResStatus").value = r.status || "active";
     const puebloSel = document.getElementById("editResPueblo");
@@ -734,6 +813,14 @@
     editResModal.hidden = false;
     document.body.style.overflow = "hidden";
   }
+
+  // Al cambiar invitados en el modal, refrescar cupos del combo de mesas
+  document.getElementById("editResGuests")?.addEventListener("input", () => {
+    const id = document.getElementById("editResId")?.value;
+    const guests = document.getElementById("editResGuests")?.value || 1;
+    const mesa = document.getElementById("editResMesa")?.value || "";
+    fillEditMesaSelect(mesa, id, guests);
+  });
 
   function closeEditReservation() {
     if (!editResModal) return;
@@ -750,16 +837,30 @@
     e.preventDefault();
     if (!adminKey) return;
     const id = document.getElementById("editResId").value;
+    const guests = Number(document.getElementById("editResGuests").value || 1);
+    const mesa = (document.getElementById("editResMesa")?.value || "").trim();
+    const status = document.getElementById("editResStatus").value;
+    if (status === "active" && mesa) {
+      const cap = checkMesaCapacity(mesa, guests, id);
+      if (!cap.ok) {
+        alert(cap.message);
+        if (editResStatusMsg) {
+          editResStatusMsg.textContent = cap.message;
+          editResStatusMsg.className = "form-status err";
+        }
+        return;
+      }
+    }
     const body = {
       key: adminKey,
       name: document.getElementById("editResName").value,
       phone: document.getElementById("editResPhone").value,
       email: document.getElementById("editResEmail").value,
       pueblo: document.getElementById("editResPueblo").value,
-      guests: Number(document.getElementById("editResGuests").value || 1),
-      mesa: (document.getElementById("editResMesa")?.value || "").trim(),
+      guests,
+      mesa,
       notes: document.getElementById("editResNotes").value,
-      status: document.getElementById("editResStatus").value,
+      status,
     };
     const saveBtn = document.getElementById("editResSave");
     if (saveBtn) saveBtn.disabled = true;
@@ -1115,8 +1216,8 @@ td.c{text-align:center;font-weight:bold}tr:nth-child(even) td{background:#faf6ee
           )
           .join("");
         return `<section class="mesa-block">
-          <h2>${g.mesa === "Sin mesa" ? "Sin mesa asignada" : `Mesa ${escapeHtml(g.mesa)}`}
-            <span class="meta">${g.reservations.length} reserva(s) · ${g.guests} asiento(s)</span>
+          <h2>${g.mesa === "Sin mesa" ? "Sin mesa asignada" : escapeHtml(formatMesaDisplay(g.mesa))}
+            <span class="meta">${g.reservations.length} reserva(s) · ${g.guests}/${MESA_MAX} asiento(s)</span>
           </h2>
           <table><thead><tr><th>#</th><th>Nombre</th><th>Pueblo</th><th>Inv.</th><th>Teléfono</th><th>Notas</th></tr></thead>
           <tbody>${rows}</tbody></table>
@@ -1172,6 +1273,18 @@ ${tableBlocks || "<p>No hay reservas activas.</p>"}
     if (!adminKey) return;
     const r = allReservations.find((x) => String(x.id) === String(id));
     if (!r) return;
+    const mesa = String(mesaValue || "").trim();
+    const guests = r.guests || 1;
+    if (mesa && (r.status || "active") === "active") {
+      const cap = checkMesaCapacity(mesa, guests, id);
+      if (!cap.ok) {
+        alert(cap.message);
+        // Restaurar select a la mesa anterior
+        const sel = adminResList?.querySelector(`[data-mesa-input="${id}"]`);
+        if (sel) sel.innerHTML = buildMesaSelectOptions(r.mesa || "", r.id, guests);
+        return;
+      }
+    }
     if (btn) btn.disabled = true;
     try {
       const res = await fetch(`/api/admin/reservations/${id}/update`, {
@@ -1183,10 +1296,10 @@ ${tableBlocks || "<p>No hay reservas activas.</p>"}
           email: r.email || "",
           phone: r.phone || "",
           pueblo: r.pueblo || "",
-          guests: r.guests || 1,
+          guests,
           notes: r.notes || "",
           status: r.status || "active",
-          mesa: String(mesaValue || "").trim(),
+          mesa,
         }),
       });
       const data = await res.json();
@@ -1243,14 +1356,13 @@ ${tableBlocks || "<p>No hay reservas activas.</p>"}
     }
   });
 
-  adminResList?.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter") return;
-    const input = e.target.closest("[data-mesa-input]");
-    if (!input) return;
-    e.preventDefault();
-    const id = input.getAttribute("data-mesa-input");
+  // Al cambiar el combo de mesa en la lista: validar cupo y guardar
+  adminResList?.addEventListener("change", (e) => {
+    const sel = e.target.closest("select[data-mesa-input]");
+    if (!sel) return;
+    const id = sel.getAttribute("data-mesa-input");
     const btn = adminResList.querySelector(`[data-mesa-save="${id}"]`);
-    saveMesaQuick(id, input.value, btn);
+    saveMesaQuick(id, sel.value, btn);
   });
 
   // Inicializar selects de pueblo al cargar

@@ -247,6 +247,12 @@
   opacity: 0.9;
 }
 
+.admin-mesa-chip.is-full {
+  background: #fde8e8;
+  border-color: rgba(155, 28, 28, 0.45);
+  color: #7a1515;
+}
+
 .admin-res-item .mesa-badge {
   display: inline-block;
   margin-left: 0.35rem;
@@ -273,14 +279,17 @@
   margin-top: 0.45rem;
 }
 
-.admin-mesa-quick input {
+.admin-mesa-quick select {
   flex: 1;
   min-width: 0;
-  padding: 0.35rem 0.5rem;
+  max-width: 100%;
+  padding: 0.4rem 0.5rem;
   border: 1px solid rgba(155, 28, 28, 0.18);
   border-radius: 8px;
   font-size: 0.78rem;
   font-family: var(--font-body);
+  background: #fff;
+  color: var(--ink);
 }
 
 .admin-mesa-quick button {

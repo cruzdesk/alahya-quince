@@ -462,13 +462,51 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
     const phone = clean(req.body.phone, 40);
     const pueblo = clean(req.body.pueblo, 80);
     const notes = clean(req.body.notes, 400);
-    const mesa = clean(req.body.mesa, 40);
     const guests = Math.min(Math.max(parseInt(req.body.guests, 10) || 1, 1), 20);
     let status = String(req.body.status || "active").toLowerCase();
     if (status !== "active" && status !== "cancelled") status = "active";
 
+    const MESA_MAX = 10;
+    const MESA_ALAHYA = "Mesa de Alahya";
+    let mesaRaw = clean(req.body.mesa, 40);
+    let mesa = null;
+    if (mesaRaw) {
+      if (mesaRaw === MESA_ALAHYA || /^mesa\s+de\s+alahya$/i.test(mesaRaw)) {
+        mesa = MESA_ALAHYA;
+      } else {
+        const n = parseInt(mesaRaw, 10);
+        if (Number.isFinite(n) && n >= 1 && n <= 50 && String(n) === String(parseInt(mesaRaw, 10))) {
+          mesa = String(n);
+        } else {
+          return res.status(400).json({
+            error: 'Mesa inválida. Elige 1–50 o "Mesa de Alahya".',
+          });
+        }
+      }
+    }
+
     if (!name || name.length < 2) {
       return res.status(400).json({ error: "Nombre requerido." });
+    }
+
+    // Cupo por mesa: máx. 10 invitados (suma de reservas activas)
+    if (mesa && status === "active") {
+      const { rows: capRows } = await pool.query(
+        `SELECT COALESCE(SUM(guests), 0)::int AS used
+         FROM reservations
+         WHERE status = 'active' AND mesa = $1 AND id <> $2`,
+        [mesa, id]
+      );
+      const used = capRows[0]?.used || 0;
+      if (used + guests > MESA_MAX) {
+        const free = Math.max(0, MESA_MAX - used);
+        return res.status(400).json({
+          error:
+            free === 0
+              ? `La mesa «${mesa}» ya está llena (máximo ${MESA_MAX} asientos). Elige otra mesa.`
+              : `La mesa «${mesa}» no tiene cupo suficiente. Hay ${used}/${MESA_MAX} ocupados y solo ${free} libre(s); esta reserva pide ${guests}.`,
+        });
+      }
     }
 
     const { rows } = await pool.query(
