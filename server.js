@@ -460,30 +460,33 @@ app.post("/api/admin/reservations/:id/cancel", ...adminGuard, async (req, res) =
 app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    if (!id) return res.status(400).json({ error: "ID inválido" });
+    if (!Number.isFinite(id) || id < 1) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
 
-    // Asegura columna mesa aunque el schema se haya cacheado antes del deploy
+    // Migración idempotente: columna mesa
     try {
-      await ensureReservationsExtras();
+      if (typeof ensureReservationsExtras === "function") {
+        await ensureReservationsExtras();
+      }
     } catch (migErr) {
-      console.error("[mesa migrate]", migErr.message);
+      console.error("[mesa migrate]", migErr);
     }
 
     const name = clean(req.body.name, 120);
-    const email = clean(req.body.email, 160).toLowerCase();
-    const phone = clean(req.body.phone, 40);
-    const pueblo = clean(req.body.pueblo, 80);
-    const notes = clean(req.body.notes, 400);
+    const email = clean(req.body.email, 160).toLowerCase() || null;
+    const phone = clean(req.body.phone, 40) || null;
+    const pueblo = clean(req.body.pueblo, 80) || null;
+    const notes = clean(req.body.notes, 400) || null;
     const guests = Math.min(Math.max(parseInt(req.body.guests, 10) || 1, 1), 20);
     let status = String(req.body.status || "active").toLowerCase();
     if (status !== "active" && status !== "cancelled") status = "active";
 
     const MESA_MAX = 10;
     const MESA_ALAHYA = "Mesa de Alahya";
-    // Acepta string o número del body
     let mesaRaw =
       typeof req.body.mesa === "number" && Number.isFinite(req.body.mesa)
-        ? String(req.body.mesa)
+        ? String(Math.trunc(req.body.mesa))
         : clean(req.body.mesa, 40);
     let mesa = null;
     if (mesaRaw) {
@@ -505,7 +508,7 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
       return res.status(400).json({ error: "Nombre requerido." });
     }
 
-    // Cupo por mesa: máx. 10 invitados (suma de reservas activas)
+    // Cupo por mesa (solo activas)
     if (mesa && status === "active") {
       const { rows: capRows } = await pool.query(
         `SELECT COALESCE(SUM(guests), 0)::int AS used
@@ -513,7 +516,7 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
          WHERE status = 'active' AND mesa = $1 AND id <> $2`,
         [mesa, id]
       );
-      const used = Number(capRows[0]?.used) || 0;
+      const used = Number(capRows[0] && capRows[0].used) || 0;
       if (used + guests > MESA_MAX) {
         const free = Math.max(0, MESA_MAX - used);
         return res.status(400).json({
@@ -525,34 +528,35 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
       }
     }
 
+    // cancelled_at en JS (evita CASE con $params que a veces falla en pg)
+    const { rows: prevRows } = await pool.query(
+      `SELECT status, cancelled_at FROM reservations WHERE id = $1`,
+      [id]
+    );
+    if (!prevRows.length) {
+      return res.status(404).json({ error: "Reserva no encontrada." });
+    }
+    let cancelledAt = prevRows[0].cancelled_at || null;
+    if (status === "cancelled") {
+      cancelledAt = cancelledAt || new Date().toISOString();
+    } else {
+      cancelledAt = null;
+    }
+
     const { rows } = await pool.query(
-      `UPDATE reservations SET
-         name = $2,
-         email = $3,
-         phone = $4,
-         guests = $5,
-         pueblo = $6,
-         notes = $7,
-         status = $8,
-         mesa = $9,
-         cancelled_at = CASE
-           WHEN $8::text = 'cancelled' AND (cancelled_at IS NULL OR status = 'active') THEN COALESCE(cancelled_at, NOW())
-           WHEN $8::text = 'active' THEN NULL
-           ELSE cancelled_at
-         END
+      `UPDATE reservations
+       SET name = $2,
+           email = $3,
+           phone = $4,
+           guests = $5,
+           pueblo = $6,
+           notes = $7,
+           status = $8,
+           mesa = $9,
+           cancelled_at = $10
        WHERE id = $1
        RETURNING id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at, mesa`,
-      [
-        id,
-        name,
-        email || null,
-        phone || null,
-        guests,
-        pueblo || null,
-        notes || null,
-        status,
-        mesa,
-      ]
+      [id, name, email, phone, guests, pueblo, notes, status, mesa, cancelledAt]
     );
     if (!rows.length) {
       return res.status(404).json({ error: "Reserva no encontrada." });
@@ -560,16 +564,11 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
     res.json({ success: true, reservation: rows[0] });
   } catch (err) {
     console.error("[reservation update]", err);
-    const msg = String(err && err.message ? err.message : "");
-    // Mensajes útiles sin filtrar secretos
-    if (/column ["']?mesa["']? does not exist/i.test(msg)) {
-      return res.status(500).json({
-        error:
-          "Falta la columna mesa en la base de datos. Reinicia el servicio en Render o espera un momento e intenta de nuevo.",
-      });
-    }
+    const msg = String((err && err.message) || err || "error desconocido");
+    // Siempre devolver un fragmento del error real (ayuda a diagnosticar en producción)
     res.status(500).json({
-      error: "No se pudo actualizar la reserva. " + (msg.includes("reservations") ? msg.slice(0, 160) : "Intenta de nuevo."),
+      error: "No se pudo actualizar la reserva: " + msg.slice(0, 220),
+      code: err && err.code ? String(err.code) : undefined,
     });
   }
 });

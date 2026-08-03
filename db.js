@@ -207,12 +207,22 @@ let schemaPromise = null;
 /** Migraciones ligeras que deben poder repetirse (columnas nuevas) */
 async function ensureReservationsExtras() {
   if (!pool) return;
-  await pool.query(`
-    ALTER TABLE reservations ADD COLUMN IF NOT EXISTS mesa VARCHAR(40);
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_reservations_mesa ON reservations (mesa) WHERE status = 'active';
-  `);
+  // Usar el pool crudo de pg (no el wrapper) para no depender de schemaReady
+  try {
+    await pool.query(
+      `ALTER TABLE reservations ADD COLUMN IF NOT EXISTS mesa VARCHAR(40)`
+    );
+  } catch (e) {
+    // Si la tabla aún no existe, ensureSchema la creará
+    if (!/does not exist/i.test(String(e.message))) throw e;
+  }
+  try {
+    await pool.query(
+      `CREATE INDEX IF NOT EXISTS idx_reservations_mesa ON reservations (mesa) WHERE status = 'active'`
+    );
+  } catch (e) {
+    console.warn("[ensureReservationsExtras] index:", e.message);
+  }
 }
 
 const db = {
