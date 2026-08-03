@@ -617,6 +617,9 @@
   function waLink(r) {
     const num = phoneToWa(r.phone);
     if (!num) return "";
+    const mesaTxt = mesaLabel(r.mesa)
+      ? `🪑 Tu mesa: ${formatMesaDisplay(r.mesa)}`
+      : "🪑 Mesa: por asignar (te avisamos pronto)";
     const text = [
       `Hola ${r.name || ""},`,
       "",
@@ -624,6 +627,7 @@
       "📅 10 de octubre de 2026 · 5:00 p.m.",
       "📍 Tres Palmas, Aguadilla",
       "🎭 Victorian Masquerade Ball",
+      mesaTxt,
       "",
       "Invitación: https://alahya-quince.onrender.com",
       "",
