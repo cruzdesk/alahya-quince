@@ -57,6 +57,16 @@
   text-decoration: underline;
 }
 
+.admin-login-copy {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(201, 162, 39, 0.25);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  opacity: 0.9;
+}
+
 /* Shell */
 .admin-app {
   display: grid;
