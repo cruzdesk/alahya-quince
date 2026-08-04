@@ -781,17 +781,6 @@ body {
   grid-column: span 2;
 }
 
-/* Cloudflare Turnstile */
-.turnstile-row {
-  display: flex;
-  justify-content: center;
-  margin: 0.5rem 0 0.25rem;
-}
-
-.turnstile-row .cf-turnstile {
-  min-height: 65px;
-}
-
 /* Forms */
 .rsvp-form,
 .wish-form {

@@ -7,11 +7,6 @@ const rateLimit = require("express-rate-limit");
 const { pool, ensureSchema, ensureReservationsExtras } = require("./db");
 const { sendReservationAlert } = require("./email");
 const { requireAdmin } = require("./admin-auth");
-const {
-  isTurnstileEnabled,
-  verifyTurnstile,
-  TURNSTILE_SITE_KEY,
-} = require("./turnstile");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -97,8 +92,6 @@ app.get("/api/event", (_req, res) => {
     eventDate: EVENT_DATE,
     reservationsOpen: !closed,
     reservationsClosed: closed,
-    turnstileEnabled: isTurnstileEnabled(),
-    turnstileSiteKey: isTurnstileEnabled() ? TURNSTILE_SITE_KEY : null,
     venue: {
       location: "Tres Palmas, Aguadilla",
       theme: "Victorian Masquerade Ball",
@@ -269,14 +262,6 @@ app.get("/api/wishes/:id", async (req, res) => {
 
 app.post("/api/wishes", wishLimiter, async (req, res) => {
   try {
-    const ts = await verifyTurnstile(
-      req.body.turnstileToken || req.body["cf-turnstile-response"],
-      clientIp(req)
-    );
-    if (!ts.ok) {
-      return res.status(400).json({ error: ts.error });
-    }
-
     const pin = String(req.body.pin || "").trim();
     if (pin !== WISH_PIN) {
       return res.status(403).json({ error: "PIN incorrecto. No se pudo publicar." });
@@ -358,14 +343,6 @@ app.post("/api/reservations", rsvpLimiter, async (req, res) => {
           "Las reservas están cerradas. El evento es hoy o ya pasó. Si necesitas ayuda, contacta a la familia.",
         reservationsClosed: true,
       });
-    }
-
-    const ts = await verifyTurnstile(
-      req.body.turnstileToken || req.body["cf-turnstile-response"],
-      clientIp(req)
-    );
-    if (!ts.ok) {
-      return res.status(400).json({ error: ts.error });
     }
 
     const name = clean(req.body.name, 120);

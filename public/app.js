@@ -3,81 +3,6 @@
   const EVENT_FALLBACK = "2026-10-10T17:00:00-04:00";
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // ——— Cloudflare Turnstile (captcha ligero; solo si el servidor envía site key)
-  let turnstileSiteKey = null;
-  const turnstileWidgets = { reserve: null, wish: null };
-
-  function loadTurnstileScript() {
-    return new Promise((resolve, reject) => {
-      if (window.turnstile) {
-        resolve();
-        return;
-      }
-      const existing = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
-      if (existing) {
-        existing.addEventListener("load", () => resolve());
-        existing.addEventListener("error", () => reject(new Error("Turnstile")));
-        return;
-      }
-      const s = document.createElement("script");
-      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-      s.async = true;
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error("No se pudo cargar el captcha"));
-      document.head.appendChild(s);
-    });
-  }
-
-  function getTurnstileToken(widgetId) {
-    if (!turnstileSiteKey || !window.turnstile) return "";
-    const wid = turnstileWidgets[widgetId];
-    if (wid == null) return "";
-    try {
-      return window.turnstile.getResponse(wid) || "";
-    } catch (_) {
-      return "";
-    }
-  }
-
-  function resetTurnstile(widgetId) {
-    if (!window.turnstile) return;
-    const wid = turnstileWidgets[widgetId];
-    if (wid == null) return;
-    try {
-      window.turnstile.reset(wid);
-    } catch (_) {}
-  }
-
-  async function initTurnstileWidgets(siteKey) {
-    if (!siteKey) return;
-    turnstileSiteKey = siteKey;
-    try {
-      await loadTurnstileScript();
-    } catch (e) {
-      console.warn("[turnstile]", e.message);
-      return;
-    }
-    if (!window.turnstile) return;
-
-    const mount = (elId, wrapId, key) => {
-      const el = document.getElementById(elId);
-      const wrap = document.getElementById(wrapId);
-      if (!el || !wrap) return;
-      wrap.hidden = false;
-      try {
-        turnstileWidgets[key] = window.turnstile.render(el, {
-          sitekey: siteKey,
-          theme: "light",
-          size: "flexible",
-        });
-      } catch (e) {
-        console.warn("[turnstile] render", key, e.message);
-      }
-    };
-    mount("reserveTurnstile", "reserveTurnstileWrap", "reserve");
-    mount("wishTurnstile", "wishTurnstileWrap", "wish");
-  }
-
   // ——— Sobre rojo: una invitación que sale al scroll
   const heTrack = document.getElementById("heTrack");
   const heStage = document.getElementById("heStage");
@@ -571,30 +496,22 @@
     const message = document.getElementById("wishMsg").value;
     const pin = document.getElementById("wishPin").value;
     const device = collectDeviceInfo();
-    const turnstileToken = getTurnstileToken("wish");
-    if (turnstileSiteKey && !turnstileToken) {
-      wishStatus.textContent = "Completa la verificación de seguridad (captcha).";
-      wishStatus.classList.add("err");
-      return;
-    }
 
     try {
       const res = await fetch("/api/wishes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, message, pin, device, turnstileToken }),
+        body: JSON.stringify({ name, message, pin, device }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error");
       wishStatus.textContent = "¡Gracias por tu deseo! 💕";
       wishStatus.classList.add("ok");
       wishForm.reset();
-      resetTurnstile("wish");
       loadWishes();
     } catch (err) {
       wishStatus.textContent = err.message || "No se pudo publicar.";
       wishStatus.classList.add("err");
-      resetTurnstile("wish");
     }
   });
 
@@ -652,15 +569,12 @@
     }
   }
 
-  // Cierre el día del evento y después + captcha (según /api/event)
+  // Cierre el día del evento y después (según /api/event)
   fetch("/api/event")
     .then((r) => r.json())
     .then((data) => {
       if (data && data.reservationsClosed) {
         lockReserveForm(true, data.reservationsClosedMessage);
-      }
-      if (data && data.turnstileEnabled && data.turnstileSiteKey) {
-        initTurnstileWidgets(data.turnstileSiteKey);
       }
     })
     .catch(() => {});
@@ -729,15 +643,6 @@
       document.getElementById("resPhone")?.focus();
       return;
     }
-    const turnstileToken = getTurnstileToken("reserve");
-    if (turnstileSiteKey && !turnstileToken) {
-      if (reserveStatus) {
-        reserveStatus.textContent =
-          "Completa la verificación de seguridad (captcha).";
-        reserveStatus.className = "form-status err";
-      }
-      return;
-    }
     const body = {
       name: document.getElementById("resName")?.value,
       phone: phoneVal,
@@ -746,7 +651,6 @@
       guests: Number(document.getElementById("resGuests")?.value || 1),
       notes: document.getElementById("resNotes")?.value,
       device: typeof collectDeviceInfo === "function" ? collectDeviceInfo() : undefined,
-      turnstileToken,
     };
     if (reserveBtn) {
       reserveBtn.disabled = true;
@@ -771,7 +675,6 @@
         reserveStatus.classList.add("ok");
       }
       reserveForm.reset();
-      resetTurnstile("reserve");
       const g = document.getElementById("resGuests");
       if (g) g.value = "1";
       if (resPueblo) resPueblo.value = "";
@@ -788,7 +691,6 @@
         reserveStatus.textContent = err.message || "No se pudo reservar.";
         reserveStatus.classList.add("err");
       }
-      resetTurnstile("reserve");
     } finally {
       if (reserveBtn) {
         reserveBtn.disabled = false;
