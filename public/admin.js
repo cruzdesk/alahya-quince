@@ -725,20 +725,102 @@
     return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
   }
 
+  /** Filtros smart activos: active | no_mesa | no_wa | no_phone */
+  const smartFilters = new Set();
+
+  function hasPhone(r) {
+    return String(r.phone || "").replace(/\D/g, "").length >= 10;
+  }
+
+  function hasWaSent(r) {
+    return (parseInt(r.wa_sent_count, 10) || 0) > 0;
+  }
+
   function getFilteredReservations() {
     const q = (resFilterName?.value || "").trim().toLowerCase();
     const pueblo = resFilterPueblo?.value || "";
     const status = resFilterStatus?.value || "";
     const mesaF = resFilterMesa?.value || "";
     return allReservations.filter((r) => {
-      if (q && !(r.name || "").toLowerCase().includes(q)) return false;
+      if (q) {
+        const name = (r.name || "").toLowerCase();
+        const phone = String(r.phone || "").replace(/\D/g, "");
+        const qDigits = q.replace(/\D/g, "");
+        if (!name.includes(q) && !(qDigits && phone.includes(qDigits))) return false;
+      }
       if (pueblo && r.pueblo !== pueblo) return false;
       if (status && r.status !== status) return false;
       if (mesaF === "__none__" && mesaLabel(r.mesa)) return false;
       if (mesaF && mesaF !== "__none__" && mesaLabel(r.mesa) !== mesaF) return false;
+      // Filtros smart (se pueden combinar)
+      if (smartFilters.has("active") && r.status !== "active") return false;
+      if (smartFilters.has("no_mesa") && mesaLabel(r.mesa)) return false;
+      if (smartFilters.has("no_wa") && hasWaSent(r)) return false;
+      if (smartFilters.has("no_phone") && hasPhone(r)) return false;
       return true;
     });
   }
+
+  function syncSmartChipUi() {
+    document.querySelectorAll("#resSmartFilters .smart-chip[data-smart]").forEach((btn) => {
+      const key = btn.getAttribute("data-smart");
+      btn.classList.toggle("is-on", smartFilters.has(key));
+    });
+  }
+
+  function updateSmartFilterCounts() {
+    const base = allReservations;
+    const counts = {
+      active: base.filter((r) => r.status === "active").length,
+      no_mesa: base.filter((r) => r.status === "active" && !mesaLabel(r.mesa)).length,
+      no_wa: base.filter((r) => r.status === "active" && !hasWaSent(r)).length,
+      no_phone: base.filter((r) => r.status === "active" && !hasPhone(r)).length,
+    };
+    document.querySelectorAll("#resSmartFilters .smart-chip[data-smart]").forEach((btn) => {
+      const key = btn.getAttribute("data-smart");
+      const labels = {
+        active: "Activas",
+        no_mesa: "Sin mesa",
+        no_wa: "Sin WhatsApp",
+        no_phone: "Sin teléfono",
+      };
+      const n = counts[key];
+      if (labels[key] != null && n != null) {
+        btn.textContent = `${labels[key]} (${n})`;
+      }
+    });
+    syncSmartChipUi();
+  }
+
+  document.getElementById("resSmartFilters")?.addEventListener("click", (e) => {
+    const clear = e.target.closest("[data-smart-clear]");
+    if (clear) {
+      smartFilters.clear();
+      syncSmartChipUi();
+      applyFilters();
+      return;
+    }
+    const chip = e.target.closest(".smart-chip[data-smart]");
+    if (!chip) return;
+    const key = chip.getAttribute("data-smart");
+    if (!key) return;
+    if (smartFilters.has(key)) smartFilters.delete(key);
+    else smartFilters.add(key);
+    // Si activas smart "activas", alinear el select de estado
+    if (key === "active" && smartFilters.has("active") && resFilterStatus) {
+      resFilterStatus.value = "active";
+    }
+    if (key === "no_mesa" && smartFilters.has("no_mesa") && resFilterMesa) {
+      resFilterMesa.value = "__none__";
+      selectedMesaMap = "";
+    }
+    if (key === "no_mesa" && !smartFilters.has("no_mesa") && resFilterMesa?.value === "__none__") {
+      resFilterMesa.value = "";
+    }
+    syncSmartChipUi();
+    applyFilters();
+    renderMesaMap();
+  });
 
   function renderAdminList(list) {
     if (Array.isArray(list)) {
@@ -747,12 +829,21 @@
       populateFilterMesas(list);
       renderSeatingSummary(list);
       renderMesaMap();
+      updateSmartFilterCounts();
     }
     if (!adminResList) return;
     const filtered = getFilteredReservations();
     if (resFilterCount) {
+      const smartOn = [...smartFilters];
+      const smartTxt = smartOn.length
+        ? ` · smart: ${smartOn
+            .map((k) =>
+              ({ active: "activas", no_mesa: "sin mesa", no_wa: "sin WA", no_phone: "sin tel" }[k] || k)
+            )
+            .join(" + ")}`
+        : "";
       resFilterCount.textContent = filtered.length
-        ? `Mostrando ${filtered.length} de ${allReservations.length}`
+        ? `Mostrando ${filtered.length} de ${allReservations.length}${smartTxt}`
         : allReservations.length
           ? "Ninguna reserva coincide con el filtro."
           : "No hay reservas todavía.";

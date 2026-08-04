@@ -98,8 +98,16 @@
           <div id="prMap" class="pr-map"></div>
           <div id="prMapDetail" class="pr-map-detail" hidden></div>
           <h3 class="admin-block-title">Lista de reservas</h3>
+          <div class="admin-smart-filters" id="resSmartFilters" role="group" aria-label="Filtros rápidos">
+            <span class="admin-smart-label">Filtros smart:</span>
+            <button type="button" class="smart-chip" data-smart="active" title="Solo reservas activas">Activas</button>
+            <button type="button" class="smart-chip" data-smart="no_mesa" title="Sin mesa asignada">Sin mesa</button>
+            <button type="button" class="smart-chip" data-smart="no_wa" title="Aún no se abrió WhatsApp">Sin WhatsApp</button>
+            <button type="button" class="smart-chip" data-smart="no_phone" title="Sin teléfono válido">Sin teléfono</button>
+            <button type="button" class="smart-chip is-clear" data-smart-clear title="Quitar filtros smart">Limpiar</button>
+          </div>
           <div class="admin-filters">
-            <input type="search" id="resFilterName" placeholder="Buscar por nombre…" autocomplete="off" />
+            <input type="search" id="resFilterName" placeholder="Buscar por nombre o teléfono…" autocomplete="off" />
             <select id="resFilterPueblo">
               <option value="">Todos los pueblos</option>
             </select>
