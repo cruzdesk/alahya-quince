@@ -224,6 +224,208 @@
   margin: 0.35rem 0 0.9rem;
 }
 
+/* ——— Mapa visual de mesas ——— */
+.mesa-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  margin: 0.35rem 0 0.75rem;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.mesa-leg {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.mesa-leg::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+}
+
+.mesa-leg.empty::before {
+  background: #f3efe8;
+  border-color: #d4cfc4;
+}
+.mesa-leg.low::before {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+.mesa-leg.mid::before {
+  background: #fef3c7;
+  border-color: #fcd34d;
+}
+.mesa-leg.high::before {
+  background: #ffedd5;
+  border-color: #fb923c;
+}
+.mesa-leg.full::before {
+  background: #fecaca;
+  border-color: #f87171;
+}
+.mesa-leg.vip::before {
+  background: linear-gradient(135deg, #e8d5a3, #d4af37);
+  border-color: #9b1c1c;
+}
+
+.mesa-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 0.45rem;
+  padding: 0.85rem;
+  background: linear-gradient(165deg, #faf6ee, #f0e8dc);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 14px;
+  margin-bottom: 0.75rem;
+}
+
+.mesa-map-vip-wrap {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px dashed rgba(201, 162, 39, 0.4);
+}
+
+.mesa-dot {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: transform 0.15s, box-shadow 0.15s;
+  min-height: 48px;
+  padding: 0.15rem;
+  background: #f3efe8;
+  color: #5c4a48;
+  user-select: none;
+}
+
+.mesa-dot:hover,
+.mesa-dot:focus-visible {
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(60, 20, 20, 0.15);
+  outline: none;
+  z-index: 1;
+}
+
+.mesa-dot .mesa-dot-n {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.mesa-dot .mesa-dot-g {
+  font-size: 0.58rem;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+.mesa-dot.is-empty {
+  background: #f3efe8;
+  border-color: #d4cfc4;
+  color: #8a7a72;
+}
+.mesa-dot.is-low {
+  background: #d1fae5;
+  border-color: #34d399;
+  color: #065f46;
+}
+.mesa-dot.is-mid {
+  background: #fef3c7;
+  border-color: #fbbf24;
+  color: #92400e;
+}
+.mesa-dot.is-high {
+  background: #ffedd5;
+  border-color: #fb923c;
+  color: #9a3412;
+}
+.mesa-dot.is-full {
+  background: #fecaca;
+  border-color: #ef4444;
+  color: #7f1d1d;
+  box-shadow: inset 0 0 0 2px rgba(185, 28, 28, 0.25);
+}
+.mesa-dot.is-vip {
+  width: min(140px, 42vw);
+  min-height: 56px;
+  aspect-ratio: auto;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f2e4a8, #d4af37 55%, #8a7020);
+  border-color: #9b1c1c;
+  color: #3a2410;
+  flex-direction: row;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+}
+.mesa-dot.is-vip .mesa-dot-n {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+.mesa-dot.is-selected {
+  outline: 2px solid #9b1c1c;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(155, 28, 28, 0.15);
+}
+
+.mesa-map-detail {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  background: #fffcf8;
+  font-size: 0.88rem;
+}
+
+.mesa-map-detail h4 {
+  margin: 0 0 0.35rem;
+  color: #9b1c1c;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.mesa-map-detail .mesa-map-meta {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.55rem;
+}
+
+.mesa-map-detail .meta-line {
+  font-size: 0.82rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mesa-map-detail .mesa-map-actions {
+  margin-top: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.mesa-map-detail .mesa-map-actions button {
+  font-size: 0.7rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 39, 0.45);
+  background: #fff;
+  color: var(--rose);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
 .admin-mesa-chip {
   display: inline-flex;
   align-items: center;

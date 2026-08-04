@@ -20,6 +20,9 @@
   const adminResRefreshBtn = document.getElementById("adminResRefreshBtn");
   const resFilterMesa = document.getElementById("resFilterMesa");
   const adminSeatingSummary = document.getElementById("adminSeatingSummary");
+  const mesaMapEl = document.getElementById("mesaMap");
+  const mesaMapDetail = document.getElementById("mesaMapDetail");
+  let selectedMesaMap = "";
   const printWishesBtn = document.getElementById("printWishesBtn");
   const printIncludeMeta = document.getElementById("printIncludeMeta");
   const printStatus = document.getElementById("printStatus");
@@ -611,6 +614,88 @@
       .join("");
   }
 
+  function mesaFillClass(used) {
+    if (used <= 0) return "is-empty";
+    if (used >= MESA_MAX) return "is-full";
+    if (used >= 8) return "is-high";
+    if (used >= 5) return "is-mid";
+    return "is-low";
+  }
+
+  function getMesaGuestsList(mesaKey) {
+    const key = mesaLabel(mesaKey);
+    return allReservations
+      .filter((r) => r.status === "active" && mesaLabel(r.mesa) === key)
+      .sort((a, b) => (a.name || "").localeCompare(b.name || "", "es"));
+  }
+
+  function showMesaMapDetail(mesaKey) {
+    if (!mesaMapDetail) return;
+    const key = mesaLabel(mesaKey);
+    if (!key) {
+      mesaMapDetail.hidden = true;
+      mesaMapDetail.innerHTML = "";
+      return;
+    }
+    const used = getMesaUsed(key);
+    const free = Math.max(0, MESA_MAX - used);
+    const people = getMesaGuestsList(key);
+    const rows = people
+      .map(
+        (r) =>
+          `<div class="meta-line"><strong>${escapeHtml(r.name)}</strong> · ${guestsOf(
+            r
+          )} inv. · ${escapeHtml(r.pueblo || "—")} · ${escapeHtml(r.phone || "—")}</div>`
+      )
+      .join("");
+    mesaMapDetail.hidden = false;
+    mesaMapDetail.innerHTML = `
+      <h4>${escapeHtml(formatMesaDisplay(key))}</h4>
+      <div class="mesa-map-meta">${used}/${MESA_MAX} asientos · ${free} libre(s) · ${
+      people.length
+    } reserva(s)${used >= MESA_MAX ? " · <strong>LLENA</strong>" : ""}</div>
+      ${rows || "<p class='muted'>Nadie asignado aún.</p>"}
+      <div class="mesa-map-actions">
+        <button type="button" data-mesa-filter="${escapeHtml(key)}">Filtrar lista</button>
+        <button type="button" data-mesa-clear-filter>Quitar filtro</button>
+      </div>
+    `;
+  }
+
+  function renderMesaMap() {
+    if (!mesaMapEl) return;
+    const vipUsed = getMesaUsed(MESA_ALAHYA);
+    const vipCls = mesaFillClass(vipUsed);
+    const vipSel = selectedMesaMap === MESA_ALAHYA ? " is-selected" : "";
+
+    let html = `<div class="mesa-map-vip-wrap">
+      <button type="button" class="mesa-dot is-vip ${vipCls}${vipSel}" data-mesa-dot="${escapeHtml(
+      MESA_ALAHYA
+    )}" title="${escapeHtml(MESA_ALAHYA)}: ${vipUsed}/${MESA_MAX}">
+        <span class="mesa-dot-n">♛ Alahya</span>
+        <span class="mesa-dot-g">${vipUsed}/${MESA_MAX}</span>
+      </button>
+    </div>`;
+
+    html += MESA_NUMBERS.map((n) => {
+      const used = getMesaUsed(n);
+      const cls = mesaFillClass(used);
+      const sel = selectedMesaMap === n ? " is-selected" : "";
+      return `<button type="button" class="mesa-dot ${cls}${sel}" data-mesa-dot="${n}" title="Mesa ${n}: ${used}/${MESA_MAX}">
+        <span class="mesa-dot-n">${n}</span>
+        <span class="mesa-dot-g">${used}/${MESA_MAX}</span>
+      </button>`;
+    }).join("");
+
+    mesaMapEl.innerHTML = html;
+
+    if (selectedMesaMap) showMesaMapDetail(selectedMesaMap);
+    else if (mesaMapDetail) {
+      mesaMapDetail.hidden = true;
+      mesaMapDetail.innerHTML = "";
+    }
+  }
+
   function phoneToWa(phone) {
     let d = String(phone || "").replace(/\D/g, "");
     if (!d) return "";
@@ -661,6 +746,7 @@
       populateFilterPueblos(list);
       populateFilterMesas(list);
       renderSeatingSummary(list);
+      renderMesaMap();
     }
     if (!adminResList) return;
     const filtered = getFilteredReservations();
@@ -763,7 +849,43 @@
   resFilterName?.addEventListener("input", applyFilters);
   resFilterPueblo?.addEventListener("change", applyFilters);
   resFilterStatus?.addEventListener("change", applyFilters);
-  resFilterMesa?.addEventListener("change", applyFilters);
+  resFilterMesa?.addEventListener("change", () => {
+    selectedMesaMap = resFilterMesa.value === "__none__" ? "" : resFilterMesa.value || "";
+    applyFilters();
+    renderMesaMap();
+  });
+
+  mesaMapEl?.addEventListener("click", (e) => {
+    const dot = e.target.closest("[data-mesa-dot]");
+    if (!dot) return;
+    const key = dot.getAttribute("data-mesa-dot") || "";
+    selectedMesaMap = selectedMesaMap === key ? "" : key;
+    if (resFilterMesa) {
+      resFilterMesa.value = selectedMesaMap || "";
+    }
+    applyFilters();
+    renderMesaMap();
+    showMesaMapDetail(selectedMesaMap);
+  });
+
+  mesaMapDetail?.addEventListener("click", (e) => {
+    const filterBtn = e.target.closest("[data-mesa-filter]");
+    if (filterBtn) {
+      const key = filterBtn.getAttribute("data-mesa-filter") || "";
+      selectedMesaMap = key;
+      if (resFilterMesa) resFilterMesa.value = key;
+      applyFilters();
+      renderMesaMap();
+      document.getElementById("adminResList")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    if (e.target.closest("[data-mesa-clear-filter]")) {
+      selectedMesaMap = "";
+      if (resFilterMesa) resFilterMesa.value = "";
+      applyFilters();
+      renderMesaMap();
+    }
+  });
 
   function exportReservationsCsv() {
     const list = getFilteredReservations();
@@ -1317,6 +1439,7 @@ ${tableBlocks || "<p>No hay reservas activas.</p>"}
     r.guests = guests;
     renderSeatingSummary(allReservations);
     populateFilterMesas(allReservations);
+    renderMesaMap();
 
     if (btn) btn.disabled = true;
     try {

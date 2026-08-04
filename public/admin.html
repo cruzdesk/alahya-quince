@@ -79,7 +79,21 @@
             <button type="button" class="btn btn-outline" id="adminResRefreshBtn">Actualizar lista</button>
           </div>
           <div class="admin-stats admin-stats-compact" id="adminResStats2"></div>
-          <h3 class="admin-block-title" style="margin-top:0.5rem">Mapa de Puerto Rico</h3>
+
+          <h3 class="admin-block-title" style="margin-top:0.5rem">Mapa de mesas</h3>
+          <p class="muted">Círculos 1–50 + Mesa de Alahya. Color según ocupación (máx. 10 asientos). Clic para filtrar y ver quiénes van.</p>
+          <div class="mesa-map-legend">
+            <span class="mesa-leg empty">Vacía</span>
+            <span class="mesa-leg low">Poca (1–4)</span>
+            <span class="mesa-leg mid">Media (5–7)</span>
+            <span class="mesa-leg high">Alta (8–9)</span>
+            <span class="mesa-leg full">Llena (10)</span>
+            <span class="mesa-leg vip">Mesa de Alahya</span>
+          </div>
+          <div class="mesa-map" id="mesaMap" aria-label="Mapa visual de mesas"></div>
+          <div class="mesa-map-detail" id="mesaMapDetail" hidden></div>
+
+          <h3 class="admin-block-title" style="margin-top:1.25rem">Mapa de Puerto Rico</h3>
           <p class="muted">Solo pueblos con reservas en el registro. Clic en el pin para ver quiénes van.</p>
           <div id="prMap" class="pr-map"></div>
           <div id="prMapDetail" class="pr-map-detail" hidden></div>
