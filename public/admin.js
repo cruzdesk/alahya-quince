@@ -437,7 +437,7 @@
 
   const MESA_MAX = 10;
   const MESA_ALAHYA = "Mesa de Alahya";
-  const MESA_NUMBERS = Array.from({ length: 5 }, (_, i) => String(i + 1));
+  const MESA_NUMBERS = Array.from({ length: 6 }, (_, i) => String(i + 1));
 
   function mesaLabel(m) {
     return String(m || "").trim();
@@ -509,7 +509,7 @@
   }
 
   /**
-   * Opciones del combo: Sin mesa + Mesa de Alahya + 1–5.
+   * Opciones del combo: Sin mesa + Mesa de Alahya + 1–6.
    * Muestra ocupados REALES (incluye esta reserva si ya está en esa mesa)
    * y libera restando el campo invitados al decidir si cabe.
    */
@@ -580,7 +580,7 @@
     const current = resFilterMesa.value;
     resFilterMesa.innerHTML =
       '<option value="">Todas las mesas</option><option value="__none__">Sin mesa</option>';
-    // Siempre incluir Mesa de Alahya y 1–5 en el filtro
+    // Siempre incluir Mesa de Alahya y 1–6 en el filtro
     const allKeys = new Set([MESA_ALAHYA, ...MESA_NUMBERS, ...set]);
     sortMesaKeys([...allKeys]).forEach((m) => {
       const used = getMesaUsed(m);

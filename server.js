@@ -563,11 +563,11 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
         mesa = MESA_ALAHYA;
       } else {
         const n = parseInt(String(mesaRaw).trim(), 10);
-        if (Number.isFinite(n) && n >= 1 && n <= 5 && String(n) === String(mesaRaw).trim()) {
+        if (Number.isFinite(n) && n >= 1 && n <= 6 && String(n) === String(mesaRaw).trim()) {
           mesa = String(n);
         } else {
           return res.status(400).json({
-            error: 'Mesa inválida. Elige 1–5 o "Mesa de Alahya".',
+            error: 'Mesa inválida. Elige 1–6 o "Mesa de Alahya".',
           });
         }
       }
