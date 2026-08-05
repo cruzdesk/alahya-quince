@@ -150,17 +150,49 @@
     return String(n).padStart(2, "0");
   }
 
+  /** YYYY-MM-DD en Puerto Rico (misma lógica que cierre de reservas) */
+  function dateYmdPr(d) {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Puerto_Rico",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
+  }
+
   function tickCountdown() {
-    const now = Date.now();
-    const diff = eventDate.getTime() - now;
+    const now = new Date();
+    const diff = eventDate.getTime() - now.getTime();
     const done = document.getElementById("countdownDone");
     const box = document.getElementById("countdown");
+    const kicker = document.querySelector("#cuenta .section-kicker");
+    const title = document.querySelector("#cuenta .section-title");
 
     if (diff <= 0) {
       if (box) box.hidden = true;
-      if (done) done.hidden = false;
+      if (done) {
+        done.hidden = false;
+        const todayPr = dateYmdPr(now);
+        const eventDay = dateYmdPr(eventDate);
+        // Día del evento (tras la hora de inicio): gran día
+        // Día siguiente o después: mensaje de agradecimiento
+        if (todayPr > eventDay) {
+          done.textContent = "Gracias por celebrar con nosotros 💕";
+          if (kicker) kicker.textContent = "Con cariño";
+          if (title) title.textContent = "Fue una noche inolvidable";
+        } else {
+          done.textContent = "¡Hoy es el gran día! 👑✨";
+          if (kicker) kicker.textContent = "Falta muy poco";
+          if (title) title.textContent = "Cuenta regresiva";
+        }
+      }
       return;
     }
+
+    if (box) box.hidden = false;
+    if (done) done.hidden = true;
+    if (kicker) kicker.textContent = "Falta muy poco";
+    if (title) title.textContent = "Cuenta regresiva";
 
     const s = Math.floor(diff / 1000);
     const days = Math.floor(s / 86400);
