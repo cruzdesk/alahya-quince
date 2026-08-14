@@ -411,66 +411,66 @@ body {
   border-radius: 16px;
 }
 
-/* Story — libro 3D que se abre (estilo invitación animada XV) */
+/* Story — libro limpio: 1 hoja a la vez + nav compacta */
 .story-book-hint {
-  margin: -0.35rem 0 1.25rem;
-  font-size: 0.8rem;
+  margin: -0.25rem 0 1rem;
+  font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .story-book-scene {
-  perspective: 1600px;
+  perspective: 1400px;
   display: flex;
   justify-content: center;
-  padding: 0.5rem 0 1rem;
+  padding: 0.25rem 0 1.25rem;
 }
 
 .story-book {
-  position: relative;
-  width: min(100%, 420px);
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
+  width: min(100%, 340px);
   -webkit-tap-highlight-color: transparent;
 }
 
 .story-book-inner {
   position: relative;
   width: 100%;
-  height: min(520px, 72vw);
+  height: 420px;
+  max-height: 58vh;
   transform-style: preserve-3d;
 }
 
-/* Cubierta cerrada */
+/* Cubierta */
 .story-book-cover {
   position: absolute;
   inset: 0;
   z-index: 4;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
   transform-origin: left center;
   transform-style: preserve-3d;
-  transition: transform 1.05s cubic-bezier(0.4, 0.05, 0.2, 1);
+  transition: transform 0.95s cubic-bezier(0.4, 0.05, 0.2, 1);
+  font: inherit;
+  color: inherit;
 }
 
 .story-book-cover-front {
   position: absolute;
   inset: 0;
-  border-radius: 4px 10px 10px 4px;
+  border-radius: 3px 8px 8px 3px;
   background:
-    radial-gradient(ellipse 80% 50% at 50% 20%, rgba(212, 175, 55, 0.22), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 50% 18%, rgba(212, 175, 55, 0.2), transparent 55%),
     linear-gradient(155deg, #b01a2a 0%, #6b1018 42%, #3a0a10 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.55);
-  box-shadow:
-    0 18px 40px rgba(40, 10, 15, 0.35),
-    inset 0 0 0 1px rgba(255, 250, 240, 0.08),
-    inset 0 0 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 14px 32px rgba(40, 10, 15, 0.32);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  padding: 1.5rem 1.25rem;
+  gap: 0.25rem;
+  padding: 1.25rem 1rem;
   color: #f7efe3;
   backface-visibility: hidden;
 }
@@ -478,8 +478,8 @@ body {
 .story-book-cover-front::before {
   content: "";
   position: absolute;
-  inset: 12px;
-  border: 1px solid rgba(232, 213, 163, 0.35);
+  inset: 10px;
+  border: 1px solid rgba(232, 213, 163, 0.3);
   border-radius: 2px;
   pointer-events: none;
 }
@@ -489,40 +489,38 @@ body {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 14px;
-  border-radius: 4px 0 0 4px;
+  width: 11px;
+  border-radius: 3px 0 0 3px;
   background: linear-gradient(90deg, #2a080c, #5c1018 40%, #3a0a10);
-  box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.35);
   z-index: 2;
 }
 
 .story-book-ornament {
   color: var(--gold-soft);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   opacity: 0.9;
 }
 
 .story-book-cover-kicker {
-  font-size: 0.68rem;
-  letter-spacing: 0.28em;
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: rgba(232, 213, 163, 0.9);
-  margin-top: 0.35rem;
+  margin-top: 0.2rem;
 }
 
 .story-book-cover-name {
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 9vw, 3.4rem);
+  font-size: clamp(2rem, 8vw, 2.75rem);
   font-style: italic;
   font-weight: 400;
   line-height: 1.05;
   color: #fff8f0;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
 }
 
 .story-book-cover-sub {
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 600;
   color: rgba(247, 239, 227, 0.85);
@@ -531,149 +529,164 @@ body {
 .story-book-cover-theme {
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   color: #e8d5a3;
-  margin-top: 0.5rem;
+  margin-top: 0.35rem;
 }
 
 .story-book-tap {
-  margin-top: 1.25rem;
-  font-size: 0.65rem;
-  letter-spacing: 0.22em;
+  margin-top: 0.9rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  padding: 0.4rem 0.9rem;
+  padding: 0.3rem 0.7rem;
   border-radius: 999px;
-  border: 1px solid rgba(232, 213, 163, 0.45);
+  border: 1px solid rgba(232, 213, 163, 0.4);
   color: #e8d5a3;
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.12);
 }
 
-/* Páginas */
+/* Una sola hoja */
 .story-book-pages {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  border-radius: 4px 10px 10px 4px;
+  border-radius: 3px 8px 8px 3px;
   overflow: hidden;
   background: #fffcf8;
-  box-shadow: 0 16px 36px rgba(40, 10, 15, 0.22);
+  box-shadow: 0 12px 28px rgba(40, 10, 15, 0.2);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.35s ease 0.35s, visibility 0.35s ease 0.35s;
+  transition: opacity 0.3s ease 0.28s, visibility 0.3s ease 0.28s;
   z-index: 1;
 }
 
-.story-book-spread {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-  animation: story-page-in 0.45s ease;
+.story-book-leaf {
+  position: absolute;
+  inset: 0;
+  padding: 1.15rem 1.15rem 1rem;
+  overflow: auto;
+  text-align: left;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  animation: story-page-in 0.35s ease;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03), transparent 10%),
+    #fffcf8;
 }
 
 @keyframes story-page-in {
   from {
-    opacity: 0.35;
-    transform: translateX(12px);
+    opacity: 0.4;
+    transform: translateX(10px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: none;
   }
 }
 
-.story-book-page {
-  flex: 1;
-  padding: 1.35rem 1.1rem 1.25rem;
-  font-size: 0.88rem;
-  line-height: 1.55;
-  color: var(--ink-soft);
-  text-align: left;
-  overflow: auto;
+.story-book-leaf p {
+  margin: 0 0 0.7rem;
 }
 
-.story-book-page-left {
-  border-right: 1px solid rgba(201, 162, 39, 0.25);
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.04), transparent 12%),
-    #fffcf8;
+.story-book-leaf strong {
+  color: var(--rose);
+  font-weight: 600;
 }
 
-.story-book-page-right {
-  background:
-    linear-gradient(270deg, rgba(0, 0, 0, 0.03), transparent 14%),
-    #fffaf4;
-}
-
-.story-book-page-quote-only {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.story-book-page-kicker {
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 0.7rem !important;
 }
 
 .story-book-page-label {
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 1.15rem !important;
-  color: var(--rose) !important;
-  margin-bottom: 0.85rem !important;
-}
-
-.story-book-page-quote-only blockquote {
-  margin-top: 0.25rem;
   font-size: 1.2rem;
+  color: var(--rose);
+  margin-bottom: 0.75rem !important;
 }
 
-.story-book-page-end {
+.story-book-leaf-quote {
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
   text-align: center;
+  padding: 1.5rem 1.25rem;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 40%, rgba(212, 175, 55, 0.1), transparent 60%),
+    #fffaf4;
 }
 
-.story-book-end-ornament {
-  font-size: 1.25rem !important;
-  color: var(--gold) !important;
-  margin: 0.5rem 0 0.75rem !important;
+.story-book-leaf-quote blockquote {
+  margin: 0;
+  padding: 1rem 1rem;
+  border-left: none;
+  border-top: 1px solid rgba(201, 162, 39, 0.35);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.35);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--ink);
+  background: transparent;
+  border-radius: 0;
+}
+
+.story-book-leaf-quote cite {
+  display: block;
+  margin-top: 0.65rem;
+  font-size: 0.75rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+  color: var(--rose);
+  font-family: var(--font-body);
+  font-weight: 600;
 }
 
 .story-book-end-line {
-  margin: 0.2rem 0 !important;
-  font-size: 0.85rem !important;
+  font-size: 0.75rem;
 }
 
-.story-book-turn-hint {
-  margin-top: 1.25rem !important;
-  font-size: 0.72rem !important;
-  letter-spacing: 0.06em;
-  color: var(--rose) !important;
-  font-weight: 600;
-}
-
+/* Nav compacta — fuera del cuerpo del libro */
 .story-book-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.45rem 0.65rem 0.55rem;
-  border-top: 1px solid rgba(201, 162, 39, 0.28);
-  background: rgba(255, 252, 248, 0.98);
-  flex-shrink: 0;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.story-book-nav[hidden] {
+  display: none !important;
 }
 
 .story-book-nav-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.75rem;
+  padding: 0 0.55rem;
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 0.4rem 0.65rem;
+  line-height: 1;
   border-radius: 999px;
   border: 1px solid rgba(155, 28, 28, 0.28);
   background: #fff;
   color: var(--rose);
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(40, 10, 15, 0.06);
 }
 
 .story-book-nav-btn:hover:not(:disabled) {
@@ -681,77 +694,34 @@ body {
 }
 
 .story-book-nav-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: default;
 }
 
-.story-book-nav-dots {
-  display: flex;
-  gap: 0.35rem;
-}
-
-.story-book-nav-dots i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: rgba(155, 28, 28, 0.2);
-  font-style: normal;
-}
-
-.story-book-nav-dots i.is-on {
-  background: var(--rose);
-}
-
-.story-book-page-kicker {
-  font-size: 0.62rem !important;
-  letter-spacing: 0.2em;
+.story-book-nav-close {
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--gold) !important;
+  min-width: auto;
+  padding: 0 0.65rem;
+  margin-left: 0.25rem;
+  border-color: rgba(201, 162, 39, 0.45);
+  color: var(--ink-soft);
+}
+
+.story-book-nav-label {
+  font-size: 0.68rem;
   font-weight: 600;
-  margin-bottom: 0.75rem !important;
-}
-
-.story-book-page p {
-  margin-bottom: 0.75rem;
-}
-
-.story-book-page strong {
-  color: var(--rose);
-  font-weight: 600;
-}
-
-.story-book-page blockquote {
-  margin: 1rem 0 0.75rem;
-  padding: 0.85rem 0.9rem;
-  border-left: 3px solid var(--gold);
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-style: italic;
-  color: var(--ink);
-  background: rgba(155, 28, 28, 0.05);
-  border-radius: 0 10px 10px 0;
-}
-
-.story-book-page cite {
-  display: block;
-  margin-top: 0.55rem;
-  font-size: 0.78rem;
-  font-style: normal;
-  letter-spacing: 0.08em;
-  color: var(--rose);
-  font-family: var(--font-body);
-  font-weight: 500;
-}
-
-.story-book-close-hint {
-  font-size: 0.68rem !important;
-  margin-top: 1rem !important;
-  margin-bottom: 0 !important;
+  color: var(--ink-soft);
+  min-width: 2.25rem;
+  text-align: center;
+  letter-spacing: 0.04em;
 }
 
 /* Abierto */
 .story-book.is-open .story-book-cover {
-  transform: rotateY(-158deg);
+  transform: rotateY(-155deg);
+  pointer-events: none;
 }
 
 .story-book.is-open .story-book-pages {
@@ -759,40 +729,41 @@ body {
   visibility: visible;
 }
 
-.story-book.is-open + .story-book-hint,
-.story-book-scene:has(.story-book.is-open) ~ .story-book-hint {
-  opacity: 0;
-}
-
-.story-book-scene:has(.is-open) {
-  /* hint sibling is before scene in HTML — handled in JS */
-}
-
 @media (max-width: 540px) {
+  .story-book {
+    width: min(100%, 300px);
+  }
   .story-book-inner {
-    height: min(480px, 88vw);
+    height: 380px;
+    max-height: 52vh;
   }
-  .story-book-page {
-    padding: 1rem 0.75rem;
-    font-size: 0.78rem;
+  .story-book-leaf {
+    padding: 1rem 0.95rem;
+    font-size: 0.8rem;
+    line-height: 1.5;
   }
-  .story-book-page blockquote {
-    font-size: 0.95rem;
-    padding: 0.7rem 0.75rem;
+  .story-book-leaf-quote blockquote {
+    font-size: 1.05rem;
+    padding: 0.85rem 0.75rem;
   }
   .story-book-cover-name {
-    font-size: clamp(2rem, 11vw, 2.8rem);
+    font-size: clamp(1.85rem, 10vw, 2.4rem);
+  }
+  .story-book-nav-btn {
+    min-width: 1.85rem;
+    height: 1.65rem;
+    font-size: 0.68rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .story-book-cover {
-    transition: none;
+    transition: opacity 0.2s;
   }
   .story-book.is-open .story-book-cover {
     transform: none;
     opacity: 0;
-    pointer-events: none;
+    visibility: hidden;
   }
 }
 

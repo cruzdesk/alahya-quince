@@ -129,15 +129,17 @@
     }
   }
 
-  // ——— Historia: libro 3D + segunda página (mensaje de Alahya)
+  // ——— Historia: libro 3D, 1 hoja a la vez (pág. 2 = mensaje Alahya)
   (function setupStoryBook() {
     const book = document.getElementById("storyBook");
+    const cover = document.getElementById("storyBookCover");
     const hint = document.getElementById("storyBookHint");
     const pagesRoot = book && book.querySelector(".story-book-pages");
     const nav = document.getElementById("storyBookNav");
     const prevBtn = document.getElementById("storyBookPrev");
     const nextBtn = document.getElementById("storyBookNext");
-    const dots = document.getElementById("storyBookDots");
+    const closeBtn = document.getElementById("storyBookClose");
+    const pageLabel = document.getElementById("storyBookPageLabel");
     if (!book || !pagesRoot) return;
 
     let page = 1;
@@ -146,23 +148,17 @@
     function setPage(n) {
       page = Math.max(1, Math.min(totalPages, n));
       pagesRoot.setAttribute("data-page", String(page));
-      pagesRoot.querySelectorAll(".story-book-spread").forEach((spread) => {
-        const p = Number(spread.getAttribute("data-spread"));
-        spread.hidden = p !== page;
+      pagesRoot.querySelectorAll(".story-book-leaf").forEach((leaf) => {
+        const p = Number(leaf.getAttribute("data-spread"));
+        leaf.hidden = p !== page;
       });
       if (prevBtn) prevBtn.disabled = page <= 1;
-      if (nextBtn) {
-        nextBtn.disabled = page >= totalPages;
-        nextBtn.textContent = page >= totalPages ? "Fin" : "Siguiente →";
-      }
-      if (dots) {
-        const marks = dots.querySelectorAll("i");
-        marks.forEach((m, i) => m.classList.toggle("is-on", i === page - 1));
-      }
+      if (nextBtn) nextBtn.disabled = page >= totalPages;
+      if (pageLabel) pageLabel.textContent = page + " / " + totalPages;
       if (hint && book.classList.contains("is-open")) {
         hint.textContent =
           page === 1
-            ? "Página 1 · Pasa la hoja para el mensaje de Alahya"
+            ? "Página 1 · Historia  ·  → mensaje de Alahya"
             : "Página 2 · Mensaje de Alahya";
       }
     }
@@ -176,34 +172,27 @@
       if (hint) {
         if (!open) hint.textContent = "Toca el libro para abrirlo";
         else if (page === 1) {
-          hint.textContent = "Página 1 · Pasa la hoja para el mensaje de Alahya";
+          hint.textContent = "Página 1 · Historia  ·  → mensaje de Alahya";
         } else {
           hint.textContent = "Página 2 · Mensaje de Alahya";
         }
       }
     }
 
-    book.addEventListener("click", (e) => {
-      // Controles de página: no cerrar el libro
-      if (e.target.closest("[data-book-nav]")) {
-        e.preventDefault();
-        e.stopPropagation();
-        const dir = e.target.closest("[data-book-nav]").getAttribute("data-book-nav");
-        if (dir === "next") setPage(page + 1);
-        if (dir === "prev") setPage(page - 1);
-        return;
-      }
-      // Clic en “pasa la hoja” del texto → página 2
-      if (e.target.closest(".story-book-turn-hint")) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (book.classList.contains("is-open")) setPage(2);
-        return;
-      }
+    cover?.addEventListener("click", () => {
       setOpen(!book.classList.contains("is-open"));
     });
 
-    // Abrir al entrar en vista (una vez)
+    nav?.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-book-nav]");
+      if (!btn) return;
+      e.preventDefault();
+      const dir = btn.getAttribute("data-book-nav");
+      if (dir === "next") setPage(page + 1);
+      else if (dir === "prev") setPage(page - 1);
+      else if (dir === "close") setOpen(false);
+    });
+
     if (!reduceMotion && "IntersectionObserver" in window) {
       let autoOpened = false;
       const io = new IntersectionObserver(
@@ -211,12 +200,12 @@
           entries.forEach((en) => {
             if (en.isIntersecting && !autoOpened) {
               autoOpened = true;
-              window.setTimeout(() => setOpen(true), 380);
+              window.setTimeout(() => setOpen(true), 400);
               io.disconnect();
             }
           });
         },
-        { threshold: 0.45 }
+        { threshold: 0.4 }
       );
       io.observe(book);
     }

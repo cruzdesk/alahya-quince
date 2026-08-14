@@ -82,17 +82,16 @@
       <p class="muted center story-book-hint" id="storyBookHint">Toca el libro para abrirlo</p>
 
       <div class="story-book-scene" id="storyBookScene">
-        <button
-          type="button"
+        <div
           class="story-book"
           id="storyBook"
+          role="region"
           aria-expanded="false"
-          aria-controls="storyBookInner"
-          aria-label="Abrir el libro de la historia de Alahya"
+          aria-label="Libro de la historia de Alahya"
         >
           <div class="story-book-inner" id="storyBookInner">
-            <!-- Cubierta cerrada -->
-            <div class="story-book-cover" aria-hidden="true">
+            <!-- Cubierta -->
+            <button type="button" class="story-book-cover" id="storyBookCover" aria-label="Abrir o cerrar el libro">
               <div class="story-book-cover-front">
                 <span class="story-book-ornament">✦</span>
                 <span class="story-book-cover-kicker">Mis XV Años</span>
@@ -102,69 +101,50 @@
                 <span class="story-book-ornament">✦</span>
                 <span class="story-book-tap">Abrir</span>
               </div>
-              <div class="story-book-spine"></div>
-            </div>
-            <!-- Páginas abiertas: 1 = historia, 2 = mensaje de Alahya -->
+              <span class="story-book-spine" aria-hidden="true"></span>
+            </button>
+
+            <!-- Una sola hoja visible a la vez -->
             <div class="story-book-pages" data-page="1">
-              <!-- Página 1: relato -->
-              <div class="story-book-spread" data-spread="1">
-                <div class="story-book-page story-book-page-left">
-                  <p class="story-book-page-kicker">Capítulo I · Página 1</p>
-                  <p>
-                    Hay momentos que marcan un antes y un después. Los quince años de
-                    <strong>Alahya</strong> son uno de ellos: el umbral entre la niña que
-                    soñaba castillos y la joven que camina con gracia hacia su propio destino.
-                  </p>
-                  <p>
-                    Esta noche no es solo un baile. Es gratitud a su madre, quien la crió con
-                    fe, ternura y fuerza; y un cariño eterno al recuerdo de su papá, siempre
-                    presente en el corazón.
-                  </p>
-                </div>
-                <div class="story-book-page story-book-page-right">
-                  <p class="story-book-page-kicker">Continúa…</p>
-                  <p>
-                    Es amistad, risas, vals y estrellas. Es el comienzo de un capítulo escrito
-                    en oro y rosa.
-                  </p>
-                  <p class="story-book-turn-hint">
-                    Pasa la hoja para leer el mensaje de Alahya →
-                  </p>
-                </div>
-              </div>
-              <!-- Página 2: mensaje de Alahya -->
-              <div class="story-book-spread" data-spread="2" hidden>
-                <div class="story-book-page story-book-page-left story-book-page-quote-only">
-                  <p class="story-book-page-kicker">Página 2</p>
-                  <p class="story-book-page-label">Mensaje de Alahya</p>
-                  <blockquote>
-                    “Hoy celebro la vida, el amor de mi familia y el milagro de crecer rodeada
-                    de ustedes.”
-                    <cite>— Alahya</cite>
-                  </blockquote>
-                </div>
-                <div class="story-book-page story-book-page-right story-book-page-end">
-                  <p class="story-book-page-kicker">XV · 2026</p>
-                  <p class="story-book-end-ornament" aria-hidden="true">✦</p>
-                  <p class="story-book-end-line">Victorian Masquerade Ball</p>
-                  <p class="story-book-end-line muted">10 de octubre · Tres Palmas</p>
-                  <p class="story-book-close-hint muted">Toca la tapa o “Cerrar” para guardar el libro</p>
-                </div>
-              </div>
-              <div class="story-book-nav" id="storyBookNav" hidden>
-                <button type="button" class="story-book-nav-btn" id="storyBookPrev" data-book-nav="prev">
-                  ← Atrás
-                </button>
-                <span class="story-book-nav-dots" id="storyBookDots" aria-hidden="true">
-                  <i class="is-on"></i><i></i>
-                </span>
-                <button type="button" class="story-book-nav-btn" id="storyBookNext" data-book-nav="next">
-                  Siguiente →
-                </button>
-              </div>
+              <article class="story-book-leaf" data-spread="1">
+                <p class="story-book-page-kicker">Página 1 · Historia</p>
+                <p>
+                  Hay momentos que marcan un antes y un después. Los quince años de
+                  <strong>Alahya</strong> son uno de ellos: el umbral entre la niña que
+                  soñaba castillos y la joven que camina con gracia hacia su propio destino.
+                </p>
+                <p>
+                  Esta noche no es solo un baile. Es gratitud a su madre, quien la crió con
+                  fe, ternura y fuerza; y un cariño eterno al recuerdo de su papá, siempre
+                  presente en el corazón.
+                </p>
+                <p>
+                  Es amistad, risas, vals y estrellas. Es el comienzo de un capítulo escrito
+                  en oro y rosa.
+                </p>
+              </article>
+              <article class="story-book-leaf story-book-leaf-quote" data-spread="2" hidden>
+                <p class="story-book-page-kicker">Página 2 · Mensaje</p>
+                <p class="story-book-page-label">Mensaje de Alahya</p>
+                <blockquote>
+                  “Hoy celebro la vida, el amor de mi familia y el milagro de crecer rodeada
+                  de ustedes.”
+                  <cite>— Alahya</cite>
+                </blockquote>
+                <p class="story-book-end-line muted" style="margin-top:1rem;text-align:center">
+                  Victorian Masquerade · 10 oct · Tres Palmas
+                </p>
+              </article>
             </div>
           </div>
-        </button>
+
+          <div class="story-book-nav" id="storyBookNav" hidden>
+            <button type="button" class="story-book-nav-btn" id="storyBookPrev" data-book-nav="prev">←</button>
+            <span class="story-book-nav-label" id="storyBookPageLabel">1 / 2</span>
+            <button type="button" class="story-book-nav-btn" id="storyBookNext" data-book-nav="next">→</button>
+            <button type="button" class="story-book-nav-btn story-book-nav-close" id="storyBookClose" data-book-nav="close">Cerrar</button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
