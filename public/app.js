@@ -129,27 +129,81 @@
     }
   }
 
-  // ——— Historia: libro 3D que se abre (estilo invitación animada)
+  // ——— Historia: libro 3D + segunda página (mensaje de Alahya)
   (function setupStoryBook() {
     const book = document.getElementById("storyBook");
     const hint = document.getElementById("storyBookHint");
-    if (!book) return;
+    const pagesRoot = book && book.querySelector(".story-book-pages");
+    const nav = document.getElementById("storyBookNav");
+    const prevBtn = document.getElementById("storyBookPrev");
+    const nextBtn = document.getElementById("storyBookNext");
+    const dots = document.getElementById("storyBookDots");
+    if (!book || !pagesRoot) return;
+
+    let page = 1;
+    const totalPages = 2;
+
+    function setPage(n) {
+      page = Math.max(1, Math.min(totalPages, n));
+      pagesRoot.setAttribute("data-page", String(page));
+      pagesRoot.querySelectorAll(".story-book-spread").forEach((spread) => {
+        const p = Number(spread.getAttribute("data-spread"));
+        spread.hidden = p !== page;
+      });
+      if (prevBtn) prevBtn.disabled = page <= 1;
+      if (nextBtn) {
+        nextBtn.disabled = page >= totalPages;
+        nextBtn.textContent = page >= totalPages ? "Fin" : "Siguiente →";
+      }
+      if (dots) {
+        const marks = dots.querySelectorAll("i");
+        marks.forEach((m, i) => m.classList.toggle("is-on", i === page - 1));
+      }
+      if (hint && book.classList.contains("is-open")) {
+        hint.textContent =
+          page === 1
+            ? "Página 1 · Pasa la hoja para el mensaje de Alahya"
+            : "Página 2 · Mensaje de Alahya";
+      }
+    }
 
     function setOpen(open) {
       book.classList.toggle("is-open", open);
       book.setAttribute("aria-expanded", open ? "true" : "false");
+      if (nav) nav.hidden = !open;
+      if (!open) setPage(1);
+      else setPage(page);
       if (hint) {
-        hint.textContent = open
-          ? "Toca el libro para cerrarlo"
-          : "Toca el libro para abrirlo";
+        if (!open) hint.textContent = "Toca el libro para abrirlo";
+        else if (page === 1) {
+          hint.textContent = "Página 1 · Pasa la hoja para el mensaje de Alahya";
+        } else {
+          hint.textContent = "Página 2 · Mensaje de Alahya";
+        }
       }
     }
 
-    book.addEventListener("click", () => {
+    book.addEventListener("click", (e) => {
+      // Controles de página: no cerrar el libro
+      if (e.target.closest("[data-book-nav]")) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dir = e.target.closest("[data-book-nav]").getAttribute("data-book-nav");
+        if (dir === "next") setPage(page + 1);
+        if (dir === "prev") setPage(page - 1);
+        return;
+      }
+      // Clic en “pasa la hoja” del texto → página 2
+      if (e.target.closest(".story-book-turn-hint")) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (book.classList.contains("is-open")) setPage(2);
+        return;
+      }
       setOpen(!book.classList.contains("is-open"));
     });
 
-    // Abrir al entrar en vista (una vez) — efecto “reel”
+    // Abrir al entrar en vista (una vez)
     if (!reduceMotion && "IntersectionObserver" in window) {
       let autoOpened = false;
       const io = new IntersectionObserver(
@@ -166,6 +220,8 @@
       );
       io.observe(book);
     }
+
+    setPage(1);
   })();
 
   // ——— Particles

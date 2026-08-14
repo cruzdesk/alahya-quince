@@ -553,6 +553,7 @@ body {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   border-radius: 4px 10px 10px 4px;
   overflow: hidden;
   background: #fffcf8;
@@ -561,6 +562,24 @@ body {
   visibility: hidden;
   transition: opacity 0.35s ease 0.35s, visibility 0.35s ease 0.35s;
   z-index: 1;
+}
+
+.story-book-spread {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  animation: story-page-in 0.45s ease;
+}
+
+@keyframes story-page-in {
+  from {
+    opacity: 0.35;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .story-book-page {
@@ -584,6 +603,103 @@ body {
   background:
     linear-gradient(270deg, rgba(0, 0, 0, 0.03), transparent 14%),
     #fffaf4;
+}
+
+.story-book-page-quote-only {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.story-book-page-label {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem !important;
+  color: var(--rose) !important;
+  margin-bottom: 0.85rem !important;
+}
+
+.story-book-page-quote-only blockquote {
+  margin-top: 0.25rem;
+  font-size: 1.2rem;
+}
+
+.story-book-page-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.story-book-end-ornament {
+  font-size: 1.25rem !important;
+  color: var(--gold) !important;
+  margin: 0.5rem 0 0.75rem !important;
+}
+
+.story-book-end-line {
+  margin: 0.2rem 0 !important;
+  font-size: 0.85rem !important;
+}
+
+.story-book-turn-hint {
+  margin-top: 1.25rem !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.06em;
+  color: var(--rose) !important;
+  font-weight: 600;
+}
+
+.story-book-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem 0.55rem;
+  border-top: 1px solid rgba(201, 162, 39, 0.28);
+  background: rgba(255, 252, 248, 0.98);
+  flex-shrink: 0;
+}
+
+.story-book-nav-btn {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(155, 28, 28, 0.28);
+  background: #fff;
+  color: var(--rose);
+  cursor: pointer;
+}
+
+.story-book-nav-btn:hover:not(:disabled) {
+  background: rgba(155, 28, 28, 0.06);
+}
+
+.story-book-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.story-book-nav-dots {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.story-book-nav-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(155, 28, 28, 0.2);
+  font-style: normal;
+}
+
+.story-book-nav-dots i.is-on {
+  background: var(--rose);
 }
 
 .story-book-page-kicker {
