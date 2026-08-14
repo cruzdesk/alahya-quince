@@ -74,65 +74,67 @@
     </div>
   </header>
 
-  <!-- HISTORIA (formato video + texto) -->
+  <!-- HISTORIA — libro 3D que se abre (estilo invitación animada) -->
   <section class="section story" id="historia">
     <div class="container narrow">
       <p class="section-kicker">Una noche de cuento</p>
       <h2 class="section-title">El día en que brilla como reina</h2>
+      <p class="muted center story-book-hint" id="storyBookHint">Toca el libro para abrirlo</p>
 
-      <div class="story-cinema glass">
-        <!--
-          VIDEO: sube el archivo a public/media/historia.mp4
-          o cambia el src del <source> / descomenta el iframe de YouTube.
-        -->
-        <div class="story-video-frame" id="storyVideoFrame">
-          <video
-            id="storyVideo"
-            class="story-video"
-            controls
-            playsinline
-            preload="metadata"
-            poster=""
-            title="Historia de Alahya"
-          >
-            <source src="/media/historia.mp4" type="video/mp4" />
-            Tu navegador no reproduce video HTML5.
-          </video>
-          <!-- YouTube (opcional): descomenta y pon tu ID
-          <iframe
-            class="story-video-yt"
-            src="https://www.youtube.com/embed/VIDEO_ID?rel=0"
-            title="Historia de Alahya"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-            loading="lazy"
-          ></iframe>
-          -->
-          <div class="story-video-fallback" id="storyVideoFallback" hidden>
-            <span class="story-video-fallback-icon" aria-hidden="true">🎬</span>
-            <p>Próximamente el video de la historia de Alahya.</p>
-            <p class="muted">Mientras tanto, lee el relato debajo.</p>
+      <div class="story-book-scene" id="storyBookScene">
+        <button
+          type="button"
+          class="story-book"
+          id="storyBook"
+          aria-expanded="false"
+          aria-controls="storyBookInner"
+          aria-label="Abrir el libro de la historia de Alahya"
+        >
+          <div class="story-book-inner" id="storyBookInner">
+            <!-- Cubierta cerrada -->
+            <div class="story-book-cover" aria-hidden="true">
+              <div class="story-book-cover-front">
+                <span class="story-book-ornament">✦</span>
+                <span class="story-book-cover-kicker">Mis XV Años</span>
+                <span class="story-book-cover-name">Alahya</span>
+                <span class="story-book-cover-sub">Thaís Saltares Ortega</span>
+                <span class="story-book-cover-theme">Victorian Masquerade</span>
+                <span class="story-book-ornament">✦</span>
+                <span class="story-book-tap">Abrir</span>
+              </div>
+              <div class="story-book-spine"></div>
+            </div>
+            <!-- Páginas abiertas -->
+            <div class="story-book-pages">
+              <div class="story-book-page story-book-page-left">
+                <p class="story-book-page-kicker">Capítulo I</p>
+                <p>
+                  Hay momentos que marcan un antes y un después. Los quince años de
+                  <strong>Alahya</strong> son uno de ellos: el umbral entre la niña que
+                  soñaba castillos y la joven que camina con gracia hacia su propio destino.
+                </p>
+                <p>
+                  Esta noche no es solo un baile. Es gratitud a su madre, quien la crió con
+                  fe, ternura y fuerza; y un cariño eterno al recuerdo de su papá, siempre
+                  presente en el corazón.
+                </p>
+              </div>
+              <div class="story-book-page story-book-page-right">
+                <p class="story-book-page-kicker">Capítulo II</p>
+                <p>
+                  Es amistad, risas, vals y estrellas. Es el comienzo de un capítulo escrito
+                  en oro y rosa.
+                </p>
+                <blockquote>
+                  “Hoy celebro la vida, el amor de mi familia y el milagro de crecer rodeada
+                  de ustedes.”
+                  <cite>— Alahya</cite>
+                </blockquote>
+                <p class="story-book-close-hint muted">Toca de nuevo para cerrar el libro</p>
+              </div>
+            </div>
           </div>
-          <div class="story-video-bezel" aria-hidden="true"></div>
-        </div>
-
-        <div class="story-card story-card-under-video">
-          <p>
-            Hay momentos que marcan un antes y un después. Los quince años de
-            <strong>Alahya</strong> son uno de ellos: el umbral entre la niña que soñaba
-            castillos y la joven que camina con gracia hacia su propio destino.
-          </p>
-          <p>
-            Esta noche no es solo un baile. Es gratitud a su madre, quien la crió con fe,
-            ternura y fuerza; y un cariño eterno al recuerdo de su papá, siempre presente
-            en el corazón. Es amistad, risas, vals y estrellas. Es el comienzo de un
-            capítulo escrito en oro y rosa.
-          </p>
-          <blockquote>
-            “Hoy celebro la vida, el amor de mi familia y el milagro de crecer rodeada de ustedes.”
-            <cite>— Alahya</cite>
-          </blockquote>
-        </div>
+        </button>
       </div>
     </div>
   </section>

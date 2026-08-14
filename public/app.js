@@ -129,57 +129,43 @@
     }
   }
 
-  // ——— Historia: video o fallback elegante si no hay archivo
-  (function setupStoryVideo() {
-    const video = document.getElementById("storyVideo");
-    const fallback = document.getElementById("storyVideoFallback");
-    const frame = document.getElementById("storyVideoFrame");
-    if (!video || !fallback) return;
+  // ——— Historia: libro 3D que se abre (estilo invitación animada)
+  (function setupStoryBook() {
+    const book = document.getElementById("storyBook");
+    const hint = document.getElementById("storyBookHint");
+    if (!book) return;
 
-    const showFallback = () => {
-      video.hidden = true;
-      fallback.hidden = false;
-      if (frame) frame.classList.add("is-fallback");
-    };
-
-    const showVideo = () => {
-      video.hidden = false;
-      fallback.hidden = true;
-      if (frame) frame.classList.remove("is-fallback");
-    };
-
-    // Si ya hay un iframe de YouTube visible, no forzar el <video>
-    const yt = frame && frame.querySelector("iframe.story-video-yt");
-    if (yt) {
-      video.hidden = true;
-      fallback.hidden = true;
-      return;
+    function setOpen(open) {
+      book.classList.toggle("is-open", open);
+      book.setAttribute("aria-expanded", open ? "true" : "false");
+      if (hint) {
+        hint.textContent = open
+          ? "Toca el libro para cerrarlo"
+          : "Toca el libro para abrirlo";
+      }
     }
 
-    video.addEventListener("error", showFallback);
-    video.addEventListener("loadeddata", showVideo);
+    book.addEventListener("click", () => {
+      setOpen(!book.classList.contains("is-open"));
+    });
 
-    // Comprobar si el source responde (evita cuadro negro vacío)
-    const src =
-      (video.currentSrc ||
-        (video.querySelector("source") && video.querySelector("source").src) ||
-        "") + "";
-    if (!src || src.endsWith("/")) {
-      showFallback();
-      return;
+    // Abrir al entrar en vista (una vez) — efecto “reel”
+    if (!reduceMotion && "IntersectionObserver" in window) {
+      let autoOpened = false;
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((en) => {
+            if (en.isIntersecting && !autoOpened) {
+              autoOpened = true;
+              window.setTimeout(() => setOpen(true), 380);
+              io.disconnect();
+            }
+          });
+        },
+        { threshold: 0.45 }
+      );
+      io.observe(book);
     }
-    // Timeout: si no carga en 4s, mostrar fallback
-    const t = window.setTimeout(() => {
-      if (video.readyState < 2) showFallback();
-    }, 4000);
-    video.addEventListener(
-      "loadeddata",
-      () => {
-        window.clearTimeout(t);
-        showVideo();
-      },
-      { once: true }
-    );
   })();
 
   // ——— Particles
