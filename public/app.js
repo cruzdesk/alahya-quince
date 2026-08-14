@@ -129,17 +129,17 @@
     }
   }
 
-  // ——— Historia: libro 3D, 1 hoja a la vez (pág. 2 = mensaje Alahya)
+  // ——— Historia: libro 3D real (tapa gira sobre el lomo)
   (function setupStoryBook() {
     const book = document.getElementById("storyBook");
     const cover = document.getElementById("storyBookCover");
     const hint = document.getElementById("storyBookHint");
-    const pagesRoot = book && book.querySelector(".story-book-pages");
+    const pagesRoot = book && book.querySelector(".book3d-pages");
     const nav = document.getElementById("storyBookNav");
     const prevBtn = document.getElementById("storyBookPrev");
     const nextBtn = document.getElementById("storyBookNext");
-    const closeBtn = document.getElementById("storyBookClose");
     const pageLabel = document.getElementById("storyBookPageLabel");
+    const tap = document.getElementById("storyBookTap");
     if (!book || !pagesRoot) return;
 
     let page = 1;
@@ -148,12 +148,12 @@
     function setPage(n) {
       page = Math.max(1, Math.min(totalPages, n));
       pagesRoot.setAttribute("data-page", String(page));
-      pagesRoot.querySelectorAll(".story-book-leaf").forEach((leaf) => {
+      pagesRoot.querySelectorAll(".book3d-leaf").forEach((leaf) => {
         const p = Number(leaf.getAttribute("data-spread"));
         const show = p === page;
         leaf.hidden = !show;
         if (show) {
-          leaf.style.display = leaf.classList.contains("story-book-leaf-quote")
+          leaf.style.display = leaf.classList.contains("book3d-leaf-quote")
             ? "flex"
             : "block";
         } else {
@@ -166,8 +166,8 @@
       if (hint && book.classList.contains("is-open")) {
         hint.textContent =
           page === 1
-            ? "Página 1 · Historia  ·  → mensaje de Alahya"
-            : "Página 2 · Mensaje de Alahya";
+            ? "Libro abierto · Página 1 · → mensaje de Alahya"
+            : "Libro abierto · Página 2 · Mensaje de Alahya";
       }
     }
 
@@ -178,13 +178,12 @@
         nav.hidden = !open;
         nav.style.display = open ? "flex" : "none";
       }
-      // Siempre empezar en página 1 al abrir
       setPage(1);
-      const tap = book.querySelector(".story-book-tap");
       if (tap) tap.textContent = open ? "Cerrar" : "Abrir";
       if (hint) {
-        if (!open) hint.textContent = "Toca el libro para abrirlo";
-        else hint.textContent = "Portada a la izquierda · Página 1 · → mensaje de Alahya";
+        hint.textContent = open
+          ? "Libro abierto · Página 1 · → mensaje de Alahya"
+          : "Toca la portada para abrir el libro";
       }
     }
 
@@ -202,7 +201,6 @@
       else if (dir === "close") setOpen(false);
     });
 
-    // No abrir automático: solo al tocar la cubierta
     setPage(1);
   })();
 

@@ -79,7 +79,7 @@
     <div class="container narrow">
       <p class="section-kicker">Una noche de cuento</p>
       <h2 class="section-title">El día en que brilla como reina</h2>
-      <p class="muted center story-book-hint" id="storyBookHint">Toca el libro para abrirlo</p>
+      <p class="muted center story-book-hint" id="storyBookHint">Toca la portada para abrir el libro</p>
 
       <div class="story-book-scene" id="storyBookScene">
         <div
@@ -89,24 +89,14 @@
           aria-expanded="false"
           aria-label="Libro de la historia de Alahya"
         >
-          <div class="story-book-inner" id="storyBookInner">
-            <!-- Cubierta -->
-            <button type="button" class="story-book-cover" id="storyBookCover" aria-label="Abrir o cerrar el libro">
-              <div class="story-book-cover-front">
-                <span class="story-book-ornament">✦</span>
-                <span class="story-book-cover-kicker">Mis XV Años</span>
-                <span class="story-book-cover-name">Alahya</span>
-                <span class="story-book-cover-sub">Thaís Saltares Ortega</span>
-                <span class="story-book-cover-theme">Victorian Masquerade</span>
-                <span class="story-book-ornament">✦</span>
-                <span class="story-book-tap">Abrir</span>
-              </div>
-              <span class="story-book-spine" aria-hidden="true"></span>
-            </button>
+          <!-- Libro 3D real: tapa gira sobre el lomo -->
+          <div class="book3d" id="storyBookInner">
+            <!-- Tapa trasera -->
+            <div class="book3d-back" aria-hidden="true"></div>
 
-            <!-- Una sola hoja visible a la vez -->
-            <div class="story-book-pages" data-page="1">
-              <article class="story-book-leaf" data-spread="1">
+            <!-- Bloque de páginas (hoja blanca, borde rojo) -->
+            <div class="book3d-pages" data-page="1">
+              <article class="book3d-leaf" data-spread="1">
                 <p class="story-book-page-kicker">Página 1 · Historia</p>
                 <p>
                   Hay momentos que marcan un antes y un después. Los quince años de
@@ -123,7 +113,7 @@
                   en oro y rosa.
                 </p>
               </article>
-              <article class="story-book-leaf story-book-leaf-quote" data-spread="2" hidden>
+              <article class="book3d-leaf book3d-leaf-quote" data-spread="2" hidden>
                 <p class="story-book-page-kicker">Página 2 · Mensaje</p>
                 <p class="story-book-page-label">Mensaje de Alahya</p>
                 <blockquote>
@@ -133,6 +123,26 @@
                 </blockquote>
               </article>
             </div>
+
+            <!-- Tapa delantera (se abre hacia la izquierda) -->
+            <button type="button" class="book3d-cover" id="storyBookCover" aria-label="Abrir o cerrar el libro">
+              <div class="book3d-cover-face book3d-cover-front">
+                <span class="story-book-ornament">✦</span>
+                <span class="story-book-cover-kicker">Mis XV Años</span>
+                <span class="story-book-cover-name">Alahya</span>
+                <span class="story-book-cover-sub">Thaís Saltares Ortega</span>
+                <span class="story-book-cover-theme">Victorian Masquerade</span>
+                <span class="story-book-ornament">✦</span>
+                <span class="story-book-tap" id="storyBookTap">Abrir</span>
+              </div>
+              <!-- Interior de la tapa (se ve al abrir): bordes rojos, centro blanco -->
+              <div class="book3d-cover-face book3d-cover-inside" aria-hidden="true">
+                <div class="book3d-cover-inside-panel">
+                  <span class="book3d-cover-inside-mark">A</span>
+                  <span class="book3d-cover-inside-text">XV</span>
+                </div>
+              </div>
+            </button>
           </div>
 
           <div class="story-book-nav" id="storyBookNav" hidden>

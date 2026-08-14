@@ -411,7 +411,7 @@ body {
   border-radius: 16px;
 }
 
-/* Story — cerrado: portada; abierto: portada se queda a la IZQUIERDA + hoja der */
+/* Story — libro 3D real (tapa gira sobre el lomo) */
 .story-book-hint {
   margin: -0.25rem 0 1rem;
   font-size: 0.72rem;
@@ -422,205 +422,107 @@ body {
 .story-book-scene {
   display: flex;
   justify-content: center;
-  padding: 0.25rem 0 1.25rem;
+  padding: 1.25rem 0.5rem 1.75rem;
+  perspective: 1800px;
+  perspective-origin: 50% 45%;
 }
 
 .story-book {
-  width: min(100%, 300px);
+  width: min(100%, 280px);
   -webkit-tap-highlight-color: transparent;
-  transition: width 0.45s cubic-bezier(0.4, 0.05, 0.2, 1);
+  transition: width 0.55s cubic-bezier(0.4, 0.05, 0.2, 1);
 }
 
+/* Al abrir se ensancha para ver tapa + página */
 .story-book.is-open {
-  width: min(100%, 520px);
+  width: min(100%, 420px);
 }
 
-.story-book-inner {
+/* Contenedor 3D del libro */
+.book3d {
   position: relative;
   width: 100%;
-  height: 400px;
-  max-height: 56vh;
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 14px 32px rgba(40, 10, 15, 0.22);
+  height: 380px;
+  max-height: 52vh;
+  margin: 0 auto;
+  transform-style: preserve-3d;
+  transform: rotateX(6deg) rotateY(-8deg);
+  transition: transform 0.55s ease;
 }
 
-/* Cubierta: llena el libro al cerrar; al abrir se queda a la izquierda */
-.story-book-cover {
+.story-book.is-open .book3d {
+  /* Vista frontal del libro abierto */
+  transform: rotateX(4deg) rotateY(0deg);
+}
+
+/* Tapa trasera */
+.book3d-back {
   position: absolute;
   inset: 0;
-  z-index: 4;
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-  transition: width 0.45s cubic-bezier(0.4, 0.05, 0.2, 1), box-shadow 0.35s ease;
+  border-radius: 2px 8px 8px 2px;
+  background: linear-gradient(155deg, #5c1018, #3a0a10 55%, #2a080c);
+  border: 2px solid #7a1515;
+  box-shadow: 0 12px 28px rgba(40, 10, 15, 0.28);
+  transform: translateZ(-3px);
 }
 
-.story-book-cover-front {
+/* Páginas (bloque del medio / derecha) */
+.book3d-pages {
   position: absolute;
-  inset: 0;
-  border-radius: 6px;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 18%, rgba(212, 175, 55, 0.22), transparent 55%),
-    linear-gradient(155deg, #c41e3a 0%, #8b1520 40%, #5c1018 100%);
-  border: 2px solid #9b1c1c;
-  box-shadow: inset 0 0 0 3px rgba(255, 252, 248, 0.08);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 1.15rem 0.85rem;
-  color: #f7efe3;
-  overflow: hidden;
-}
-
-.story-book-cover-front::before {
-  content: "";
-  position: absolute;
-  inset: 12px;
-  border: 1px solid rgba(232, 213, 163, 0.35);
-  border-radius: 2px;
-  pointer-events: none;
-}
-
-.story-book-spine {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 10px;
-  background: linear-gradient(90deg, #2a080c, #6b1018 45%, #4a0c12);
-  z-index: 2;
-  border-radius: 6px 0 0 6px;
-}
-
-.story-book-ornament {
-  color: var(--gold-soft);
-  font-size: 0.75rem;
-  opacity: 0.9;
-  position: relative;
-  z-index: 1;
-}
-
-.story-book-cover-kicker {
-  font-size: 0.58rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(232, 213, 163, 0.95);
-  margin-top: 0.15rem;
-  position: relative;
-  z-index: 1;
-}
-
-.story-book-cover-name {
-  font-family: var(--font-display);
-  font-size: clamp(1.85rem, 7vw, 2.6rem);
-  font-style: italic;
-  font-weight: 400;
-  line-height: 1.05;
-  color: #fff8f0;
-  position: relative;
-  z-index: 1;
-}
-
-.story-book-cover-sub {
-  font-size: 0.58rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: rgba(247, 239, 227, 0.88);
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  padding: 0 0.35rem;
-}
-
-.story-book-cover-theme {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 0.9rem;
-  color: #e8d5a3;
-  margin-top: 0.3rem;
-  position: relative;
-  z-index: 1;
-}
-
-.story-book-tap {
-  margin-top: 0.75rem;
-  font-size: 0.55rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  padding: 0.28rem 0.65rem;
-  border-radius: 999px;
-  border: 1px solid rgba(232, 213, 163, 0.45);
-  color: #e8d5a3;
-  background: rgba(0, 0, 0, 0.12);
-  position: relative;
-  z-index: 1;
-}
-
-.story-book-pages {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: 6px;
+  top: 4px;
+  right: 4px;
+  bottom: 4px;
+  left: 10px;
+  border-radius: 1px 6px 6px 1px;
   background: #9b1c1c;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.35s ease 0.12s, visibility 0.35s ease 0.12s;
-  z-index: 1;
-  box-shadow: inset 0 0 0 3px #9b1c1c;
+  box-shadow:
+    inset 0 0 0 3px #9b1c1c,
+    2px 0 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transform: translateZ(0);
+  z-index: 2;
 }
 
-.story-book-leaf {
+.book3d-leaf {
   position: absolute;
   inset: 3px;
-  padding: 1.15rem 1.2rem 1rem;
+  padding: 1.1rem 1.15rem 1rem;
   overflow: auto;
   text-align: left;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   line-height: 1.55;
   color: #3a2a28;
   background: #fffcf8;
-  border-radius: 2px;
+  border-radius: 1px;
   z-index: 1;
-  animation: story-page-in 0.28s ease;
+  animation: book3d-page-in 0.35s ease;
 }
 
-.story-book-leaf[hidden] {
+.book3d-leaf[hidden] {
   display: none !important;
 }
 
-@keyframes story-page-in {
+@keyframes book3d-page-in {
   from {
-    opacity: 0.4;
+    opacity: 0.35;
   }
   to {
     opacity: 1;
   }
 }
 
-.story-book-leaf p {
+.book3d-leaf p {
   margin: 0 0 0.65rem;
 }
 
-.story-book-leaf strong {
+.book3d-leaf strong {
   color: var(--rose);
   font-weight: 600;
 }
 
 .story-book-page-kicker {
   display: block;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #9b1c1c;
@@ -636,29 +538,26 @@ body {
   margin-bottom: 0.7rem !important;
 }
 
-.story-book-leaf-quote {
+.book3d-leaf-quote {
   display: flex;
   flex-direction: column;
   justify-content: center;
   text-align: center;
-  padding: 1.35rem 1.15rem;
-  background: #fffcf8;
+  padding: 1.35rem 1.1rem;
 }
 
-.story-book-leaf-quote blockquote {
+.book3d-leaf-quote blockquote {
   margin: 0;
-  padding: 0.9rem 0.75rem;
-  border-left: none;
+  padding: 0.9rem 0.7rem;
   border-top: 1px solid rgba(155, 28, 28, 0.25);
   border-bottom: 1px solid rgba(155, 28, 28, 0.25);
   font-family: var(--font-display);
   font-size: 1.1rem;
   font-style: italic;
   color: var(--ink);
-  background: transparent;
 }
 
-.story-book-leaf-quote cite {
+.book3d-leaf-quote cite {
   display: block;
   margin-top: 0.6rem;
   font-size: 0.75rem;
@@ -669,16 +568,176 @@ body {
   font-weight: 600;
 }
 
-.story-book-end-line {
-  font-size: 0.75rem;
+/* Tapa delantera: gira sobre el lomo (izquierda) */
+.book3d-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform 1.05s cubic-bezier(0.45, 0.05, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
 }
 
+.book3d-cover-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px 8px 8px 2px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Exterior de la tapa (rojo) */
+.book3d-cover-front {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 18%, rgba(212, 175, 55, 0.22), transparent 55%),
+    linear-gradient(155deg, #c41e3a 0%, #8b1520 40%, #5c1018 100%);
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  box-shadow:
+    0 14px 32px rgba(40, 10, 15, 0.32),
+    inset 0 0 0 1px rgba(255, 250, 240, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  padding: 1.1rem 0.85rem;
+  color: #f7efe3;
+  z-index: 2;
+}
+
+.book3d-cover-front::before {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  border: 1px solid rgba(232, 213, 163, 0.35);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Interior de la tapa (se ve al abrir): borde rojo + centro blanco */
+.book3d-cover-inside {
+  background: #9b1c1c;
+  border: 2px solid #7a1515;
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  z-index: 1;
+}
+
+.book3d-cover-inside-panel {
+  width: 100%;
+  height: 100%;
+  background: #fffcf8;
+  border: 2px solid #9b1c1c;
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  box-shadow: inset 0 0 20px rgba(155, 28, 28, 0.06);
+}
+
+.book3d-cover-inside-mark {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-style: italic;
+  color: #9b1c1c;
+  line-height: 1;
+}
+
+.book3d-cover-inside-text {
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  font-weight: 700;
+  color: #c9a227;
+}
+
+.story-book-ornament {
+  color: var(--gold-soft);
+  font-size: 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+
+.story-book-cover-kicker {
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 163, 0.95);
+  position: relative;
+  z-index: 1;
+}
+
+.story-book-cover-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.85rem, 7vw, 2.55rem);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.05;
+  color: #fff8f0;
+  position: relative;
+  z-index: 1;
+}
+
+.story-book-cover-sub {
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(247, 239, 227, 0.88);
+  text-align: center;
+  padding: 0 0.3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.story-book-cover-theme {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.88rem;
+  color: #e8d5a3;
+  margin-top: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.story-book-tap {
+  margin-top: 0.7rem;
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 213, 163, 0.45);
+  color: #e8d5a3;
+  background: rgba(0, 0, 0, 0.12);
+  position: relative;
+  z-index: 1;
+}
+
+/* ABIERTO: la tapa gira y se queda a la izquierda (como libro real) */
+.story-book.is-open .book3d-cover {
+  transform: rotateY(-158deg);
+}
+
+/* Nav */
 .story-book-nav {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  margin-top: 0.65rem;
+  margin-top: 1rem;
   padding: 0;
   background: transparent;
   border: none;
@@ -738,143 +797,43 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* ABIERTO: portada a la izquierda (tapa estrecha) + hoja blanca a la derecha */
-.story-book.is-open .story-book-inner {
-  background: #7a1515;
-  border: 2px solid #9b1c1c;
-}
-
-.story-book.is-open .story-book-cover {
-  position: relative;
-  width: 28%;
-  min-width: 88px;
-  max-width: 118px;
-  flex-shrink: 0;
-  inset: auto;
-  height: auto;
-  align-self: stretch;
-  z-index: 3;
-  box-shadow: 5px 0 14px rgba(0, 0, 0, 0.14);
-  pointer-events: auto;
-}
-
-.story-book.is-open .story-book-cover-front {
-  border-radius: 0;
-  border: none;
-  /* marco rojo + centro blanco */
-  background: #9b1c1c;
-  box-shadow: none;
-  padding: 9px;
-  gap: 0.12rem;
-}
-
-.story-book.is-open .story-book-cover-front::before {
-  inset: 7px;
-  border: 2px solid #9b1c1c;
-  background: #fffcf8;
-  border-radius: 2px;
-}
-
-.story-book.is-open .story-book-cover-kicker,
-.story-book.is-open .story-book-cover-sub,
-.story-book.is-open .story-book-cover-theme {
-  color: #9b1c1c;
-}
-
-.story-book.is-open .story-book-cover-name {
-  color: #7a1515;
-  font-size: clamp(1.1rem, 3.5vw, 1.45rem);
-  text-shadow: none;
-}
-
-.story-book.is-open .story-book-ornament {
-  color: #c9a227;
-  font-size: 0.62rem;
-}
-
-.story-book.is-open .story-book-tap {
-  margin-top: 0.4rem;
-  background: rgba(155, 28, 28, 0.07);
-  border-color: rgba(155, 28, 28, 0.35);
-  color: #9b1c1c;
-  font-size: 0.48rem;
-  padding: 0.2rem 0.45rem;
-}
-
-.story-book.is-open .story-book-spine {
-  display: none;
-}
-
-.story-book.is-open .story-book-pages {
-  position: relative;
-  flex: 1;
-  inset: auto;
-  height: auto;
-  align-self: stretch;
-  min-width: 0;
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto;
-  z-index: 2;
-  border-radius: 0;
-  box-shadow: inset 0 0 0 3px #9b1c1c;
-  background: #9b1c1c;
-}
-
-.story-book.is-open .story-book-leaf {
-  inset: 3px;
-}
-
 @media (max-width: 540px) {
   .story-book {
-    width: min(100%, 280px);
+    width: min(100%, 260px);
   }
   .story-book.is-open {
-    width: 100%;
+    width: min(100%, 340px);
   }
-  .story-book-inner {
-    height: 360px;
-    max-height: 50vh;
+  .book3d {
+    height: 340px;
+    max-height: 48vh;
   }
-  .story-book.is-open .story-book-cover {
-    width: 26%;
-    min-width: 72px;
-    max-width: 96px;
-  }
-  .story-book.is-open .story-book-cover-front {
-    padding: 5px;
-    gap: 0.06rem;
-  }
-  .story-book.is-open .story-book-cover-name {
-    font-size: 1rem;
-  }
-  .story-book.is-open .story-book-cover-sub {
-    font-size: 0.4rem;
-    letter-spacing: 0.04em;
-  }
-  .story-book.is-open .story-book-cover-theme {
-    font-size: 0.58rem;
-  }
-  .story-book.is-open .story-book-cover-kicker {
-    font-size: 0.4rem;
-  }
-  .story-book.is-open .story-book-tap {
-    margin-top: 0.25rem;
-    font-size: 0.42rem;
-  }
-  .story-book-leaf {
-    padding: 0.85rem 0.75rem;
+  .book3d-leaf {
+    padding: 0.9rem 0.85rem;
     font-size: 0.78rem;
     line-height: 1.5;
   }
-  .story-book-leaf-quote blockquote {
+  .book3d-leaf-quote blockquote {
     font-size: 1rem;
-    padding: 0.7rem 0.45rem;
+  }
+  .story-book-cover-name {
+    font-size: clamp(1.7rem, 9vw, 2.25rem);
   }
   .story-book-nav-btn {
     min-width: 1.85rem;
     height: 1.65rem;
     font-size: 0.68rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book3d-cover,
+  .book3d,
+  .story-book {
+    transition: none;
+  }
+  .story-book.is-open .book3d-cover {
+    transform: rotateY(-160deg);
   }
 }
 
