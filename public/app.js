@@ -129,12 +129,13 @@
     }
   }
 
-  // ——— Historia: libro 3D real (tapa gira sobre el lomo)
+  // ——— Historia: libro 3D + paso que se voltean
   (function setupStoryBook() {
     const book = document.getElementById("storyBook");
     const cover = document.getElementById("storyBookCover");
     const hint = document.getElementById("storyBookHint");
     const pagesRoot = book && book.querySelector(".book3d-pages");
+    const flipSheet = document.getElementById("book3dFlipSheet");
     const nav = document.getElementById("storyBookNav");
     const prevBtn = document.getElementById("storyBookPrev");
     const nextBtn = document.getElementById("storyBookNext");
@@ -144,30 +145,34 @@
 
     let page = 1;
     const totalPages = 2;
+    let flipping = false;
 
-    function setPage(n) {
-      page = Math.max(1, Math.min(totalPages, n));
+    function setPage(n, animate) {
+      const next = Math.max(1, Math.min(totalPages, n));
+      if (next === page && animate !== true) {
+        // sync UI only
+      } else if (animate !== false && flipSheet && book.classList.contains("is-open")) {
+        flipping = true;
+        // Página 2 = hoja 1 volteada a la izquierda
+        if (next === 2) flipSheet.classList.add("is-flipped");
+        else flipSheet.classList.remove("is-flipped");
+        window.setTimeout(() => {
+          flipping = false;
+        }, 860);
+      } else if (flipSheet) {
+        if (next === 2) flipSheet.classList.add("is-flipped");
+        else flipSheet.classList.remove("is-flipped");
+      }
+      page = next;
       pagesRoot.setAttribute("data-page", String(page));
-      pagesRoot.querySelectorAll(".book3d-leaf").forEach((leaf) => {
-        const p = Number(leaf.getAttribute("data-spread"));
-        const show = p === page;
-        leaf.hidden = !show;
-        if (show) {
-          leaf.style.display = leaf.classList.contains("book3d-leaf-quote")
-            ? "flex"
-            : "block";
-        } else {
-          leaf.style.display = "none";
-        }
-      });
-      if (prevBtn) prevBtn.disabled = page <= 1;
-      if (nextBtn) nextBtn.disabled = page >= totalPages;
+      if (prevBtn) prevBtn.disabled = page <= 1 || flipping;
+      if (nextBtn) nextBtn.disabled = page >= totalPages || flipping;
       if (pageLabel) pageLabel.textContent = page + " / " + totalPages;
       if (hint && book.classList.contains("is-open")) {
         hint.textContent =
           page === 1
-            ? "Libro abierto · Página 1 · → mensaje de Alahya"
-            : "Libro abierto · Página 2 · Mensaje de Alahya";
+            ? "Libro abierto · Pasa la hoja →"
+            : "Mensaje de Alahya · ← volver";
       }
     }
 
@@ -178,30 +183,34 @@
         nav.hidden = !open;
         nav.style.display = open ? "flex" : "none";
       }
-      setPage(1);
+      // Al cerrar, la hoja vuelve a la 1
+      if (!open && flipSheet) flipSheet.classList.remove("is-flipped");
+      page = 1;
+      setPage(1, false);
       if (tap) tap.textContent = open ? "Cerrar" : "Abrir";
       if (hint) {
         hint.textContent = open
-          ? "Libro abierto · Página 1 · → mensaje de Alahya"
+          ? "Libro abierto · Pasa la hoja →"
           : "Toca la portada para abrir el libro";
       }
     }
 
     cover?.addEventListener("click", () => {
+      if (flipping) return;
       setOpen(!book.classList.contains("is-open"));
     });
 
     nav?.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-book-nav]");
-      if (!btn) return;
+      if (!btn || flipping) return;
       e.preventDefault();
       const dir = btn.getAttribute("data-book-nav");
-      if (dir === "next") setPage(page + 1);
-      else if (dir === "prev") setPage(page - 1);
+      if (dir === "next") setPage(page + 1, true);
+      else if (dir === "prev") setPage(page - 1, true);
       else if (dir === "close") setOpen(false);
     });
 
-    setPage(1);
+    setPage(1, false);
   })();
 
   // ——— Particles
