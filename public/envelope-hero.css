@@ -44,6 +44,74 @@
   align-items: center;
   gap: 1.1rem;
   margin-bottom: 0.5rem;
+  position: relative;
+}
+
+/* ——— Mariposas al abrir la invitación ——— */
+.he-butterflies {
+  position: absolute;
+  inset: -20% -15% -5%;
+  pointer-events: none;
+  z-index: 12;
+  overflow: visible;
+}
+
+.he-butterfly {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  font-size: var(--bf-size, 1.1rem);
+  line-height: 1;
+  opacity: 0;
+  filter: drop-shadow(0 2px 4px rgba(80, 20, 40, 0.2));
+  will-change: transform, opacity;
+  animation: he-butterfly-fly var(--bf-dur, 4.5s) ease-out var(--bf-delay, 0s) forwards;
+  --bf-dx: 0px;
+  --bf-dy: -180px;
+  --bf-rot: 20deg;
+}
+
+.he-butterfly span {
+  display: inline-block;
+  animation: he-butterfly-flutter 0.28s ease-in-out infinite alternate;
+  transform-origin: center center;
+}
+
+@keyframes he-butterfly-fly {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.4) rotate(0deg);
+  }
+  8% {
+    opacity: 0.95;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--bf-dx)), var(--bf-dy)) scale(1.05)
+      rotate(var(--bf-rot));
+  }
+}
+
+@keyframes he-butterfly-flutter {
+  from {
+    transform: scaleX(1) rotate(-8deg);
+  }
+  to {
+    transform: scaleX(0.55) rotate(8deg);
+  }
+}
+
+.hero-envelope:not(.is-open) .he-butterflies {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .he-butterflies {
+    display: none !important;
+  }
 }
 
 .he-envelope {

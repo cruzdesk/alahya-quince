@@ -15,6 +15,40 @@
     return 1 - Math.pow(1 - t, 3);
   }
 
+  let butterfliesLaunched = false;
+
+  function launchButterflies() {
+    if (butterfliesLaunched || reduceMotion) return;
+    const field = document.getElementById("heButterflies");
+    if (!field) return;
+    butterfliesLaunched = true;
+    field.innerHTML = "";
+    const n = window.innerWidth < 600 ? 10 : 16;
+    const glyphs = ["🦋", "🦋", "✨", "🦋"];
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement("div");
+      b.className = "he-butterfly";
+      const side = Math.random() > 0.5 ? 1 : -1;
+      const dx = side * (40 + Math.random() * 160);
+      const dy = -(120 + Math.random() * 220);
+      const rot = side * (10 + Math.random() * 40);
+      b.style.setProperty("--bf-dx", dx.toFixed(1) + "px");
+      b.style.setProperty("--bf-dy", dy.toFixed(1) + "px");
+      b.style.setProperty("--bf-rot", rot.toFixed(1) + "deg");
+      b.style.setProperty("--bf-dur", (3.2 + Math.random() * 2.4).toFixed(2) + "s");
+      b.style.setProperty("--bf-delay", (Math.random() * 0.55).toFixed(2) + "s");
+      b.style.setProperty("--bf-size", (0.85 + Math.random() * 0.75).toFixed(2) + "rem");
+      const span = document.createElement("span");
+      span.textContent = glyphs[i % glyphs.length];
+      b.appendChild(span);
+      field.appendChild(b);
+    }
+    // Permitir otra oleada si se cierra y se vuelve a abrir (poco frecuente)
+    window.setTimeout(() => {
+      butterfliesLaunched = false;
+    }, 6500);
+  }
+
   function setEnvelopeProgress(p) {
     if (!heroEnvelope) return;
     const t = clamp01(p);
@@ -28,7 +62,10 @@
     heroEnvelope.style.setProperty("--out", out.toFixed(4));
     heroEnvelope.style.setProperty("--seal", seal.toFixed(4));
     heroEnvelope.style.setProperty("--hint", hint.toFixed(4));
-    heroEnvelope.classList.toggle("is-open", out > 0.92);
+    const open = out > 0.92;
+    const wasOpen = heroEnvelope.classList.contains("is-open");
+    heroEnvelope.classList.toggle("is-open", open);
+    if (open && !wasOpen) launchButterflies();
   }
 
   function envelopeScrollTotal() {
@@ -91,6 +128,59 @@
       });
     }
   }
+
+  // ——— Historia: video o fallback elegante si no hay archivo
+  (function setupStoryVideo() {
+    const video = document.getElementById("storyVideo");
+    const fallback = document.getElementById("storyVideoFallback");
+    const frame = document.getElementById("storyVideoFrame");
+    if (!video || !fallback) return;
+
+    const showFallback = () => {
+      video.hidden = true;
+      fallback.hidden = false;
+      if (frame) frame.classList.add("is-fallback");
+    };
+
+    const showVideo = () => {
+      video.hidden = false;
+      fallback.hidden = true;
+      if (frame) frame.classList.remove("is-fallback");
+    };
+
+    // Si ya hay un iframe de YouTube visible, no forzar el <video>
+    const yt = frame && frame.querySelector("iframe.story-video-yt");
+    if (yt) {
+      video.hidden = true;
+      fallback.hidden = true;
+      return;
+    }
+
+    video.addEventListener("error", showFallback);
+    video.addEventListener("loadeddata", showVideo);
+
+    // Comprobar si el source responde (evita cuadro negro vacío)
+    const src =
+      (video.currentSrc ||
+        (video.querySelector("source") && video.querySelector("source").src) ||
+        "") + "";
+    if (!src || src.endsWith("/")) {
+      showFallback();
+      return;
+    }
+    // Timeout: si no carga en 4s, mostrar fallback
+    const t = window.setTimeout(() => {
+      if (video.readyState < 2) showFallback();
+    }, 4000);
+    video.addEventListener(
+      "loadeddata",
+      () => {
+        window.clearTimeout(t);
+        showVideo();
+      },
+      { once: true }
+    );
+  })();
 
   // ——— Particles
   const particlesEl = document.getElementById("particles");

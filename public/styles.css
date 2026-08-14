@@ -411,9 +411,94 @@ body {
   border-radius: 16px;
 }
 
-/* Story */
+/* Story — formato cinema / video */
+.story-cinema {
+  padding: 1.15rem 1.15rem 1.5rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.story-video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #1a1212 0%, #3a1818 45%, #2a2010 100%);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.45),
+    0 16px 40px rgba(40, 10, 15, 0.28);
+  margin-bottom: 1.25rem;
+}
+
+.story-video,
+.story-video-yt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+  background: #0a0606;
+}
+
+.story-video-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem;
+  color: #f5e8e8;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 40%, rgba(212, 175, 55, 0.2), transparent 65%),
+    linear-gradient(160deg, #2a1218, #1a0a0c);
+}
+
+.story-video-fallback-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 4px 12px rgba(212, 175, 55, 0.4));
+}
+
+.story-video-fallback p {
+  margin: 0.25rem 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.story-video-fallback .muted {
+  color: rgba(245, 232, 232, 0.65);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+}
+
+.story-video-bezel {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 2px rgba(232, 213, 163, 0.25);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 28%,
+    transparent 72%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+}
+
 .story-card {
   padding: 2.25rem 2rem;
+}
+
+.story-card-under-video {
+  padding: 0.5rem 0.35rem 0.25rem;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .story-card p {
@@ -448,6 +533,19 @@ body {
   color: var(--rose);
   font-family: var(--font-body);
   font-weight: 500;
+}
+
+@media (max-width: 540px) {
+  .story-cinema {
+    padding: 0.85rem 0.75rem 1.15rem;
+  }
+  .story-card-under-video {
+    padding: 0.25rem 0.15rem 0;
+  }
+  .story-card blockquote {
+    font-size: 1.15rem;
+    padding: 1rem 1.1rem;
+  }
 }
 
 /* Countdown — fondo dorado (como botón Añadir al calendario) */
