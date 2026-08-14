@@ -411,7 +411,7 @@ body {
   border-radius: 16px;
 }
 
-/* Story — portada cerrada; al abrir solo la hoja (borde rojo, centro blanco) */
+/* Story — cerrado: portada; abierto: portada se queda a la IZQUIERDA + hoja der */
 .story-book-hint {
   margin: -0.25rem 0 1rem;
   font-size: 0.72rem;
@@ -426,8 +426,13 @@ body {
 }
 
 .story-book {
-  width: min(100%, 340px);
+  width: min(100%, 300px);
   -webkit-tap-highlight-color: transparent;
+  transition: width 0.45s cubic-bezier(0.4, 0.05, 0.2, 1);
+}
+
+.story-book.is-open {
+  width: min(100%, 520px);
 }
 
 .story-book-inner {
@@ -435,12 +440,15 @@ body {
   width: 100%;
   height: 400px;
   max-height: 56vh;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 14px 32px rgba(40, 10, 15, 0.22);
 }
 
-/* Cubierta (solo cerrada) */
+/* Cubierta: llena el libro al cerrar; al abrir se queda a la izquierda */
 .story-book-cover {
   position: absolute;
   inset: 0;
@@ -452,7 +460,7 @@ body {
   cursor: pointer;
   font: inherit;
   color: inherit;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
+  transition: width 0.45s cubic-bezier(0.4, 0.05, 0.2, 1), box-shadow 0.35s ease;
 }
 
 .story-book-cover-front {
@@ -463,7 +471,7 @@ body {
     radial-gradient(ellipse 80% 50% at 50% 18%, rgba(212, 175, 55, 0.22), transparent 55%),
     linear-gradient(155deg, #c41e3a 0%, #8b1520 40%, #5c1018 100%);
   border: 2px solid #9b1c1c;
-  box-shadow: inset 0 0 0 4px rgba(255, 252, 248, 0.08);
+  box-shadow: inset 0 0 0 3px rgba(255, 252, 248, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -471,6 +479,7 @@ body {
   gap: 0.25rem;
   padding: 1.15rem 0.85rem;
   color: #f7efe3;
+  overflow: hidden;
 }
 
 .story-book-cover-front::before {
@@ -558,7 +567,6 @@ body {
   z-index: 1;
 }
 
-/* Hojas: borde rojo + centro blanco (ocupan todo al abrir) */
 .story-book-pages {
   position: absolute;
   inset: 0;
@@ -568,8 +576,8 @@ body {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.28s ease, visibility 0.28s ease;
-  z-index: 2;
+  transition: opacity 0.35s ease 0.12s, visibility 0.35s ease 0.12s;
+  z-index: 1;
   box-shadow: inset 0 0 0 3px #9b1c1c;
 }
 
@@ -583,7 +591,7 @@ body {
   line-height: 1.55;
   color: #3a2a28;
   background: #fffcf8;
-  border-radius: 3px;
+  border-radius: 2px;
   z-index: 1;
   animation: story-page-in 0.28s ease;
 }
@@ -665,7 +673,6 @@ body {
   font-size: 0.75rem;
 }
 
-/* Nav compacta */
 .story-book-nav {
   display: flex;
   align-items: center;
@@ -731,40 +738,138 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* Abierto: solo la hoja a pantalla completa del marco (sin portada al lado) */
+/* ABIERTO: portada a la izquierda (tapa estrecha) + hoja blanca a la derecha */
+.story-book.is-open .story-book-inner {
+  background: #7a1515;
+  border: 2px solid #9b1c1c;
+}
+
 .story-book.is-open .story-book-cover {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  z-index: 0;
+  position: relative;
+  width: 28%;
+  min-width: 88px;
+  max-width: 118px;
+  flex-shrink: 0;
+  inset: auto;
+  height: auto;
+  align-self: stretch;
+  z-index: 3;
+  box-shadow: 5px 0 14px rgba(0, 0, 0, 0.14);
+  pointer-events: auto;
+}
+
+.story-book.is-open .story-book-cover-front {
+  border-radius: 0;
+  border: none;
+  /* marco rojo + centro blanco */
+  background: #9b1c1c;
+  box-shadow: none;
+  padding: 9px;
+  gap: 0.12rem;
+}
+
+.story-book.is-open .story-book-cover-front::before {
+  inset: 7px;
+  border: 2px solid #9b1c1c;
+  background: #fffcf8;
+  border-radius: 2px;
+}
+
+.story-book.is-open .story-book-cover-kicker,
+.story-book.is-open .story-book-cover-sub,
+.story-book.is-open .story-book-cover-theme {
+  color: #9b1c1c;
+}
+
+.story-book.is-open .story-book-cover-name {
+  color: #7a1515;
+  font-size: clamp(1.1rem, 3.5vw, 1.45rem);
+  text-shadow: none;
+}
+
+.story-book.is-open .story-book-ornament {
+  color: #c9a227;
+  font-size: 0.62rem;
+}
+
+.story-book.is-open .story-book-tap {
+  margin-top: 0.4rem;
+  background: rgba(155, 28, 28, 0.07);
+  border-color: rgba(155, 28, 28, 0.35);
+  color: #9b1c1c;
+  font-size: 0.48rem;
+  padding: 0.2rem 0.45rem;
+}
+
+.story-book.is-open .story-book-spine {
+  display: none;
 }
 
 .story-book.is-open .story-book-pages {
+  position: relative;
+  flex: 1;
+  inset: auto;
+  height: auto;
+  align-self: stretch;
+  min-width: 0;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto;
-  z-index: 5;
+  z-index: 2;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 3px #9b1c1c;
+  background: #9b1c1c;
+}
+
+.story-book.is-open .story-book-leaf {
+  inset: 3px;
 }
 
 @media (max-width: 540px) {
   .story-book {
-    width: min(100%, 300px);
+    width: min(100%, 280px);
+  }
+  .story-book.is-open {
+    width: 100%;
   }
   .story-book-inner {
     height: 360px;
     max-height: 50vh;
   }
+  .story-book.is-open .story-book-cover {
+    width: 26%;
+    min-width: 72px;
+    max-width: 96px;
+  }
+  .story-book.is-open .story-book-cover-front {
+    padding: 5px;
+    gap: 0.06rem;
+  }
+  .story-book.is-open .story-book-cover-name {
+    font-size: 1rem;
+  }
+  .story-book.is-open .story-book-cover-sub {
+    font-size: 0.4rem;
+    letter-spacing: 0.04em;
+  }
+  .story-book.is-open .story-book-cover-theme {
+    font-size: 0.58rem;
+  }
+  .story-book.is-open .story-book-cover-kicker {
+    font-size: 0.4rem;
+  }
+  .story-book.is-open .story-book-tap {
+    margin-top: 0.25rem;
+    font-size: 0.42rem;
+  }
   .story-book-leaf {
-    padding: 0.95rem 0.9rem;
-    font-size: 0.8rem;
+    padding: 0.85rem 0.75rem;
+    font-size: 0.78rem;
     line-height: 1.5;
   }
   .story-book-leaf-quote blockquote {
     font-size: 1rem;
-    padding: 0.75rem 0.5rem;
-  }
-  .story-book-cover-name {
-    font-size: clamp(1.75rem, 9vw, 2.3rem);
+    padding: 0.7rem 0.45rem;
   }
   .story-book-nav-btn {
     min-width: 1.85rem;
@@ -772,6 +877,7 @@ body {
     font-size: 0.68rem;
   }
 }
+
 
 /* Countdown — fondo dorado (como botón Añadir al calendario) */
 .countdown-section {

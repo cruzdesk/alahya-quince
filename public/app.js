@@ -176,14 +176,15 @@
       book.setAttribute("aria-expanded", open ? "true" : "false");
       if (nav) {
         nav.hidden = !open;
-        // display:flex al abrir (por si [hidden] + flex pelean)
         nav.style.display = open ? "flex" : "none";
       }
       // Siempre empezar en página 1 al abrir
-      setPage(open ? 1 : 1);
+      setPage(1);
+      const tap = book.querySelector(".story-book-tap");
+      if (tap) tap.textContent = open ? "Cerrar" : "Abrir";
       if (hint) {
         if (!open) hint.textContent = "Toca el libro para abrirlo";
-        else hint.textContent = "Página 1 · Historia  ·  → mensaje de Alahya";
+        else hint.textContent = "Portada a la izquierda · Página 1 · → mensaje de Alahya";
       }
     }
 
