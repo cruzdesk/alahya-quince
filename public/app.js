@@ -201,23 +201,7 @@
       else if (dir === "close") setOpen(false);
     });
 
-    if (!reduceMotion && "IntersectionObserver" in window) {
-      let autoOpened = false;
-      const io = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((en) => {
-            if (en.isIntersecting && !autoOpened) {
-              autoOpened = true;
-              window.setTimeout(() => setOpen(true), 400);
-              io.disconnect();
-            }
-          });
-        },
-        { threshold: 0.4 }
-      );
-      io.observe(book);
-    }
-
+    // No abrir automático: solo al tocar la cubierta
     setPage(1);
   })();
 
