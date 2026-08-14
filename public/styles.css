@@ -546,7 +546,7 @@ body {
   background: rgba(0, 0, 0, 0.12);
 }
 
-/* Una sola hoja */
+/* Una sola hoja — debajo de la tapa al cerrar; encima al abrir */
 .story-book-pages {
   position: absolute;
   inset: 0;
@@ -556,8 +556,9 @@ body {
   box-shadow: 0 12px 28px rgba(40, 10, 15, 0.2);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease 0.28s, visibility 0.3s ease 0.28s;
-  z-index: 1;
+  pointer-events: none;
+  transition: opacity 0.25s ease 0.2s, visibility 0.25s ease 0.2s;
+  z-index: 2;
 }
 
 .story-book-leaf {
@@ -568,11 +569,16 @@ body {
   text-align: left;
   font-size: 0.86rem;
   line-height: 1.55;
-  color: var(--ink-soft);
+  color: #3a2a28;
   animation: story-page-in 0.35s ease;
   background:
     linear-gradient(90deg, rgba(0, 0, 0, 0.03), transparent 10%),
     #fffcf8;
+  z-index: 1;
+}
+
+.story-book-leaf[hidden] {
+  display: none !important;
 }
 
 @keyframes story-page-in {
@@ -596,12 +602,14 @@ body {
 }
 
 .story-book-page-kicker {
-  font-size: 0.58rem;
-  letter-spacing: 0.16em;
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--gold);
-  font-weight: 600;
-  margin-bottom: 0.7rem !important;
+  color: #9b1c1c;
+  font-weight: 700;
+  margin: 0 0 0.75rem !important;
+  opacity: 1;
 }
 
 .story-book-page-label {
@@ -718,15 +726,24 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* Abierto */
+/* Abierto: tapa se va y la hoja queda delante (evita que 3D tape el texto) */
 .story-book.is-open .story-book-cover {
-  transform: rotateY(-155deg);
+  transform: rotateY(-160deg);
+  opacity: 0;
+  visibility: hidden;
   pointer-events: none;
+  z-index: 0;
+  transition:
+    transform 0.9s cubic-bezier(0.4, 0.05, 0.2, 1),
+    opacity 0.2s ease 0.45s,
+    visibility 0.2s ease 0.45s;
 }
 
 .story-book.is-open .story-book-pages {
-  opacity: 1;
-  visibility: visible;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto;
+  z-index: 5;
 }
 
 @media (max-width: 540px) {
@@ -758,7 +775,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .story-book-cover {
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, visibility 0.2s;
   }
   .story-book.is-open .story-book-cover {
     transform: none;

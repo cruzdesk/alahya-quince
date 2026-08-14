@@ -150,7 +150,15 @@
       pagesRoot.setAttribute("data-page", String(page));
       pagesRoot.querySelectorAll(".story-book-leaf").forEach((leaf) => {
         const p = Number(leaf.getAttribute("data-spread"));
-        leaf.hidden = p !== page;
+        const show = p === page;
+        leaf.hidden = !show;
+        if (show) {
+          leaf.style.display = leaf.classList.contains("story-book-leaf-quote")
+            ? "flex"
+            : "block";
+        } else {
+          leaf.style.display = "none";
+        }
       });
       if (prevBtn) prevBtn.disabled = page <= 1;
       if (nextBtn) nextBtn.disabled = page >= totalPages;
@@ -166,16 +174,16 @@
     function setOpen(open) {
       book.classList.toggle("is-open", open);
       book.setAttribute("aria-expanded", open ? "true" : "false");
-      if (nav) nav.hidden = !open;
-      if (!open) setPage(1);
-      else setPage(page);
+      if (nav) {
+        nav.hidden = !open;
+        // display:flex al abrir (por si [hidden] + flex pelean)
+        nav.style.display = open ? "flex" : "none";
+      }
+      // Siempre empezar en página 1 al abrir
+      setPage(open ? 1 : 1);
       if (hint) {
         if (!open) hint.textContent = "Toca el libro para abrirlo";
-        else if (page === 1) {
-          hint.textContent = "Página 1 · Historia  ·  → mensaje de Alahya";
-        } else {
-          hint.textContent = "Página 2 · Mensaje de Alahya";
-        }
+        else hint.textContent = "Página 1 · Historia  ·  → mensaje de Alahya";
       }
     }
 
