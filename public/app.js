@@ -184,7 +184,18 @@
     function updateUI() {
       const i = pageFlip.getCurrentPageIndex();
       const n = pageFlip.getPageCount();
-      if (label) label.textContent = i + 1 + " / " + n;
+      // Hojas: 0 = portada, 1..n-2 = páginas numeradas, n-1 = contraportada
+      const contentTotal = Math.max(0, n - 2);
+      if (label) {
+        if (i === 0) {
+          label.textContent = "Portada";
+        } else if (i >= n - 1) {
+          label.textContent = "Fin";
+        } else {
+          // i=1 → página 1, i=2 → página 2, … (coincide con .page-num)
+          label.textContent = i + " / " + contentTotal;
+        }
+      }
       if (prevBtn) prevBtn.disabled = i <= 0;
       if (nextBtn) nextBtn.disabled = i >= n - 1;
       if (hint) {
