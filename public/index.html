@@ -101,16 +101,17 @@
             <span class="sb-cover-tap" id="storyBookTap">Abrir</span>
           </button>
 
-          <!-- ABIERTO: libro de dos páginas (izquierda + derecha) -->
+          <!-- ABIERTO: libro de dos páginas + hoja que se voltea -->
           <div class="sb-open" id="storyBookOpen" hidden>
             <div class="sb-binding" aria-hidden="true"></div>
 
-            <div class="sb-page sb-page-left" id="storyBookLeft">
-              <!-- se rellena por JS según la página -->
-            </div>
+            <div class="sb-page sb-page-left" id="storyBookLeft"></div>
+            <div class="sb-page sb-page-right" id="storyBookRight"></div>
 
-            <div class="sb-page sb-page-right" id="storyBookRight">
-              <!-- se rellena por JS según la página -->
+            <!-- Hoja animada (pasa como libro real) -->
+            <div class="sb-flip" id="storyBookFlip" aria-hidden="true">
+              <div class="sb-flip-face sb-flip-front" id="storyBookFlipFront"></div>
+              <div class="sb-flip-face sb-flip-back" id="storyBookFlipBack"></div>
             </div>
           </div>
 
