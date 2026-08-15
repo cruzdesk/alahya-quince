@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css?v=20260814r" />
-  <link rel="stylesheet" href="/envelope-hero.css?v=20260814env3" />
+  <link rel="stylesheet" href="/envelope-hero.css?v=20260814revert1" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
 </head>
 <body>
@@ -35,52 +35,46 @@
     </ul>
   </nav>
 
-  <!--
-    Sobre de invitación (rebuild total)
-    Patrón estándar CodePen / CSS 3D:
-    back → letter → pocket → flap → seal
-    Al abrir: flap gira, letter sube con z-index > pocket
-  -->
-  <header class="invite" id="inicio">
-    <div class="invite-inner">
-      <div class="invite-frame">
-        <!-- Espacio superior para la carta al salir -->
-        <div
-          class="invite-envelope"
-          id="heEnvelope"
-          role="button"
-          tabindex="0"
-          aria-label="Abrir la invitación"
-          aria-expanded="false"
-        >
-          <div class="invite-back" aria-hidden="true"></div>
-
-          <article class="invite-letter" id="heCard">
-            <div class="invite-card">
-              <p class="invite-kicker">Con la bendición de Dios y el amor de mi familia</p>
-              <div class="invite-rule" aria-hidden="true"><span></span>✦<span></span></div>
-              <h1 class="invite-title">Alahya</h1>
-              <p class="invite-subtitle">Thaís Saltares Ortega</p>
-              <p class="invite-theme">Mis Quince Años · Victorian Masquerade Ball</p>
-              <p class="invite-when" id="heroDate">10 de octubre de 2026 · 5:00 p.m.</p>
+  <!-- UNA sola invitación: sobre rojo → al scroll sale la tarjeta completa -->
+  <header class="hero hero-envelope" id="inicio">
+    <div class="he-track" id="heTrack">
+      <div class="he-sticky">
+        <div class="he-stage" id="heStage">
+          <div class="he-envelope" id="heEnvelope">
+            <div class="he-back" aria-hidden="true"></div>
+            <!-- Tarjeta = única invitación -->
+            <div class="he-card" id="heCard">
+              <div class="hero-frame he-card-inner">
+                <p class="eyebrow">Con la bendición de Dios y el amor de mi familia</p>
+                <div class="ornament">
+                  <span class="line"></span>
+                  <span class="diamond">✦</span>
+                  <span class="line"></span>
+                </div>
+                <h1 class="hero-name">
+                  <span class="first">Alahya</span>
+                  <span class="middle">Thaís Saltares Ortega</span>
+                </h1>
+                <p class="hero-tagline">Mis Quince Años · Victorian Masquerade Ball</p>
+                <p class="hero-date" id="heroDate">10 de octubre de 2026 · 5:00 p.m.</p>
+              </div>
             </div>
-          </article>
-
-          <div class="invite-pocket" aria-hidden="true"></div>
-          <div class="invite-flap" aria-hidden="true"></div>
-          <div class="invite-wax" aria-hidden="true"><em>A</em></div>
+            <div class="he-front" aria-hidden="true"></div>
+            <div class="he-flap" aria-hidden="true"></div>
+            <div class="he-seal" aria-hidden="true"><span>A</span></div>
+          </div>
+          <p class="he-hint" id="heHint">Desliza o toca para abrir la invitación</p>
+          <div class="he-reserve">
+            <a href="#reservar" class="btn btn-gold">Reservar</a>
+          </div>
+          <!-- Mariposas al abrir la invitación (se llenan por JS) -->
+          <div class="he-butterflies" id="heButterflies" aria-hidden="true"></div>
         </div>
       </div>
-
-      <p class="invite-hint" id="heHint">Toca el sobre para abrir la invitación</p>
-
-      <div class="invite-actions">
-        <a href="#reservar" class="btn btn-gold">Reservar</a>
-      </div>
-
-      <div class="invite-sparkles" id="heButterflies" aria-hidden="true"></div>
     </div>
   </header>
+
+
 
   <!-- HISTORIA — libro real (StPageFlip) -->
   <section class="section story" id="historia">
@@ -491,6 +485,6 @@
 
   <script src="/pr-towns.js"></script>
   <script src="/vendor/page-flip.browser.js"></script>
-  <script src="/app.js?v=20260814env3"></script>
+  <script src="/app.js?v=20260814revert1"></script>
 </body>
 </html>

@@ -3,72 +3,132 @@
   const EVENT_FALLBACK = "2026-10-10T17:00:00-04:00";
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // ——— Sobre de invitación (rebuild moderno, click to open)
-  (function setupEnvelope() {
-    const root = document.getElementById("inicio");
-    const envelope = document.getElementById("heEnvelope");
-    const hint = document.getElementById("heHint");
-    if (!root || !envelope) return;
+// ——— Sobre rojo: una invitación que sale al scroll
+  const heTrack = document.getElementById("heTrack");
+  const heStage = document.getElementById("heStage");
+  const heroEnvelope = document.getElementById("inicio");
 
-    let butterfliesLaunched = false;
+  function clamp01(x) {
+    return Math.max(0, Math.min(1, x));
+  }
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
 
-    function launchButterflies() {
-      if (butterfliesLaunched || reduceMotion) return;
-      const field = document.getElementById("heButterflies");
-      if (!field) return;
-      butterfliesLaunched = true;
-      field.innerHTML = "";
-      const n = window.innerWidth < 600 ? 9 : 14;
-      const glyphs = ["🦋", "🦋", "✨", "🦋"];
-      for (let i = 0; i < n; i++) {
-        const b = document.createElement("div");
-        b.className = "he-butterfly";
-        const side = Math.random() > 0.5 ? 1 : -1;
-        b.style.setProperty("--bf-dx", (side * (30 + Math.random() * 140)).toFixed(1) + "px");
-        b.style.setProperty("--bf-dy", (-(90 + Math.random() * 190)).toFixed(1) + "px");
-        b.style.setProperty("--bf-rot", (side * (6 + Math.random() * 30)).toFixed(1) + "deg");
-        b.style.setProperty("--bf-dur", (2.8 + Math.random() * 2).toFixed(2) + "s");
-        b.style.setProperty("--bf-delay", (Math.random() * 0.45).toFixed(2) + "s");
-        b.style.setProperty("--bf-size", (0.8 + Math.random() * 0.7).toFixed(2) + "rem");
-        const span = document.createElement("span");
-        span.textContent = glyphs[i % glyphs.length];
-        b.appendChild(span);
-        field.appendChild(b);
-      }
-      window.setTimeout(() => {
-        butterfliesLaunched = false;
-      }, 5500);
+  let butterfliesLaunched = false;
+
+  function launchButterflies() {
+    if (butterfliesLaunched || reduceMotion) return;
+    const field = document.getElementById("heButterflies");
+    if (!field) return;
+    butterfliesLaunched = true;
+    field.innerHTML = "";
+    const n = window.innerWidth < 600 ? 10 : 16;
+    const glyphs = ["🦋", "🦋", "✨", "🦋"];
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement("div");
+      b.className = "he-butterfly";
+      const side = Math.random() > 0.5 ? 1 : -1;
+      const dx = side * (40 + Math.random() * 160);
+      const dy = -(120 + Math.random() * 220);
+      const rot = side * (10 + Math.random() * 40);
+      b.style.setProperty("--bf-dx", dx.toFixed(1) + "px");
+      b.style.setProperty("--bf-dy", dy.toFixed(1) + "px");
+      b.style.setProperty("--bf-rot", rot.toFixed(1) + "deg");
+      b.style.setProperty("--bf-dur", (3.2 + Math.random() * 2.4).toFixed(2) + "s");
+      b.style.setProperty("--bf-delay", (Math.random() * 0.55).toFixed(2) + "s");
+      b.style.setProperty("--bf-size", (0.85 + Math.random() * 0.75).toFixed(2) + "rem");
+      const span = document.createElement("span");
+      span.textContent = glyphs[i % glyphs.length];
+      b.appendChild(span);
+      field.appendChild(b);
     }
+    // Permitir otra oleada si se cierra y se vuelve a abrir (poco frecuente)
+    window.setTimeout(() => {
+      butterfliesLaunched = false;
+    }, 6500);
+  }
 
-    function openEnvelope() {
-      if (root.classList.contains("is-open")) return;
-      root.classList.add("is-open");
-      envelope.setAttribute("aria-expanded", "true");
-      launchButterflies();
-    }
+  function setEnvelopeProgress(p) {
+    if (!heroEnvelope) return;
+    const t = clamp01(p);
+    // 0–0.35: abre solapa y sello
+    const flap = easeOutCubic(clamp01(t / 0.35));
+    // 0.2–1: saca la tarjeta por completo
+    const out = easeOutCubic(clamp01((t - 0.18) / 0.82));
+    const seal = clamp01(1 - t / 0.25);
+    const hint = clamp01(1 - t / 0.4);
+    heroEnvelope.style.setProperty("--flap", flap.toFixed(4));
+    heroEnvelope.style.setProperty("--out", out.toFixed(4));
+    heroEnvelope.style.setProperty("--seal", seal.toFixed(4));
+    heroEnvelope.style.setProperty("--hint", hint.toFixed(4));
+    const open = out > 0.92;
+    const wasOpen = heroEnvelope.classList.contains("is-open");
+    heroEnvelope.classList.toggle("is-open", open);
+    if (open && !wasOpen) launchButterflies();
+  }
 
-    if (reduceMotion) {
-      root.classList.add("is-open");
-      envelope.setAttribute("aria-expanded", "true");
+  function envelopeScrollTotal() {
+    if (!heTrack) return 0;
+    return Math.max(1, heTrack.offsetHeight - window.innerHeight);
+  }
+
+  function updateEnvelopeScroll() {
+    if (!heTrack || !heroEnvelope || reduceMotion) return;
+    const total = envelopeScrollTotal();
+    const scrolled = -heTrack.getBoundingClientRect().top;
+    // En móvil el progreso avanza un poco más rápido (menos “pegado”)
+    const boost = window.matchMedia("(max-width: 540px)").matches ? 1.12 : 1;
+    setEnvelopeProgress((scrolled / total) * boost);
+  }
+
+  /** Lleva el scroll al final del sobre (abrir completo) — útil en móvil */
+  function scrollEnvelopeOpen(smooth) {
+    if (!heTrack || reduceMotion) {
+      setEnvelopeProgress(1);
       return;
     }
-
-    function onOpenClick(e) {
-      if (e.target.closest("a[href], button.btn")) return;
-      if (root.classList.contains("is-open")) return;
-      e.preventDefault();
-      openEnvelope();
+    const top =
+      heTrack.getBoundingClientRect().top +
+      (window.pageYOffset || document.documentElement.scrollTop || 0);
+    const target = top + envelopeScrollTotal() + 4;
+    window.scrollTo({ top: Math.max(0, target), behavior: smooth ? "smooth" : "auto" });
+    // Asegura estado abierto al terminar el gesto
+    if (!smooth) setEnvelopeProgress(1);
+    else {
+      window.setTimeout(() => setEnvelopeProgress(1), 450);
     }
+  }
 
-    envelope.addEventListener("click", onOpenClick);
-    hint && hint.addEventListener("click", onOpenClick);
-    envelope.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        openEnvelope();
-      }
-    });
-  })();
+  if (heTrack && heroEnvelope) {
+    if (reduceMotion) {
+      setEnvelopeProgress(1);
+    } else {
+      setEnvelopeProgress(0);
+      updateEnvelopeScroll();
+      window.addEventListener("scroll", updateEnvelopeScroll, { passive: true });
+      window.addEventListener("resize", updateEnvelopeScroll, { passive: true });
+
+      // Toque / clic en el sobre o el hint: abre del todo (evita pelear con el scroll largo)
+      const openTargets = [heStage, document.getElementById("heHint"), document.getElementById("heEnvelope")].filter(
+        Boolean
+      );
+      openTargets.forEach((el) => {
+        el.style.cursor = el.id === "heHint" || el === heStage ? "pointer" : el.style.cursor;
+        el.addEventListener(
+          "click",
+          (e) => {
+            if (e.target.closest("a, button, input, textarea, select, label")) return;
+            if (heroEnvelope.classList.contains("is-open")) return;
+            e.preventDefault();
+            scrollEnvelopeOpen(true);
+          },
+          { passive: false }
+        );
+      });
+    }
+  }
+
 
 // ——— Historia: libro real con StPageFlip (apertura + paso de páginas)
   (function setupStoryBook() {
