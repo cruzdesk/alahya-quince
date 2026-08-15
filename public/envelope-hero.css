@@ -487,14 +487,27 @@
     transform: translateY(calc(48% - var(--out) * 108%));
   }
   .hero-envelope.is-open .he-card {
-    /* Móvil estable: no sube bajo el menú; V del bolsillo intacta (ápice 50%) */
-    transform: translateY(-62%);
+    /* Solo un poquito más alta (-62 → -66): fecha libre sin meterse bajo el menú */
+    transform: translateY(-66%);
+  }
+  /*
+   * Abierto en móvil: V un pelín más baja (ápice 54%) solo al abrir,
+   * para no tapar la fecha. Cerrado y desktop sin cambio.
+   */
+  .hero-envelope.is-open .he-front {
+    clip-path: polygon(0 100%, 50% 54%, 100% 100%);
+    -webkit-clip-path: polygon(0 100%, 50% 54%, 100% 100%);
+  }
+  .hero-envelope.is-open .he-front::before {
+    clip-path: polygon(0 100%, 50% 54%, 100% 100%);
+    -webkit-clip-path: polygon(0 100%, 50% 54%, 100% 100%);
   }
   .he-card-inner {
-    padding: 1.2rem 0.9rem 2.35rem !important;
+    /* Menos relleno abajo: la fecha sube DENTRO del papel (no la carta entera) */
+    padding: 1.15rem 0.9rem 1.45rem !important;
   }
   .he-card-inner .hero-date {
-    padding-bottom: 1.75rem;
+    padding-bottom: 0.4rem;
   }
   .he-seal {
     width: 48px;
