@@ -465,39 +465,66 @@
     height: 125vh;
   }
   /*
-   * Baja el sobre: más aire arriba (nav A.XV + menú) para que la
-   * invitación abierta no quede tapada por la barra blanca fija.
+   * Aire bajo el nav fijo (logo + menú). No subir la carta demasiado
+   * o el header tapa el nombre; no bajarla tanto o la V tapa la fecha.
    */
   .he-sticky {
-    padding: 6.75rem 0.85rem 2.5rem;
+    padding: 5.5rem 0.85rem 2rem;
     align-items: flex-end;
     justify-content: center;
   }
+  /* Abierto: un poco más de margen bajo el menú, bloque centrado-bajo */
+  .hero-envelope.is-open .he-sticky {
+    padding-top: 5.75rem;
+    padding-bottom: 1.75rem;
+    align-items: center;
+  }
   .he-stage {
-    /* Empuja el bloque un poco más abajo del centro */
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.25rem;
     padding-bottom: env(safe-area-inset-bottom, 0);
     width: min(520px, 94vw);
   }
   .he-envelope {
-    height: min(260px, 38vh);
+    height: min(250px, 36vh);
   }
   .he-card {
     left: 5%;
     right: 5%;
-    /* Móvil: el sobre es más bajo → la carta debe subir más al abrir */
-    transform: translateY(calc(48% - var(--out) * 128%));
+    /* Progreso intermedio: no tan agresivo como -82% final */
+    transform: translateY(calc(46% - var(--out) * 112%));
   }
   .hero-envelope.is-open .he-card {
-    /* Fecha por encima de la V (solo móvil; desktop se deja como está) */
-    transform: translateY(-82%);
+    /*
+     * Equilibrio móvil:
+     * - antes -82% → el menú tapaba arriba
+     * - antes -62% → la V tapaba la fecha
+     * -72% + V un poco más baja al abrir = fecha y nombre visibles
+     */
+    transform: translateY(-72%);
+  }
+  /*
+   * Al abrir en móvil: V del bolsillo un poco más baja (ápice 58%)
+   * para liberar la fecha sin empujar la carta bajo el header.
+   */
+  .hero-envelope.is-open .he-front {
+    clip-path: polygon(0 100%, 50% 58%, 100% 100%);
+    -webkit-clip-path: polygon(0 100%, 50% 58%, 100% 100%);
+  }
+  .hero-envelope.is-open .he-front::before {
+    clip-path: polygon(0 100%, 50% 58%, 100% 100%);
+    -webkit-clip-path: polygon(0 100%, 50% 58%, 100% 100%);
   }
   .he-card-inner {
-    /* Menos aire abajo: el texto (fecha) queda más arriba en la tarjeta */
-    padding: 1.1rem 0.85rem 1.35rem !important;
+    padding: 1rem 0.85rem 1.5rem !important;
   }
   .he-card-inner .hero-date {
-    padding-bottom: 0.35rem;
+    padding-bottom: 0.5rem;
+  }
+  .he-card-inner .eyebrow {
+    margin-bottom: 0.45rem;
+  }
+  .he-card-inner .hero-name .first {
+    font-size: clamp(1.95rem, 8vw, 2.6rem);
   }
   .he-seal {
     width: 48px;
