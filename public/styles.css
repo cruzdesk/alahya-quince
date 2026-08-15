@@ -465,10 +465,10 @@ body {
   box-shadow: 0 0 8px rgba(40, 10, 15, 0.12);
 }
 
-/* Controles siempre por encima y táctiles */
+/* Controles siempre por encima del canvas del flipbook */
 .book-controls {
   position: relative;
-  z-index: 100;
+  z-index: 500 !important;
   pointer-events: auto !important;
   display: flex;
   align-items: center;
@@ -476,13 +476,28 @@ body {
   gap: 0.45rem;
   flex-wrap: wrap;
   width: 100%;
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
+  isolation: isolate;
 }
 
 .book-controls .book-btn {
   position: relative;
-  z-index: 101;
+  z-index: 501 !important;
   pointer-events: auto !important;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(155, 28, 28, 0.15);
+  touch-action: manipulation;
+}
+
+.book-controls .book-btn:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* El bloque de StPageFlip no debe tapar los botones de abajo */
+.book-shell--live .stf__parent {
+  position: relative;
+  z-index: 1;
 }
 
 /* ——— Portada / contraportada (tapas duras) ——— */

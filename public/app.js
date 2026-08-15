@@ -202,16 +202,10 @@
       const i = pageFlip.getCurrentPageIndex();
       const n = pageFlip.getPageCount();
       setLabel(i, n);
-      if (prevBtn) {
-        prevBtn.disabled = false;
-        prevBtn.removeAttribute("disabled");
-        if (i <= 0) prevBtn.disabled = true;
-      }
-      if (nextBtn) {
-        nextBtn.disabled = false;
-        nextBtn.removeAttribute("disabled");
-        if (i >= n - 1) nextBtn.disabled = true;
-      }
+      // Nunca dejar botones “pegados” en disabled por un estado raro de la lib
+      if (prevBtn) prevBtn.disabled = i <= 0;
+      if (nextBtn) nextBtn.disabled = i >= n - 1;
+      if (closeBtn) closeBtn.disabled = i <= 0;
       if (hint) {
         if (i === 0) {
           hint.textContent = "Toca la portada, desliza o usa → para abrir";
@@ -223,46 +217,97 @@
       }
     }
 
+    /** Fuerza ir a una página (más fiable en móvil que solo flipPrev) */
+    function forceToPage(target) {
+      const n = pageFlip.getPageCount();
+      const t = Math.max(0, Math.min(n - 1, target));
+      try {
+        pageFlip.turnToPage(t);
+      } catch (_) {}
+      // segundo intento (a veces el primero se ignora a mitad de animación)
+      window.setTimeout(() => {
+        try {
+          if (pageFlip.getCurrentPageIndex() !== t) {
+            pageFlip.turnToPage(t);
+          }
+        } catch (e2) {}
+        try {
+          pageFlip.update();
+        } catch (e3) {}
+        updateUI();
+      }, 40);
+      window.setTimeout(updateUI, 200);
+      window.setTimeout(updateUI, 450);
+    }
+
     function goNext() {
       const before = pageFlip.getCurrentPageIndex();
       const n = pageFlip.getPageCount();
       if (before >= n - 1) return;
+      // Intentar animación
       try {
         pageFlip.flipNext("top");
       } catch (_) {}
-      // Si no cambió (móvil a veces ignora flip), forzar
       window.setTimeout(() => {
         if (pageFlip.getCurrentPageIndex() === before) {
+          // En paisaje el “siguiente” suele ser +1 o +2 (spread)
           try {
             pageFlip.turnToNextPage();
-          } catch (e2) {}
+          } catch (e2) {
+            forceToPage(before + 1);
+          }
         }
         updateUI();
-      }, 100);
-      window.setTimeout(updateUI, 500);
+      }, 90);
+      window.setTimeout(updateUI, 400);
     }
 
     function goPrev() {
       const before = pageFlip.getCurrentPageIndex();
-      if (before <= 0) return;
+      if (before <= 0) {
+        updateUI();
+        return;
+      }
+      // flipPrev a menudo falla en móvil con tapa dura / spreads
       try {
         pageFlip.flipPrev("top");
       } catch (_) {}
       window.setTimeout(() => {
-        if (pageFlip.getCurrentPageIndex() === before) {
+        let now = pageFlip.getCurrentPageIndex();
+        if (now === before || now > before) {
           try {
             pageFlip.turnToPrevPage();
           } catch (e2) {}
+          now = pageFlip.getCurrentPageIndex();
+        }
+        if (now === before || now > before) {
+          // Forzar: un paso atrás (o dos si seguimos en el mismo spread visual)
+          forceToPage(Math.max(0, before - 1));
+          window.setTimeout(() => {
+            if (pageFlip.getCurrentPageIndex() === before) {
+              forceToPage(Math.max(0, before - 2));
+            }
+          }, 60);
         }
         updateUI();
-      }, 100);
-      window.setTimeout(updateUI, 500);
+      }, 90);
+      window.setTimeout(updateUI, 400);
+    }
+
+    function goCover() {
+      // Siempre forzar portada (índice 0) — flip(0) falla mucho en móvil
+      forceToPage(0);
+      try {
+        pageFlip.flipPrev("top");
+      } catch (_) {}
+      // martillar el 0 un par de veces
+      window.setTimeout(() => forceToPage(0), 100);
+      window.setTimeout(() => forceToPage(0), 280);
     }
 
     pageFlip.on("flip", updateUI);
     pageFlip.on("init", () => {
       updateUI();
-      // segundo update: en móvil el layout a veces se calcula tarde
       window.setTimeout(() => {
         try {
           pageFlip.update();
@@ -271,36 +316,34 @@
       }, 120);
     });
 
-    // Botones: solo click (fiable en iOS/Android)
-    function wireBtn(el, fn) {
-      if (!el) return;
-      el.type = "button";
-      el.style.pointerEvents = "auto";
-      el.addEventListener(
-        "click",
-        (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          fn();
-        },
-        true
-      );
+    // Delegación en #bookControls (más fiable si un botón se recubre en móvil)
+    const controls = document.getElementById("bookControls");
+    function onControlActivate(e) {
+      const btn = e.target.closest("button");
+      if (!btn || !controls.contains(btn)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (btn.id === "bookPrev" || btn === prevBtn) goPrev();
+      else if (btn.id === "bookNext" || btn === nextBtn) goNext();
+      else if (btn.id === "bookClose" || btn === closeBtn) goCover();
+    }
+    if (controls) {
+      controls.addEventListener("click", onControlActivate);
+      // pointerup cubre toques que a veces no generan click en iOS
+      controls.addEventListener("pointerup", (e) => {
+        if (e.pointerType === "touch" || e.pointerType === "pen") {
+          onControlActivate(e);
+        }
+      });
+    } else {
+      // fallback individual
+      [prevBtn, nextBtn, closeBtn].forEach((el) => {
+        if (!el) return;
+        el.type = "button";
+        el.addEventListener("click", onControlActivate);
+      });
     }
 
-    wireBtn(prevBtn, goPrev);
-    wireBtn(nextBtn, goNext);
-    wireBtn(closeBtn, () => {
-      try {
-        pageFlip.turnToPage(0);
-      } catch (_) {
-        try {
-          pageFlip.flip(0);
-        } catch (e2) {}
-      }
-      updateUI();
-    });
-
-    // Controles por encima de cualquier capa del flip
     if (shell) shell.classList.add("book-shell--live");
 
     document.addEventListener("keydown", (e) => {
