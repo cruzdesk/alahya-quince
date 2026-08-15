@@ -74,9 +74,9 @@
     </div>
   </header>
 
-  <!-- HISTORIA — libro 3D que se abre (estilo invitación animada) -->
+  <!-- HISTORIA — libro abierto real (portada + páginas, sin scroll) -->
   <section class="section story" id="historia">
-    <div class="container narrow">
+    <div class="container">
       <p class="section-kicker">Una noche de cuento</p>
       <h2 class="section-title">El día en que brilla como reina</h2>
       <p class="muted center story-book-hint" id="storyBookHint">Toca la portada para abrir el libro</p>
@@ -89,79 +89,35 @@
           aria-expanded="false"
           aria-label="Libro de la historia de Alahya"
         >
-          <!-- Libro 3D real: tapa gira sobre el lomo -->
-          <div class="book3d" id="storyBookInner">
-            <!-- Tapa trasera -->
-            <div class="book3d-back" aria-hidden="true"></div>
+          <!-- CERRADO: solo portada -->
+          <button type="button" class="sb-cover" id="storyBookCover" aria-label="Abrir el libro">
+            <span class="sb-cover-frame" aria-hidden="true"></span>
+            <span class="sb-cover-ornament">✦</span>
+            <span class="sb-cover-kicker">Mis XV Años</span>
+            <span class="sb-cover-name">Alahya</span>
+            <span class="sb-cover-sub">Thaís Saltares Ortega</span>
+            <span class="sb-cover-theme">Victorian Masquerade</span>
+            <span class="sb-cover-ornament">✦</span>
+            <span class="sb-cover-tap" id="storyBookTap">Abrir</span>
+          </button>
 
-            <!-- Páginas: la hoja de arriba se voltea al pasar -->
-            <div class="book3d-pages" data-page="1">
-              <!-- Página 2 (debajo) -->
-              <div class="book3d-sheet book3d-sheet-under" data-spread="2">
-                <article class="book3d-leaf book3d-leaf-quote">
-                  <p class="story-book-page-kicker">Página 2 · Mensaje</p>
-                  <p class="story-book-page-label">Mensaje de Alahya</p>
-                  <blockquote>
-                    “Hoy celebro la vida, el amor de mi familia y el milagro de crecer rodeada
-                    de ustedes.”
-                    <cite>— Alahya</cite>
-                  </blockquote>
-                </article>
-              </div>
-              <!-- Página 1 (encima; se gira al pasar a la 2) -->
-              <div class="book3d-sheet book3d-sheet-flip" data-spread="1" id="book3dFlipSheet">
-                <div class="book3d-sheet-face book3d-sheet-face-front">
-                  <article class="book3d-leaf">
-                    <p class="story-book-page-kicker">Página 1 · Historia</p>
-                    <p>
-                      Hay momentos que marcan un antes y un después. Los quince años de
-                      <strong>Alahya</strong> son uno de ellos: el umbral entre la niña que
-                      soñaba castillos y la joven que camina con gracia hacia su propio destino.
-                    </p>
-                    <p>
-                      Esta noche no es solo un baile. Es gratitud a su madre, quien la crió con
-                      fe, ternura y fuerza; y un cariño eterno al recuerdo de su papá, siempre
-                      presente en el corazón.
-                    </p>
-                    <p>
-                      Es amistad, risas, vals y estrellas. Es el comienzo de un capítulo escrito
-                      en oro y rosa.
-                    </p>
-                  </article>
-                </div>
-                <div class="book3d-sheet-face book3d-sheet-face-back" aria-hidden="true">
-                  <div class="book3d-sheet-back-panel">
-                    <span>✦</span>
-                  </div>
-                </div>
-              </div>
+          <!-- ABIERTO: libro de dos páginas (izquierda + derecha) -->
+          <div class="sb-open" id="storyBookOpen" hidden>
+            <div class="sb-binding" aria-hidden="true"></div>
+
+            <div class="sb-page sb-page-left" id="storyBookLeft">
+              <!-- se rellena por JS según la página -->
             </div>
 
-            <!-- Tapa delantera (se abre hacia la izquierda) -->
-            <button type="button" class="book3d-cover" id="storyBookCover" aria-label="Abrir o cerrar el libro">
-              <div class="book3d-cover-face book3d-cover-front">
-                <span class="story-book-ornament">✦</span>
-                <span class="story-book-cover-kicker">Mis XV Años</span>
-                <span class="story-book-cover-name">Alahya</span>
-                <span class="story-book-cover-sub">Thaís Saltares Ortega</span>
-                <span class="story-book-cover-theme">Victorian Masquerade</span>
-                <span class="story-book-ornament">✦</span>
-                <span class="story-book-tap" id="storyBookTap">Abrir</span>
-              </div>
-              <!-- Interior de la tapa (se ve al abrir): bordes rojos, centro blanco -->
-              <div class="book3d-cover-face book3d-cover-inside" aria-hidden="true">
-                <div class="book3d-cover-inside-panel">
-                  <span class="book3d-cover-inside-mark">A</span>
-                  <span class="book3d-cover-inside-text">XV</span>
-                </div>
-              </div>
-            </button>
+            <div class="sb-page sb-page-right" id="storyBookRight">
+              <!-- se rellena por JS según la página -->
+            </div>
           </div>
 
           <div class="story-book-nav" id="storyBookNav" hidden>
-            <button type="button" class="story-book-nav-btn" id="storyBookPrev" data-book-nav="prev">←</button>
-            <span class="story-book-nav-label" id="storyBookPageLabel">1 / 2</span>
-            <button type="button" class="story-book-nav-btn" id="storyBookNext" data-book-nav="next">→</button>
+            <button type="button" class="story-book-nav-btn" id="storyBookPrev" data-book-nav="prev" aria-label="Página anterior">←</button>
+            <span class="story-book-nav-label" id="storyBookPageLabel">1 / 4</span>
+            <button type="button" class="story-book-nav-btn" id="storyBookNext" data-book-nav="next" aria-label="Página siguiente">→</button>
             <button type="button" class="story-book-nav-btn story-book-nav-close" id="storyBookClose" data-book-nav="close">Cerrar</button>
           </div>
         </div>

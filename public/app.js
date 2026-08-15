@@ -130,87 +130,164 @@
   }
 
   // ——— Historia: libro 3D + paso que se voltean
+  // ——— Historia: libro real (portada + doble página, sin scroll)
   (function setupStoryBook() {
     const book = document.getElementById("storyBook");
     const cover = document.getElementById("storyBookCover");
+    const openEl = document.getElementById("storyBookOpen");
+    const leftEl = document.getElementById("storyBookLeft");
+    const rightEl = document.getElementById("storyBookRight");
     const hint = document.getElementById("storyBookHint");
-    const pagesRoot = book && book.querySelector(".book3d-pages");
-    const flipSheet = document.getElementById("book3dFlipSheet");
     const nav = document.getElementById("storyBookNav");
     const prevBtn = document.getElementById("storyBookPrev");
     const nextBtn = document.getElementById("storyBookNext");
     const pageLabel = document.getElementById("storyBookPageLabel");
-    const tap = document.getElementById("storyBookTap");
-    if (!book || !pagesRoot) return;
+    if (!book || !cover || !openEl || !leftEl || !rightEl) return;
 
-    let page = 1;
-    const totalPages = 2;
-    let flipping = false;
+    const decor = (mark, sub) =>
+      '<div class="sb-leaf-decor">' +
+      '<span class="sb-decor-mark">' +
+      mark +
+      "</span>" +
+      '<span class="sb-decor-line" aria-hidden="true"></span>' +
+      '<span class="sb-decor-sub">' +
+      sub +
+      "</span>" +
+      "</div>";
 
-    function setPage(n, animate) {
-      const next = Math.max(1, Math.min(totalPages, n));
-      if (next === page && animate !== true) {
-        // sync UI only
-      } else if (animate !== false && flipSheet && book.classList.contains("is-open")) {
-        flipping = true;
-        // Página 2 = hoja 1 volteada a la izquierda
-        if (next === 2) flipSheet.classList.add("is-flipped");
-        else flipSheet.classList.remove("is-flipped");
-        window.setTimeout(() => {
-          flipping = false;
-        }, 860);
-      } else if (flipSheet) {
-        if (next === 2) flipSheet.classList.add("is-flipped");
-        else flipSheet.classList.remove("is-flipped");
-      }
-      page = next;
-      pagesRoot.setAttribute("data-page", String(page));
-      if (prevBtn) prevBtn.disabled = page <= 1 || flipping;
-      if (nextBtn) nextBtn.disabled = page >= totalPages || flipping;
-      if (pageLabel) pageLabel.textContent = page + " / " + totalPages;
-      if (hint && book.classList.contains("is-open")) {
-        hint.textContent =
-          page === 1
-            ? "Libro abierto · Pasa la hoja →"
-            : "Mensaje de Alahya · ← volver";
-      }
+    // Spreads: cada uno es [izquierda | derecha] — texto corto, sin scroll
+    const spreads = [
+      {
+        left: decor("A", "XV") + '<span class="sb-page-num">Interior</span>',
+        right:
+          '<article class="sb-leaf">' +
+          '<span class="sb-kicker">Página 1 · Historia</span>' +
+          "<p>Hay momentos que marcan un antes y un después. Los quince años de " +
+          "<strong>Alahya</strong> son uno de ellos: el umbral entre la niña que " +
+          "soñaba castillos y la joven que camina con gracia hacia su propio destino.</p>" +
+          '<span class="sb-page-num">1</span>' +
+          "</article>",
+        hint: "Libro abierto · Pasa la hoja →",
+      },
+      {
+        left:
+          '<article class="sb-leaf">' +
+          '<span class="sb-kicker">Página 2</span>' +
+          "<p>Esta noche no es solo un baile. Es gratitud a su madre, quien la crió con " +
+          "fe, ternura y fuerza; y un cariño eterno al recuerdo de su papá, siempre " +
+          "presente en el corazón.</p>" +
+          '<span class="sb-page-num">2</span>' +
+          "</article>",
+        right:
+          '<article class="sb-leaf">' +
+          '<span class="sb-kicker">Página 3</span>' +
+          "<p>Es amistad, risas, vals y estrellas. Es el comienzo de un capítulo escrito " +
+          "en oro y rosa.</p>" +
+          '<span class="sb-page-num">3</span>' +
+          "</article>",
+        hint: "Libro abierto · Continúa la historia",
+      },
+      {
+        left:
+          '<article class="sb-leaf sb-leaf-quote">' +
+          '<span class="sb-kicker">Mensaje</span>' +
+          '<p class="sb-title">Mensaje de Alahya</p>' +
+          "<blockquote>“Hoy celebro la vida, el amor de mi familia y el milagro de crecer " +
+          'rodeada de ustedes.”' +
+          "<cite>— Alahya</cite></blockquote>" +
+          '<span class="sb-page-num">4</span>' +
+          "</article>",
+        right: decor("✦", "Fin") + '<span class="sb-page-num">Cierre</span>',
+        hint: "Mensaje de Alahya · ← volver o Cerrar",
+      },
+    ];
+
+    const total = spreads.length;
+    let spread = 0;
+    let open = false;
+
+    function updateNav() {
+      if (prevBtn) prevBtn.disabled = !open || spread <= 0;
+      if (nextBtn) nextBtn.disabled = !open || spread >= total - 1;
+      if (pageLabel) pageLabel.textContent = open ? spread + 1 + " / " + total : "";
     }
 
-    function setOpen(open) {
+    function renderSpread(animate) {
+      const s = spreads[spread];
+      if (!s) return;
+      leftEl.innerHTML = s.left;
+      rightEl.innerHTML = s.right;
+      if (animate) {
+        leftEl.classList.remove("is-turning");
+        rightEl.classList.remove("is-turning");
+        void leftEl.offsetWidth;
+        leftEl.classList.add("is-turning");
+        rightEl.classList.add("is-turning");
+      }
+      if (hint) hint.textContent = s.hint || "Libro abierto";
+      updateNav();
+    }
+
+    function setOpen(nextOpen) {
+      open = !!nextOpen;
       book.classList.toggle("is-open", open);
       book.setAttribute("aria-expanded", open ? "true" : "false");
-      if (nav) {
-        nav.hidden = !open;
-        nav.style.display = open ? "flex" : "none";
-      }
-      // Al cerrar, la hoja vuelve a la 1
-      if (!open && flipSheet) flipSheet.classList.remove("is-flipped");
-      page = 1;
-      setPage(1, false);
-      if (tap) tap.textContent = open ? "Cerrar" : "Abrir";
-      if (hint) {
-        hint.textContent = open
-          ? "Libro abierto · Pasa la hoja →"
-          : "Toca la portada para abrir el libro";
+      openEl.hidden = !open;
+      if (nav) nav.hidden = !open;
+      if (open) {
+        spread = 0;
+        renderSpread(true);
+      } else {
+        if (hint) hint.textContent = "Toca la portada para abrir el libro";
+        updateNav();
       }
     }
 
-    cover?.addEventListener("click", () => {
-      if (flipping) return;
-      setOpen(!book.classList.contains("is-open"));
+    function go(delta) {
+      if (!open) return;
+      const next = spread + delta;
+      if (next < 0 || next >= total) return;
+      spread = next;
+      renderSpread(true);
+    }
+
+    cover.addEventListener("click", () => setOpen(true));
+
+    prevBtn &&
+      prevBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        go(-1);
+      });
+    nextBtn &&
+      nextBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        go(1);
+      });
+    const closeBtn = document.getElementById("storyBookClose");
+    closeBtn &&
+      closeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen(false);
+      });
+
+    book.addEventListener("keydown", (e) => {
+      if (!open) return;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        go(-1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        go(1);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setOpen(false);
+      }
     });
 
-    nav?.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-book-nav]");
-      if (!btn || flipping) return;
-      e.preventDefault();
-      const dir = btn.getAttribute("data-book-nav");
-      if (dir === "next") setPage(page + 1, true);
-      else if (dir === "prev") setPage(page - 1, true);
-      else if (dir === "close") setOpen(false);
-    });
-
-    setPage(1, false);
+    setOpen(false);
   })();
 
   // ——— Particles
