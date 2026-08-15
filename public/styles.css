@@ -411,15 +411,7 @@ body {
   border-radius: 16px;
 }
 
-/* ========== HISTORIA — libro real (patrón flip estándar) ========== */
-/*
-  Cómo se hace bien (CSS 3D book / flipbook):
-  1) Cerrado = solo se ve la portada (1 página).
-  2) Al abrir: la portada gira con rotateY sobre el lomo (preserve-3d + backface-hidden).
-  3) Las páginas del interior solo se revelan CUANDO la portada ya abrió
-     (no se ensancha a doble página al mismo tiempo).
-  4) Al cerrar: se ocultan páginas y vuelve la portada, sin giro inverso raro.
-*/
+/* ========== HISTORIA — libro real (StPageFlip) ========== */
 .book-hint {
   margin: -0.25rem 0 1rem;
   font-size: 0.72rem;
@@ -431,230 +423,71 @@ body {
 .book-scene {
   display: flex;
   justify-content: center;
-  padding: 1rem 0.75rem 2rem;
-  overflow: visible;
+  padding: 0.75rem 0.5rem 2rem;
 }
 
-.book {
-  --page-w: min(290px, calc(100vw - 2.75rem));
-  --page-h: min(410px, 56vh);
-  --ease: cubic-bezier(0.4, 0.05, 0.2, 1);
-  --turn: 0.85s;
-  width: var(--page-w);
+.book-shell {
+  width: min(100%, 640px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: width 0.5s var(--ease);
-  -webkit-tap-highlight-color: transparent;
+  gap: 1rem;
 }
 
-/* Doble página solo cuando YA terminó de abrir (no a mitad del giro) */
-.book.is-open {
-  width: calc(var(--page-w) * 2);
+/* Contenedor que StPageFlip llena */
+.flipbook {
+  width: min(100%, 580px);
+  height: min(420px, 58vh);
+  margin: 0 auto;
 }
 
-.book-body {
-  position: relative;
-  width: 100%;
-  height: var(--page-h);
-  overflow: hidden;
-  border-radius: 5px 12px 12px 5px;
-  box-shadow: 0 16px 36px rgba(40, 10, 15, 0.3);
-  perspective: 2000px;
-  perspective-origin: 50% 50%;
-  background: #5c0e14;
-}
-
-.book.is-turning .book-body {
-  overflow: hidden;
-}
-
-.book.is-open .book-body {
-  overflow: visible;
-  border-radius: 6px;
-}
-
-/* Lienzo de 2 páginas, anclado a la derecha */
-.book-inner {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: calc(var(--page-w) * 2);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 10px;
-  box-sizing: border-box;
-  gap: 0;
-  background: linear-gradient(90deg, #4a0c12 0%, #8b1520 12%, #8b1520 88%, #4a0c12 100%);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
-}
-
-/* Giro: solo se ve la página DERECHA bajo la tapa */
-.book.is-turning .book-inner {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Abierto: libro completo */
-.book.is-open .book-inner {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-/* Mientras gira (aún no is-open): la izquierda no existe visualmente */
-.book.is-turning:not(.is-open) .book-page--left,
-.book.is-turning:not(.is-open) .book-spine {
-  opacity: 0 !important;
-  visibility: hidden !important;
-}
-
-.book-spine {
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  left: 50%;
-  width: 12px;
-  transform: translateX(-50%);
-  z-index: 5;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.22),
-    rgba(0, 0, 0, 0.05) 40%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(0, 0, 0, 0.05) 60%,
-    rgba(0, 0, 0, 0.22)
-  );
-  border-radius: 2px;
-}
-
-.book-page {
-  position: relative;
-  min-height: 0;
-  height: 100%;
+/* Estilos base de cada página (StPageFlip las posiciona) */
+.flipbook .page {
   background: #fffcf8;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  z-index: 1;
+  color: #3a2a28;
+  box-shadow: 0 0 8px rgba(40, 10, 15, 0.12);
 }
 
-.book-page--left {
-  border-radius: 3px 0 0 3px;
-  box-shadow: inset -10px 0 16px -12px rgba(40, 10, 15, 0.2);
-  padding: 1.15rem 1.15rem 0.9rem;
+/* ——— Portada / contraportada (tapas duras) ——— */
+.page--cover,
+.page--back {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 18%, rgba(212, 175, 55, 0.28), transparent 55%),
+    linear-gradient(155deg, #c41e3a 0%, #8b1520 42%, #5c1018 100%) !important;
+  color: #f7efe3 !important;
 }
 
-.book-page--right {
-  border-radius: 0 3px 3px 0;
-  box-shadow: inset 10px 0 16px -12px rgba(40, 10, 15, 0.2);
-  padding: 1.15rem 1.15rem 0.9rem;
-}
-
-/* ——— PORTADA: siempre encima y clickeable al cerrar ——— */
-.book-cover {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
+.page-cover-inner {
+  position: relative;
   width: 100%;
-  max-width: var(--page-w);
-  z-index: 50;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  font: inherit;
-  color: #f7efe3;
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  transform: rotateY(0deg);
-  opacity: 1;
-  visibility: visible;
-  transition: transform var(--turn) var(--ease);
-  -webkit-tap-highlight-color: transparent;
-  pointer-events: auto;
-}
-
-.book.is-open .book-cover,
-.book.is-turning .book-cover {
-  width: var(--page-w);
-}
-
-.book-cover:focus-visible {
-  outline: 2px solid #c9a227;
-  outline-offset: 3px;
-}
-
-/* Solo gira al abrir */
-.book-cover.is-turned {
-  transform: rotateY(-155deg);
-  pointer-events: none;
-}
-
-/* Oculta al terminar (display:none = no pelea con el cierre) */
-.book-cover.is-resting {
-  display: none !important;
-}
-
-.book-cover__face {
-  position: absolute;
-  inset: 0;
-  border-radius: 5px 12px 12px 5px;
-  box-sizing: border-box;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  overflow: hidden;
-}
-
-.book-cover__front {
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
+  gap: 0.28rem;
   padding: 1.4rem 1rem;
-  border: 2px solid rgba(212, 175, 55, 0.55);
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 18%, rgba(212, 175, 55, 0.28), transparent 55%),
-    linear-gradient(155deg, #c41e3a 0%, #8b1520 42%, #5c1018 100%);
-  box-shadow:
-    0 14px 32px rgba(40, 10, 15, 0.35),
-    inset 0 0 0 1px rgba(255, 250, 240, 0.1);
-  z-index: 2;
+  box-sizing: border-box;
+  text-align: center;
 }
 
-.book:not(.is-open):not(.is-turning) .book-cover:hover .book-cover__front {
-  box-shadow:
-    0 18px 38px rgba(40, 10, 15, 0.4),
-    inset 0 0 0 1px rgba(255, 250, 240, 0.12);
-}
-
-.book-cover__frame {
+.page-cover-frame {
   position: absolute;
-  inset: 12px;
+  inset: 14px;
   border: 1px solid rgba(232, 213, 163, 0.4);
   border-radius: 2px;
   pointer-events: none;
 }
 
-.book-cover__ornament {
+.page-cover-ornament {
   color: #e8d5a3;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   position: relative;
   z-index: 1;
 }
 
-.book-cover__kicker {
-  font-size: 0.6rem;
+.page-cover-kicker {
+  font-size: 0.62rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(232, 213, 163, 0.95);
@@ -662,9 +495,9 @@ body {
   z-index: 1;
 }
 
-.book-cover__name {
+.page-cover-name {
   font-family: var(--font-display);
-  font-size: clamp(1.9rem, 7vw, 2.65rem);
+  font-size: clamp(1.9rem, 7vw, 2.7rem);
   font-style: italic;
   font-weight: 400;
   line-height: 1.05;
@@ -673,34 +506,36 @@ body {
   z-index: 1;
 }
 
-.book-cover__sub {
+.page-cover-name--sm {
+  font-size: clamp(1.4rem, 5vw, 1.9rem);
+}
+
+.page-cover-sub {
   font-size: 0.56rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 600;
   color: rgba(247, 239, 227, 0.9);
-  text-align: center;
-  padding: 0 0.35rem;
   position: relative;
   z-index: 1;
 }
 
-.book-cover__theme {
+.page-cover-theme {
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   color: #e8d5a3;
   margin-top: 0.25rem;
   position: relative;
   z-index: 1;
 }
 
-.book-cover__tap {
-  margin-top: 0.85rem;
-  font-size: 0.55rem;
+.page-cover-tap {
+  margin-top: 0.9rem;
+  font-size: 0.58rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  padding: 0.32rem 0.8rem;
+  padding: 0.35rem 0.85rem;
   border-radius: 999px;
   border: 1px solid rgba(232, 213, 163, 0.5);
   color: #e8d5a3;
@@ -709,136 +544,44 @@ body {
   z-index: 1;
 }
 
-.book-cover__back {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 11px;
-  background: #9b1c1c;
-  border: 2px solid #7a1515;
-  border-radius: 12px 5px 5px 12px;
-  transform: rotateY(180deg);
-  z-index: 1;
+/* ——— Hojas de papel ——— */
+.page--paper {
+  background: #fffcf8 !important;
 }
 
-.book-cover__back-inner {
+.page-paper-inner {
   width: 100%;
   height: 100%;
-  background: #fffcf8;
-  border: 2px solid #9b1c1c;
-  border-radius: 2px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
-}
-
-.book-cover__back-mark {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  font-style: italic;
-  color: #9b1c1c;
-  line-height: 1;
-}
-
-.book-cover__back-sub {
-  font-size: 0.7rem;
-  letter-spacing: 0.28em;
-  font-weight: 700;
-  color: #c9a227;
-}
-
-/* Pasar página */
-.book-flip {
-  position: absolute;
-  top: 10px;
-  bottom: 10px;
-  right: 10px;
-  width: calc(50% - 10px);
-  z-index: 20;
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  transform: rotateY(0deg);
-  transition: transform 0.75s var(--ease);
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.book-flip.is-on {
-  opacity: 1;
-  visibility: visible;
-}
-
-.book-flip.is-turned {
-  transform: rotateY(-180deg);
-}
-
-.book-flip__face {
-  position: absolute;
-  inset: 0;
-  background: #fffcf8;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  overflow: hidden;
   box-sizing: border-box;
+  padding: 1.35rem 1.2rem 1rem;
   display: flex;
   flex-direction: column;
-  padding: 1.15rem 1.15rem 0.9rem;
-  box-shadow: 0 8px 22px rgba(40, 10, 15, 0.16);
+  overflow: hidden;
 }
 
-.book-flip__front {
-  border-radius: 0 3px 3px 0;
-  z-index: 2;
+.page-center {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.55rem;
 }
 
-.book-flip__back {
-  border-radius: 3px 0 0 3px;
-  transform: rotateY(180deg);
-  z-index: 1;
-}
-
-/* Contenido */
-.book-leaf {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  height: 100%;
-  width: 100%;
-  color: #3a2a28;
+.page-paper-inner p {
+  margin: 0;
+  max-width: 22em;
   font-size: 0.9rem;
   line-height: 1.55;
-  text-align: center;
-  overflow: hidden;
+  color: #3a2a28;
 }
 
-.book-leaf__body {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 0;
-  width: 100%;
-}
-
-.book-leaf__body p {
-  margin: 0;
-  max-width: 20em;
-}
-
-.book-leaf__body strong {
+.page-paper-inner strong {
   color: var(--rose);
   font-weight: 600;
 }
 
-.book-leaf__num {
-  flex: 0 0 auto;
-  padding-top: 0.45rem;
+.page-num {
+  margin-top: auto;
+  padding-top: 0.6rem;
   font-size: 0.65rem;
   letter-spacing: 0.08em;
   color: rgba(58, 42, 40, 0.45);
@@ -847,57 +590,30 @@ body {
   text-align: center;
 }
 
-.book-leaf--decor .book-leaf__body {
-  background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(201, 162, 39, 0.08), transparent 70%);
-  border-radius: 2px;
-}
-
-.book-decor-mark {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  font-style: italic;
-  color: #9b1c1c;
-  line-height: 1;
-}
-
-.book-decor-sub {
-  font-size: 0.7rem;
-  letter-spacing: 0.28em;
-  font-weight: 700;
-  color: #c9a227;
-}
-
-.book-decor-line {
-  width: 48px;
-  height: 1px;
-  background: rgba(155, 28, 28, 0.3);
-  margin: 0.2rem 0;
-}
-
-.book-title {
+.page-title {
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   color: var(--rose);
-  margin: 0;
+  margin: 0 0 0.25rem !important;
 }
 
-.book-leaf__body blockquote {
+.page-paper-inner blockquote {
   margin: 0;
-  padding: 0.8rem 0.4rem;
+  padding: 0.85rem 0.5rem;
   border-top: 1px solid rgba(155, 28, 28, 0.25);
   border-bottom: 1px solid rgba(155, 28, 28, 0.25);
   font-family: var(--font-display);
-  font-size: clamp(0.98rem, 2.2vw, 1.15rem);
+  font-size: clamp(1rem, 2.4vw, 1.18rem);
   font-style: italic;
   color: var(--ink);
   line-height: 1.45;
   max-width: 18em;
 }
 
-.book-leaf__body cite {
+.page-paper-inner cite {
   display: block;
-  margin-top: 0.35rem;
+  margin-top: 0.45rem;
   font-size: 0.75rem;
   font-style: normal;
   letter-spacing: 0.1em;
@@ -906,17 +622,42 @@ body {
   font-weight: 600;
 }
 
+.page-decor-mark {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  font-style: italic;
+  color: #9b1c1c;
+  line-height: 1;
+}
+
+.page-decor-sub {
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  font-weight: 700;
+  color: #c9a227;
+}
+
+.page-decor-line {
+  width: 48px;
+  height: 1px;
+  background: rgba(155, 28, 28, 0.3);
+}
+
+.page-small {
+  margin-top: 0.5rem !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(58, 42, 40, 0.55) !important;
+}
+
+/* Controles */
 .book-controls {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  margin-top: 1rem;
   flex-wrap: wrap;
-}
-
-.book-controls[hidden] {
-  display: none !important;
 }
 
 .book-btn {
@@ -975,74 +716,18 @@ body {
   letter-spacing: 0.04em;
 }
 
-@media (max-width: 700px) {
-  .book {
-    --page-w: min(270px, calc(100vw - 2rem));
-    --page-h: min(380px, 52vh);
+@media (max-width: 600px) {
+  .flipbook {
+    width: min(100%, 100%);
+    height: min(380px, 52vh);
   }
 
-  .book-leaf {
+  .page-paper-inner p {
     font-size: 0.82rem;
   }
 
-  .book-page--left,
-  .book-page--right,
-  .book-flip__face {
-    padding: 0.95rem 0.85rem 0.8rem;
-  }
-}
-
-@media (max-width: 420px) {
-  .book {
-    --page-w: min(100%, calc(100vw - 1.5rem));
-  }
-
-  .book.is-open {
-    width: var(--page-w);
-  }
-
-  .book-inner {
-    width: 100%;
-    grid-template-columns: 1fr;
-    position: relative;
-    height: auto;
-    min-height: var(--page-h);
-  }
-
-  .book-body {
-    height: auto;
-    min-height: 420px;
-    overflow: visible;
-  }
-
-  .book-spine,
-  .book-flip {
-    display: none !important;
-  }
-
-  .book.is-open .book-cover,
-  .book.is-turning .book-cover {
-    display: none !important;
-  }
-
-  .book-page--left {
-    border-radius: 3px 3px 0 0;
-    min-height: 140px;
-    border-bottom: 1px solid rgba(155, 28, 28, 0.12);
-  }
-
-  .book-page--right {
-    border-radius: 0 0 3px 3px;
-    min-height: 200px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .book,
-  .book-cover,
-  .book-flip,
-  .book-inner {
-    transition-duration: 0.01ms !important;
+  .page-paper-inner {
+    padding: 1rem 0.9rem 0.85rem;
   }
 }
 

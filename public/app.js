@@ -129,326 +129,128 @@
     }
   }
 
-// ——— Historia: libro de verdad (rebuild limpio)
+// ——— Historia: libro real con StPageFlip (apertura + paso de páginas)
   (function setupStoryBook() {
-    const book = document.getElementById("book");
-    const cover = document.getElementById("bookCover");
-    const leftEl = document.getElementById("bookLeft");
-    const rightEl = document.getElementById("bookRight");
-    const flipEl = document.getElementById("bookFlip");
-    const flipFront = document.getElementById("bookFlipFront");
-    const flipBack = document.getElementById("bookFlipBack");
+    const root = document.getElementById("flipbook");
     const hint = document.getElementById("bookHint");
-    const controls = document.getElementById("bookControls");
     const prevBtn = document.getElementById("bookPrev");
     const nextBtn = document.getElementById("bookNext");
     const closeBtn = document.getElementById("bookClose");
     const label = document.getElementById("bookLabel");
-    if (!book || !cover || !leftEl || !rightEl) return;
-
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const TURN_MS = reduceMotion ? 20 : 850;
-    const CLOSE_MS = reduceMotion ? 0 : 400;
-    const FLIP_MS = reduceMotion ? 20 : 750;
-
-    function leaf(html, num) {
-      return (
-        '<article class="book-leaf">' +
-        '<div class="book-leaf__body">' +
-        html +
-        "</div>" +
-        '<span class="book-leaf__num">' +
-        num +
-        "</span></article>"
-      );
-    }
-
-    function decor(mark, sub, num) {
-      return (
-        '<article class="book-leaf book-leaf--decor">' +
-        '<div class="book-leaf__body">' +
-        '<span class="book-decor-mark">' +
-        mark +
-        "</span>" +
-        '<span class="book-decor-line" aria-hidden="true"></span>' +
-        '<span class="book-decor-sub">' +
-        sub +
-        "</span></div>" +
-        '<span class="book-leaf__num">' +
-        (num || " ") +
-        "</span></article>"
-      );
-    }
-
-    // Cada spread = [izquierda, derecha]
-    const spreads = [
-      {
-        left: decor("A", "XV", " "),
-        right: leaf(
-          "<p>Hay momentos que marcan un antes y un después. Los quince años de " +
-            "<strong>Alahya</strong> son uno de ellos: el umbral entre la niña que " +
-            "soñaba castillos y la joven que camina con gracia hacia su propio destino.</p>",
-          "1"
-        ),
-        hint: "Libro abierto · Pasa la hoja →",
-      },
-      {
-        left: leaf(
-          "<p>Esta noche no es solo un baile. Es gratitud a su madre, quien la crió con " +
-            "fe, ternura y fuerza; y un cariño eterno al recuerdo de su papá, siempre " +
-            "presente en el corazón.</p>",
-          "2"
-        ),
-        right: leaf(
-          "<p>Es amistad, risas, vals y estrellas. Es el comienzo de un capítulo escrito " +
-            "en oro y rosa.</p>",
-          "3"
-        ),
-        hint: "Libro abierto · Continúa la historia",
-      },
-      {
-        left: leaf(
-          '<p class="book-title">Mensaje de Alahya</p>' +
-            "<blockquote>“Hoy celebro la vida, el amor de mi familia y el milagro de crecer " +
-            "rodeada de ustedes.”" +
-            "<cite>— Alahya</cite></blockquote>",
-          "4"
-        ),
-        right: decor("✦", "Fin", " "),
-        hint: "Mensaje de Alahya · ← o Cerrar",
-      },
-    ];
-
-    const total = spreads.length;
-    let index = 0;
-    let isOpen = false;
-    let busy = false;
-    let timers = [];
-
-    function clearTimers() {
-      timers.forEach((t) => window.clearTimeout(t));
-      timers = [];
-    }
-
-    function after(ms, fn) {
-      const id = window.setTimeout(fn, ms);
-      timers.push(id);
-    }
-
-    function paint(i) {
-      const s = spreads[i];
-      if (!s) return;
-      leftEl.innerHTML = s.left;
-      rightEl.innerHTML = s.right;
-      if (hint && isOpen) hint.textContent = s.hint;
-      if (label) label.textContent = i + 1 + " / " + total;
-      if (prevBtn) prevBtn.disabled = busy || i <= 0;
-      if (nextBtn) nextBtn.disabled = busy || i >= total - 1;
-    }
-
-    function resetPageFlip() {
-      if (!flipEl) return;
-      flipEl.classList.remove("is-on", "is-turned");
-      flipEl.style.transition = "none";
-      if (flipFront) flipFront.innerHTML = "";
-      if (flipBack) flipBack.innerHTML = "";
-      void flipEl.offsetWidth;
-      flipEl.style.transition = "";
-    }
-
-    function setClosedUI() {
-      isOpen = false;
-      index = 0;
-      busy = false;
-      book.classList.remove("is-open", "is-turning");
-      cover.classList.remove("is-turned", "is-resting");
-      if (controls) controls.hidden = true;
-      book.setAttribute("aria-expanded", "false");
-      if (hint) hint.textContent = "Toca la portada para abrir el libro";
-      resetPageFlip();
-      paint(0);
-    }
-
-    function openBook() {
-      if (busy || isOpen) return;
-      busy = true;
-      clearTimers();
-      index = 0;
-      paint(0);
-      resetPageFlip();
-      if (controls) controls.hidden = true;
-      if (hint) hint.textContent = "Abriendo el libro…";
-      book.setAttribute("aria-expanded", "true");
-
-      // Apertura simple y estable (sin ensanchar a mitad — eso se veía feo y rompía el cierre):
-      // 1) Gira la portada (1 página)
-      // 2) Al terminar: portada fuera + ensancha a 2 páginas + controles
-      cover.classList.remove("is-resting", "is-turned");
-      book.classList.remove("is-open");
-      book.classList.add("is-turning");
-
-      // Quitar transition residual del cierre
-      cover.style.transition = "";
-      void cover.offsetWidth;
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          cover.classList.add("is-turned");
-        });
-      });
-
-      after(TURN_MS + 50, () => {
-        cover.classList.add("is-resting");
-        book.classList.remove("is-turning");
-        book.classList.add("is-open");
-        isOpen = true;
-        busy = false;
-        if (controls) controls.hidden = false;
-        if (hint) hint.textContent = spreads[0].hint;
-        paint(0);
-      });
-    }
-
-    function closeBook() {
-      if (busy || !isOpen) return;
-      busy = true;
-      clearTimers();
-      resetPageFlip();
-      if (controls) controls.hidden = true;
-      if (hint) hint.textContent = "Cerrando…";
-
-      // Cierre limpio (como antes, el que te gustaba):
-      // Portada aparece YA cerrada (sin girar al revés) y se recorta a 1 página
-      cover.style.transition = "none";
-      cover.classList.remove("is-resting", "is-turned");
-      book.classList.remove("is-turning", "is-open");
-      void cover.offsetWidth;
-      cover.style.transition = "";
-
-      after(CLOSE_MS, () => {
-        setClosedUI();
-      });
-    }
-
-    function go(delta) {
-      if (!isOpen || busy) return;
-      const next = index + delta;
-      if (next < 0 || next >= total) return;
-
-      // Sin animación 3D de hoja en móvil estrecho o reduced motion
-      const canFlip =
-        flipEl &&
-        flipFront &&
-        flipBack &&
-        !reduceMotion &&
-        window.matchMedia("(min-width: 421px)").matches;
-
-      if (!canFlip) {
-        index = next;
-        paint(index);
-        return;
+    if (!root || typeof St === "undefined" || !St.PageFlip) {
+      if (hint) {
+        hint.textContent = "El libro no pudo cargar. Recarga la página.";
       }
+      return;
+    }
 
-      const from = spreads[index];
-      const to = spreads[next];
-      busy = true;
-      paint(index); // keep buttons disabled via busy after paint
-      if (prevBtn) prevBtn.disabled = true;
-      if (nextBtn) nextBtn.disabled = true;
+    const pages = root.querySelectorAll(".page");
+    if (!pages.length) return;
 
-      if (delta > 0) {
-        // Adelante: hoja derecha gira; frente = derecha actual; dorso = nueva izquierda
-        flipFront.innerHTML = from.right;
-        flipBack.innerHTML = to.left;
-        rightEl.innerHTML = to.right;
+    // Tamaño base de UNA página (el libro abierto = 2 páginas)
+    const pageW = Math.min(290, Math.max(240, window.innerWidth < 600 ? window.innerWidth - 48 : 290));
+    const pageH = Math.min(420, Math.round(pageW * 1.4));
 
-        flipEl.classList.remove("is-turned");
-        flipEl.classList.add("is-on");
-        flipEl.style.transition = "none";
-        void flipEl.offsetWidth;
-        flipEl.style.transition = "";
+    let pageFlip;
+    try {
+      pageFlip = new St.PageFlip(root, {
+        width: pageW,
+        height: pageH,
+        size: "stretch",
+        minWidth: 220,
+        maxWidth: 340,
+        minHeight: 320,
+        maxHeight: 480,
+        drawShadow: true,
+        maxShadowOpacity: 0.45,
+        showCover: true,
+        mobileScrollSupport: false,
+        usePortrait: true,
+        flippingTime: 900,
+        startPage: 0,
+        autoSize: true,
+        clickEventForward: true,
+        useMouseEvents: true,
+        showPageCorners: true,
+        disableFlipByClick: false,
+      });
+      pageFlip.loadFromHTML(pages);
+    } catch (err) {
+      console.error("PageFlip init error", err);
+      if (hint) hint.textContent = "No se pudo iniciar el libro.";
+      return;
+    }
 
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            flipEl.classList.add("is-turned");
-          });
-        });
-
-        after(FLIP_MS + 30, () => {
-          leftEl.innerHTML = to.left;
-          index = next;
-          resetPageFlip();
-          busy = false;
-          paint(index);
-        });
-      } else {
-        // Atrás
-        flipFront.innerHTML = to.right;
-        flipBack.innerHTML = from.left;
-        leftEl.innerHTML = to.left;
-
-        flipEl.classList.add("is-on", "is-turned");
-        flipEl.style.transition = "none";
-        void flipEl.offsetWidth;
-        flipEl.style.transition = "";
-
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            flipEl.classList.remove("is-turned");
-          });
-        });
-
-        after(FLIP_MS + 30, () => {
-          rightEl.innerHTML = to.right;
-          index = next;
-          resetPageFlip();
-          busy = false;
-          paint(index);
-        });
+    function updateUI() {
+      const i = pageFlip.getCurrentPageIndex();
+      const n = pageFlip.getPageCount();
+      if (label) label.textContent = i + 1 + " / " + n;
+      if (prevBtn) prevBtn.disabled = i <= 0;
+      if (nextBtn) nextBtn.disabled = i >= n - 1;
+      if (hint) {
+        if (i === 0) {
+          hint.textContent = "Toca la portada o desliza para abrir el libro";
+        } else if (i >= n - 1) {
+          hint.textContent = "Fin del libro · ← o Portada";
+        } else {
+          hint.textContent = "Pasa las páginas · desliza o usa ← →";
+        }
       }
     }
 
-    cover.addEventListener("click", () => {
-      if (!isOpen && !busy) openBook();
-    });
+    pageFlip.on("flip", updateUI);
+    pageFlip.on("init", updateUI);
+    pageFlip.on("changeState", updateUI);
 
     prevBtn &&
       prevBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        go(-1);
+        pageFlip.flipPrev();
       });
     nextBtn &&
       nextBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        go(1);
+        pageFlip.flipNext();
       });
     closeBtn &&
       closeBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        closeBook();
+        // Volver a la portada con animación si es posible
+        try {
+          pageFlip.flip(0);
+        } catch (_) {
+          pageFlip.turnToPage(0);
+        }
       });
 
-    book.addEventListener("keydown", (e) => {
-      if (busy) return;
-      if (!isOpen && (e.key === "Enter" || e.key === " ")) {
-        e.preventDefault();
-        openBook();
-        return;
-      }
-      if (!isOpen) return;
+    // Teclado
+    document.addEventListener("keydown", (e) => {
+      const hist = document.getElementById("historia");
+      if (!hist) return;
+      const rect = hist.getBoundingClientRect();
+      const inView = rect.top < window.innerHeight && rect.bottom > 0;
+      if (!inView) return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        go(-1);
+        pageFlip.flipPrev();
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        go(1);
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        closeBook();
+        pageFlip.flipNext();
       }
     });
 
-    setClosedUI();
+    // Ajuste al rotar / redimensionar
+    let resizeT;
+    window.addEventListener("resize", () => {
+      window.clearTimeout(resizeT);
+      resizeT = window.setTimeout(() => {
+        try {
+          pageFlip.update();
+        } catch (_) {}
+      }, 200);
+    });
+
+    updateUI();
   })();
 
   // ——— Particles
