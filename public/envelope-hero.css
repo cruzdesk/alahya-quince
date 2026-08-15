@@ -487,8 +487,8 @@
     transform: translateY(calc(48% - var(--out) * 108%));
   }
   .hero-envelope.is-open .he-card {
-    /* Móvil estable: no sube bajo el menú; V del bolsillo intacta (ápice 50%) */
-    transform: translateY(-62%);
+    /* Móvil: un poquito más alta al abrir (solo altura; V sin tocar) */
+    transform: translateY(-65%);
   }
   .he-card-inner {
     padding: 1.2rem 0.9rem 2.35rem !important;
