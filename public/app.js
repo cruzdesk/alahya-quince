@@ -190,6 +190,26 @@
       return;
     }
 
+    // Índice propio: en la última hoja la lib a veces se traba y getCurrentPageIndex miente
+    let navIndex = 0;
+    let busyNav = false;
+
+    function pageCount() {
+      try {
+        return pageFlip.getPageCount() || pages.length;
+      } catch (_) {
+        return pages.length;
+      }
+    }
+
+    function libIndex() {
+      try {
+        return pageFlip.getCurrentPageIndex();
+      } catch (_) {
+        return navIndex;
+      }
+    }
+
     function setLabel(i, n) {
       const contentTotal = Math.max(0, n - 2);
       if (!label) return;
@@ -199,177 +219,186 @@
     }
 
     function updateUI() {
-      const i = pageFlip.getCurrentPageIndex();
-      const n = pageFlip.getPageCount();
+      const n = pageCount();
+      // Preferir índice de la lib si es coherente; si no, el nuestro
+      let i = libIndex();
+      if (typeof i !== "number" || i < 0 || i >= n) i = navIndex;
+      // Si la lib se quedó en 0 pero nosotros no (o al revés en fin), confiar en navIndex tras un botón
+      navIndex = Math.max(0, Math.min(n - 1, i));
+      i = navIndex;
       setLabel(i, n);
-      // Nunca dejar botones “pegados” en disabled por un estado raro de la lib
-      if (prevBtn) prevBtn.disabled = i <= 0;
-      if (nextBtn) nextBtn.disabled = i >= n - 1;
-      if (closeBtn) closeBtn.disabled = i <= 0;
+      // Siempre reactivar; solo deshabilitar por posición
+      if (prevBtn) {
+        prevBtn.disabled = i <= 0;
+        prevBtn.style.pointerEvents = i <= 0 ? "none" : "auto";
+      }
+      if (nextBtn) {
+        nextBtn.disabled = i >= n - 1;
+        nextBtn.style.pointerEvents = i >= n - 1 ? "none" : "auto";
+      }
+      if (closeBtn) {
+        closeBtn.disabled = false;
+        closeBtn.style.pointerEvents = "auto";
+      }
       if (hint) {
-        if (i === 0) {
-          hint.textContent = "Toca la portada, desliza o usa → para abrir";
-        } else if (i >= n - 1) {
-          hint.textContent = "Fin del libro · ← o Portada";
-        } else {
-          hint.textContent = "Pasa las páginas · desliza o usa ← →";
-        }
+        if (i === 0) hint.textContent = "Toca la portada, desliza o usa → para abrir";
+        else if (i >= n - 1) hint.textContent = "Fin del libro · toca ← o Portada";
+        else hint.textContent = "Pasa las páginas · desliza o usa ← →";
       }
     }
 
-    /** Fuerza ir a una página (más fiable en móvil que solo flipPrev) */
-    function forceToPage(target) {
-      const n = pageFlip.getPageCount();
+    /**
+     * Ir a página por índice (turnToPage).
+     * En móvil, al llegar al final, flipPrev/flip se rompen → solo usamos turnToPage.
+     */
+    function goTo(target, withFlip) {
+      const n = pageCount();
       const t = Math.max(0, Math.min(n - 1, target));
-      try {
-        pageFlip.turnToPage(t);
-      } catch (_) {}
-      // segundo intento (a veces el primero se ignora a mitad de animación)
-      window.setTimeout(() => {
+      navIndex = t;
+      busyNav = true;
+
+      const apply = () => {
         try {
-          if (pageFlip.getCurrentPageIndex() !== t) {
-            pageFlip.turnToPage(t);
-          }
-        } catch (e2) {}
+          pageFlip.turnToPage(t);
+        } catch (_) {}
+      };
+
+      // Si pedimos animación y no es un salto grande, intentar flip
+      if (withFlip) {
+        const cur = libIndex();
         try {
-          pageFlip.update();
-        } catch (e3) {}
-        updateUI();
-      }, 40);
-      window.setTimeout(updateUI, 200);
-      window.setTimeout(updateUI, 450);
+          if (t > cur) pageFlip.flipNext("top");
+          else if (t < cur) pageFlip.flipPrev("top");
+        } catch (_) {}
+      }
+
+      apply();
+      // Reintentos: la última hoja a veces ignora el primer turnToPage
+      [30, 80, 160, 320].forEach((ms) => {
+        window.setTimeout(() => {
+          try {
+            if (pageFlip.getCurrentPageIndex() !== t) pageFlip.turnToPage(t);
+          } catch (_) {}
+          try {
+            pageFlip.update();
+          } catch (_) {}
+          navIndex = t;
+          updateUI();
+          if (ms >= 320) busyNav = false;
+        }, ms);
+      });
+      updateUI();
+    }
+
+    // Spreads con showCover: [0], [1,2], [3,4], [5,6]...
+    function prevIndex(from) {
+      if (from <= 0) return 0;
+      if (from === 1) return 0; // de la 1.ª interior a portada
+      // saltar al inicio del spread anterior
+      if (from % 2 === 1) return Math.max(0, from - 2);
+      return Math.max(0, from - 1);
+    }
+
+    function nextIndex(from) {
+      const n = pageCount();
+      if (from >= n - 1) return n - 1;
+      if (from === 0) return 1;
+      if (from % 2 === 1) return Math.min(n - 1, from + 2);
+      return Math.min(n - 1, from + 1);
     }
 
     function goNext() {
-      const before = pageFlip.getCurrentPageIndex();
-      const n = pageFlip.getPageCount();
-      if (before >= n - 1) return;
-      // Intentar animación
-      try {
-        pageFlip.flipNext("top");
-      } catch (_) {}
-      window.setTimeout(() => {
-        if (pageFlip.getCurrentPageIndex() === before) {
-          // En paisaje el “siguiente” suele ser +1 o +2 (spread)
-          try {
-            pageFlip.turnToNextPage();
-          } catch (e2) {
-            forceToPage(before + 1);
-          }
-        }
-        updateUI();
-      }, 90);
-      window.setTimeout(updateUI, 400);
-    }
-
-    function goPrev() {
-      const before = pageFlip.getCurrentPageIndex();
-      if (before <= 0) {
+      // No bloquear si solo estábamos reintentando turnToPage
+      const from = Math.max(navIndex, libIndex());
+      const n = pageCount();
+      if (from >= n - 1) {
+        navIndex = n - 1;
+        busyNav = false;
         updateUI();
         return;
       }
-      // flipPrev a menudo falla en móvil con tapa dura / spreads
-      try {
-        pageFlip.flipPrev("top");
-      } catch (_) {}
-      window.setTimeout(() => {
-        let now = pageFlip.getCurrentPageIndex();
-        if (now === before || now > before) {
-          try {
-            pageFlip.turnToPrevPage();
-          } catch (e2) {}
-          now = pageFlip.getCurrentPageIndex();
-        }
-        if (now === before || now > before) {
-          // Forzar: un paso atrás (o dos si seguimos en el mismo spread visual)
-          forceToPage(Math.max(0, before - 1));
-          window.setTimeout(() => {
-            if (pageFlip.getCurrentPageIndex() === before) {
-              forceToPage(Math.max(0, before - 2));
-            }
-          }, 60);
-        }
+      const t = nextIndex(from);
+      goTo(t, true);
+    }
+
+    function goPrev() {
+      // Siempre permitir volver (aunque busyNav o estemos en la última hoja)
+      busyNav = false;
+      const from = Math.max(navIndex, libIndex());
+      if (from <= 0) {
+        navIndex = 0;
         updateUI();
-      }, 90);
-      window.setTimeout(updateUI, 400);
+        return;
+      }
+      const t = prevIndex(from);
+      // Sin flip animado hacia atrás: flipPrev se cuelga al final en móvil
+      goTo(t, false);
     }
 
     function goCover() {
-      // Siempre forzar portada (índice 0) — flip(0) falla mucho en móvil
-      forceToPage(0);
-      try {
-        pageFlip.flipPrev("top");
-      } catch (_) {}
-      // martillar el 0 un par de veces
-      window.setTimeout(() => forceToPage(0), 100);
-      window.setTimeout(() => forceToPage(0), 280);
+      // Siempre permitir Portada, incluso si la lib está trabada al final
+      busyNav = false;
+      navIndex = 0;
+      goTo(0, false);
     }
 
-    pageFlip.on("flip", updateUI);
+    pageFlip.on("flip", (e) => {
+      const d = e && typeof e.data === "number" ? e.data : libIndex();
+      if (typeof d === "number" && d >= 0) navIndex = d;
+      busyNav = false;
+      updateUI();
+    });
     pageFlip.on("init", () => {
+      navIndex = libIndex() || 0;
       updateUI();
       window.setTimeout(() => {
         try {
           pageFlip.update();
         } catch (_) {}
+        navIndex = libIndex() || navIndex;
         updateUI();
       }, 120);
     });
 
-    // Delegación en #bookControls (por encima del flipbook)
-    const controls = document.getElementById("bookControls");
+    // Un solo listener (sin dobles) + siempre funciona aunque disabled se haya “pegado”
     let lastTap = 0;
-    function onControlActivate(e) {
+    function onBtnClick(e) {
       const btn = e.target.closest("button");
-      if (!btn || (controls && !controls.contains(btn))) return;
-      // evitar doble disparo click+pointerup en el mismo toque
-      const now = Date.now();
-      if (now - lastTap < 320) return;
-      lastTap = now;
+      if (!btn) return;
+      const id = btn.id;
+      if (id !== "bookPrev" && id !== "bookNext" && id !== "bookClose") return;
       e.preventDefault();
       e.stopPropagation();
-      if (btn.disabled) return;
-      if (btn.id === "bookPrev") goPrev();
-      else if (btn.id === "bookNext") goNext();
-      else if (btn.id === "bookClose") goCover();
-    }
-    if (controls) {
-      controls.addEventListener("click", onControlActivate);
-    }
-    // fallbacks directos (por si la delegación falla)
-    if (prevBtn) {
-      prevBtn.type = "button";
-      prevBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const now = Date.now();
-        if (now - lastTap < 320) return;
-        lastTap = now;
+      const now = Date.now();
+      if (now - lastTap < 280) return;
+      lastTap = now;
+      // Quitar disabled residual antes de actuar
+      if (id === "bookPrev") {
+        btn.disabled = false;
         goPrev();
-      });
-    }
-    if (nextBtn) {
-      nextBtn.type = "button";
-      nextBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const now = Date.now();
-        if (now - lastTap < 320) return;
-        lastTap = now;
+      } else if (id === "bookNext") {
+        btn.disabled = false;
         goNext();
-      });
-    }
-    if (closeBtn) {
-      closeBtn.type = "button";
-      closeBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const now = Date.now();
-        if (now - lastTap < 320) return;
-        lastTap = now;
+      } else if (id === "bookClose") {
+        btn.disabled = false;
         goCover();
-      });
+      }
     }
+
+    const controls = document.getElementById("bookControls");
+    if (controls) {
+      controls.style.zIndex = "1000";
+      controls.style.position = "relative";
+      controls.addEventListener("click", onBtnClick);
+    }
+    [prevBtn, nextBtn, closeBtn].forEach((el) => {
+      if (!el) return;
+      el.type = "button";
+      el.disabled = false;
+      el.removeAttribute("disabled");
+      el.style.pointerEvents = "auto";
+      el.style.zIndex = "1001";
+    });
 
     if (shell) shell.classList.add("book-shell--live");
 
