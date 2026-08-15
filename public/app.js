@@ -130,6 +130,7 @@
   }
 
 
+
 // ——— Historia: libro real con StPageFlip (apertura + paso de páginas)
   (function setupStoryBook() {
     const root = document.getElementById("flipbook");
