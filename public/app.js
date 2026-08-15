@@ -129,7 +129,6 @@
     }
   }
 
-  // ——— Historia: libro 3D + paso que se voltean
   // ——— Historia: libro real (portada que se abre + pasada de hoja)
   (function setupStoryBook() {
     const book = document.getElementById("storyBook");
@@ -183,7 +182,8 @@
 
     const spreads = [
       {
-        left: decorLeaf("A", "XV", " "),
+        // Interior limpio (no repetir la tapa A/XV: eso se veía “viejo”)
+        left: decorLeaf("✦", "Mis XV", " "),
         right: leaf(
           "<p>Hay momentos que marcan un antes y un después. Los quince años de " +
             "<strong>Alahya</strong> son uno de ellos: el umbral entre la niña que " +
@@ -340,10 +340,10 @@
       clearCoverTimer();
 
       if (nextOpen) {
-        // Abrir: expandir + voltear tapa como libro
+        // Abrir: 1) expandir con tapa al 100%  2) girar tapa  3) quitar tapa
         coverBusy = true;
         open = false;
-        book.classList.remove("is-open", "is-cover-done");
+        book.classList.remove("is-open", "is-cover-open", "is-cover-done");
         book.classList.add("is-opening");
         book.setAttribute("aria-expanded", "true");
         openEl.hidden = false;
@@ -352,51 +352,45 @@
         if (hint) hint.textContent = "Abriendo el libro…";
         updateNav();
 
-        // Un frame para aplicar ancho, luego girar tapa
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            book.classList.add("is-cover-open");
-          });
-        });
-
+        // Esperar a que el ancho crezca un poco, luego girar (tapa sigue tapando)
         coverTimer = window.setTimeout(() => {
-          book.classList.remove("is-opening");
-          book.classList.add("is-open", "is-cover-done");
-          open = true;
-          coverBusy = false;
-          if (nav) nav.hidden = false;
-          if (hint) hint.textContent = spreads[0].hint;
-          updateNav();
-        }, COVER_MS + 80);
+          book.classList.add("is-cover-open");
+          coverTimer = window.setTimeout(() => {
+            book.classList.remove("is-opening", "is-cover-open");
+            book.classList.add("is-open", "is-cover-done");
+            open = true;
+            coverBusy = false;
+            if (nav) nav.hidden = false;
+            if (hint) hint.textContent = spreads[0].hint;
+            updateNav();
+          }, COVER_MS + 40);
+        }, reduceMotion ? 0 : 120);
       } else {
-        // Cerrar: mostrar tapa abierta y cerrarla
+        // Cerrar: reponer tapa abierta → cerrar → colapsar
         coverBusy = true;
         if (nav) nav.hidden = true;
         resetFlip();
         renderInstant(0);
 
-        book.classList.remove("is-cover-done");
+        book.classList.remove("is-cover-done", "is-open");
         book.classList.add("is-opening", "is-cover-open");
-        book.classList.remove("is-open");
         openEl.hidden = false;
 
-        // Un frame y cerrar tapa
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            book.classList.remove("is-cover-open");
-          });
-        });
-
+        // Forzar reflow con tapa abierta visible, luego cerrar
+        void cover.offsetWidth;
         coverTimer = window.setTimeout(() => {
-          book.classList.remove("is-opening", "is-open", "is-cover-open", "is-cover-done");
-          openEl.hidden = true;
-          open = false;
-          coverBusy = false;
-          if (nav) nav.hidden = true;
-          if (hint) hint.textContent = "Toca la portada para abrir el libro";
-          book.setAttribute("aria-expanded", "false");
-          updateNav();
-        }, COVER_MS + 80);
+          book.classList.remove("is-cover-open");
+          coverTimer = window.setTimeout(() => {
+            book.classList.remove("is-opening", "is-open", "is-cover-open", "is-cover-done");
+            openEl.hidden = true;
+            open = false;
+            coverBusy = false;
+            if (nav) nav.hidden = true;
+            if (hint) hint.textContent = "Toca la portada para abrir el libro";
+            book.setAttribute("aria-expanded", "false");
+            updateNav();
+          }, COVER_MS + 40);
+        }, reduceMotion ? 0 : 40);
       }
     }
 

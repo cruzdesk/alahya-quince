@@ -481,26 +481,23 @@ body {
   transition: transform 0.95s cubic-bezier(0.4, 0.05, 0.2, 1);
 }
 
-/* Al abrir: la tapa ocupa la mitad derecha y gira sobre el lomo */
-.story-book.is-opening .sb-cover,
-.story-book.is-open .sb-cover {
-  width: 50%;
-}
-
+/*
+  Cerrado / expandiendo: tapa al 100% (tapa el interior; no se ve “basura” a la izq).
+  Solo al girar (is-cover-open) pasa a 50% derecha y rota sobre el lomo.
+*/
 .story-book.is-cover-open .sb-cover {
+  width: 50%;
   transform: rotateY(-158deg);
   pointer-events: none;
 }
 
-/* Tras abrir del todo, tapa queda a un lado sin tapar botones */
-.story-book.is-open:not(.is-opening) .sb-cover {
-  /* sigue visible abierta a la izq un momento; se oculta con clase is-cover-done */
-}
-
+/* Tras la animación: tapa fuera del todo (sin fantasma 3D) */
 .story-book.is-cover-done .sb-cover {
-  visibility: hidden;
-  pointer-events: none;
-  transition: none;
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: none !important;
+  transition: none !important;
 }
 
 .sb-cover:focus-visible {
