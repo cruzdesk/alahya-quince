@@ -139,18 +139,18 @@
 }
 
 /*
- * Carta: entre el dorso (z1) y el bolsillo en V (z3+).
- * Al subir, los lados del bolsillo tapan los bordes: sale por la V, no como
- * un rectángulo suelto por encima de un hueco cuadrado.
+ * Carta: entre dorso (z1) y bolsillo en V (z3).
+ * Al abrir: sube al espacio de la tapa (triángulo); el texto queda LIBRE
+ * y solo un poco de papel inferior sigue metido en la V.
  */
 .he-card {
   position: absolute;
   left: 7%;
   right: 7%;
-  top: 10%;
+  top: 8%;
   z-index: 2;
-  /* out=0: metida; out=1: arriba pero aún enganchada en la V */
-  transform: translateY(calc(52% - var(--out) * 96%));
+  /* out=0 metida · out=1 sale por la V hacia el hueco de la tapa */
+  transform: translateY(calc(58% - var(--out) * 128%));
   transform-style: flat;
   isolation: isolate;
   pointer-events: none;
@@ -164,17 +164,21 @@
 
 .hero-envelope.is-open .he-card {
   pointer-events: auto;
-  /* Menos subida que antes: el borde inferior queda DENTRO de la V del bolsillo */
-  transform: translateY(-44%);
+  /*
+   * Sube al hueco de la tapa. Sigue z=2 (bajo el bolsillo) para que la V
+   * sujete solo la base; el texto queda por encima de la punta.
+   */
+  transform: translateY(-78%);
   will-change: auto;
   filter: none;
+  z-index: 2;
 }
 
 .he-card-inner {
   max-width: none !important;
   width: 100%;
-  /* Más aire abajo: la punta de la V cae en papel en blanco, no sobre el texto */
-  padding: 1.55rem 1.25rem 3.75rem !important;
+  /* Poco padding abajo: el texto no compite con la V; solo un margen de anclaje */
+  padding: 1.45rem 1.25rem 2.1rem !important;
   box-shadow: 0 14px 36px rgba(40, 10, 15, 0.18);
   background: #fffcf8 !important;
   background-image: none !important;
@@ -218,38 +222,46 @@
   line-height: 1.45;
 }
 
-/* Espacio en blanco debajo de la fecha (la punta del sobre no debe tapar el texto) */
+/* Fecha visible: sin relleno enorme que la V “comía” antes */
 .he-card-inner .hero-date {
   margin-bottom: 0 !important;
-  padding-bottom: 3.75rem;
+  padding-bottom: 0.35rem;
   font-size: 0.75rem;
   -webkit-font-smoothing: antialiased;
 }
 
 /*
- * Bolsillo frontal en V (no un rectángulo).
- * Altura casi total del sobre: la boca es la V, no un hueco cuadrado arriba.
- * clip-path: picos laterales bajos + cúspide central alta (abertura en V).
+ * Bolsillo frontal en V — misma geometría que la tapa (triángulo invertido).
+ * Cerrado/animación: cubre la carta por debajo de la solapa.
+ * Abierto: se acorta para solo “sujetar” la base (no tapa el texto).
  */
 .he-front {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  /* Cubre casi todo el cuerpo: la carta solo asoma por la V */
-  height: 92%;
+  /* ~misma proporción que la tapa (he-flap height 56%) */
+  height: 58%;
   z-index: 3;
   border-radius: 0 0 10px 10px;
   background:
-    linear-gradient(180deg, rgba(196, 30, 58, 0.15) 0%, transparent 28%),
+    linear-gradient(180deg, rgba(196, 30, 58, 0.18) 0%, transparent 32%),
     linear-gradient(180deg, #b01a2a 0%, #6b1018 48%, #4a0c12 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.4);
   border-top: none;
-  /* V marcada: laterales a ~48% de altura del panel, punta arriba al 2% */
-  clip-path: polygon(0 48%, 50% 2%, 100% 48%, 100% 100%, 0 100%);
-  -webkit-clip-path: polygon(0 48%, 50% 2%, 100% 48%, 100% 100%, 0 100%);
+  /* V = espejo de la tapa: punta arriba al centro */
+  clip-path: polygon(0 42%, 50% 0, 100% 42%, 100% 100%, 0 100%);
+  -webkit-clip-path: polygon(0 42%, 50% 0, 100% 42%, 100% 100%, 0 100%);
   box-shadow: inset 0 12px 22px rgba(0, 0, 0, 0.12);
   pointer-events: none;
+}
+
+/* Abierto: bolsillo bajo; la V solo abraza el borde inferior (no el texto) */
+.hero-envelope.is-open .he-front {
+  height: 40%;
+  z-index: 3;
+  clip-path: polygon(0 36%, 50% 0, 100% 36%, 100% 100%, 0 100%);
+  -webkit-clip-path: polygon(0 36%, 50% 0, 100% 36%, 100% 100%, 0 100%);
 }
 
 /* Filo dorado a lo largo de la V (boca del sobre) */
@@ -267,10 +279,14 @@
     rgba(242, 228, 168, 0.85) 50%,
     rgba(212, 175, 55, 0.25)
   );
-  /* Cinta fina siguiendo el borde superior en V */
-  clip-path: polygon(0 48%, 50% 2%, 100% 48%, 97.2% 49.2%, 50% 5.5%, 2.8% 49.2%);
-  -webkit-clip-path: polygon(0 48%, 50% 2%, 100% 48%, 97.2% 49.2%, 50% 5.5%, 2.8% 49.2%);
+  clip-path: polygon(0 42%, 50% 0, 100% 42%, 97% 43.5%, 50% 4%, 3% 43.5%);
+  -webkit-clip-path: polygon(0 42%, 50% 0, 100% 42%, 97% 43.5%, 50% 4%, 3% 43.5%);
   opacity: 0.9;
+}
+
+.hero-envelope.is-open .he-front::before {
+  clip-path: polygon(0 36%, 50% 0, 100% 36%, 97% 37.5%, 50% 4%, 3% 37.5%);
+  -webkit-clip-path: polygon(0 36%, 50% 0, 100% 36%, 97% 37.5%, 50% 4%, 3% 37.5%);
 }
 
 .he-front::after {
@@ -278,16 +294,16 @@
   position: absolute;
   left: 14%;
   right: 14%;
-  top: 58%;
+  top: 55%;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.38), transparent);
   pointer-events: none;
 }
 
 /*
- * Solapa superior (triángulo del sobre).
- * No usar scaleY(0) ni visibility:hidden al abrir: eso “cortaba” el triángulo.
- * Se abre con rotateX (queda arriba, fuera del papel blanco).
+ * Solapa superior (tapa en triángulo / V invertida).
+ * Altura ~56% = misma escala que el bolsillo al cerrar.
+ * Al abrir: queda DETRÁS de la invitación (no tapa el texto).
  */
 .he-flap {
   position: absolute;
@@ -295,10 +311,9 @@
   right: 0;
   top: 0;
   height: 56%;
-  /* Por encima del bolsillo en V y de la carta */
   z-index: 5;
   transform-origin: top center;
-  transform: rotateX(calc(var(--flap) * -168deg));
+  transform: rotateX(calc(var(--flap) * -172deg));
   transform-style: preserve-3d;
   background: linear-gradient(180deg, #c41e3a 0%, #8b1520 60%, #5c1018 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
@@ -311,11 +326,12 @@
   opacity: 1;
 }
 
-/* Al abrir del todo: solapa abierta arriba (triángulo intacto), sin ocultarla */
+/* Abierto: solapa arriba y DETRÁS de la carta (z bajo) — deja ver toda la info */
 .hero-envelope.is-open .he-flap {
-  transform: rotateX(-168deg);
+  transform: rotateX(-172deg);
   opacity: 1;
   visibility: visible;
+  z-index: 1;
 }
 
 .he-flap::after {
@@ -333,7 +349,7 @@
 .he-seal {
   position: absolute;
   left: 50%;
-  top: 46%;
+  top: 48%;
   width: 56px;
   height: 56px;
   margin: -10px 0 0 -28px;
@@ -419,22 +435,31 @@
   .he-envelope {
     height: min(260px, 38vh);
   }
-  /* Carta anclada a la V; no flota como cuadrado suelto sobre el sobre */
+  /* Móvil: carta sale al hueco de la tapa; texto libre del triángulo */
   .he-card {
-    transform: translateY(calc(48% - var(--out) * 88%));
+    transform: translateY(calc(52% - var(--out) * 122%));
   }
   .hero-envelope.is-open .he-card {
-    transform: translateY(-38%);
+    transform: translateY(-70%);
+    z-index: 2;
   }
   .he-card-inner {
-    /* Más papel blanco abajo: la punta de la V cae en el vacío, no en “octubre” */
-    padding: 1.3rem 1rem 4.5rem !important;
+    padding: 1.15rem 0.95rem 1.7rem !important;
   }
   .he-card-inner .hero-date {
-    padding-bottom: 4.75rem;
+    padding-bottom: 0.2rem;
   }
   .he-front {
-    height: 94%;
+    height: 56%;
+  }
+  .hero-envelope.is-open .he-front {
+    height: 38%;
+  }
+  .he-flap {
+    height: 54%;
+  }
+  .hero-envelope.is-open .he-flap {
+    z-index: 1;
   }
   .he-seal {
     width: 48px;
