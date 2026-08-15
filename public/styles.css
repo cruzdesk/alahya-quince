@@ -465,9 +465,9 @@ body {
   background: #5c0e14;
 }
 
-/* Mientras la tapa gira, permitir que salga un poco a la izquierda */
+/* Durante el giro: seguir recortado (evita que se vea la mitad izquierda roja) */
 .book.is-turning .book-body {
-  overflow: visible;
+  overflow: hidden;
 }
 
 .book.is-open .book-body {
@@ -475,7 +475,7 @@ body {
   border-radius: 6px;
 }
 
-/* Lienzo de 2 páginas, anclado a la derecha (cerrado = solo se ve la der.) */
+/* Lienzo de 2 páginas, anclado a la derecha */
 .book-inner {
   position: absolute;
   top: 0;
@@ -488,18 +488,21 @@ body {
   box-sizing: border-box;
   gap: 0;
   background: linear-gradient(90deg, #4a0c12 0%, #8b1520 12%, #8b1520 88%, #4a0c12 100%);
-  /* Interior invisible hasta is-open: no se ve “doble página” al abrir */
+  /* Cerrado: interior oculto — solo portada */
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
+  pointer-events: none;
+  transition: opacity 0.4s ease 0.05s, visibility 0.4s ease 0.05s;
 }
 
+/* Abierto: se ve el libro completo */
 .book.is-open .book-inner {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
-/* Durante el giro: solo se revela la página DERECHA bajo la tapa (no la izquierda) */
+/* Giro: solo página derecha bajo la tapa; izquierda sigue oculta */
 .book.is-turning .book-inner {
   opacity: 1;
   visibility: visible;
