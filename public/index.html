@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css?v=20260814r" />
-  <link rel="stylesheet" href="/envelope-hero.css?v=20260814env1" />
+  <link rel="stylesheet" href="/envelope-hero.css?v=20260814env2" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
 </head>
 <body>
@@ -35,53 +35,53 @@
     </ul>
   </nav>
 
-  <!-- Sobre rojo: toca para abrir → sale la invitación -->
-  <header class="hero hero-envelope" id="inicio">
-    <div class="he-stage" id="heStage">
+  <!-- Sobre moderno: toca → solapa → carta sale ENCIMA -->
+  <header class="env" id="inicio">
+    <div class="env-stage" id="heStage">
       <div
-        class="he-envelope"
+        class="env-body"
         id="heEnvelope"
         role="button"
         tabindex="0"
         aria-label="Abrir la invitación"
         aria-expanded="false"
       >
-        <!-- Bolsa trasera del sobre -->
-        <div class="he-back" aria-hidden="true"></div>
+        <!-- 1. Fondo del sobre -->
+        <div class="env-back" aria-hidden="true"></div>
 
-        <!-- Carta / invitación (sale hacia arriba al abrir) -->
-        <div class="he-card" id="heCard">
-          <div class="hero-frame he-card-inner">
-            <p class="eyebrow">Con la bendición de Dios y el amor de mi familia</p>
-            <div class="ornament">
-              <span class="line"></span>
-              <span class="diamond">✦</span>
-              <span class="line"></span>
+        <!-- 2. Carta (z bajo al cerrar; z alto al abrir = sale por encima) -->
+        <article class="env-letter" id="heCard">
+          <div class="env-letter-inner">
+            <p class="env-eyebrow">Con la bendición de Dios y el amor de mi familia</p>
+            <div class="env-ornament" aria-hidden="true">
+              <span></span><i>✦</i><span></span>
             </div>
-            <h1 class="hero-name">
-              <span class="first">Alahya</span>
-              <span class="middle">Thaís Saltares Ortega</span>
+            <h1 class="env-name">
+              <span class="env-name-main">Alahya</span>
+              <span class="env-name-sub">Thaís Saltares Ortega</span>
             </h1>
-            <p class="hero-tagline">Mis Quince Años · Victorian Masquerade Ball</p>
-            <p class="hero-date" id="heroDate">10 de octubre de 2026 · 5:00 p.m.</p>
+            <p class="env-tagline">Mis Quince Años · Victorian Masquerade Ball</p>
+            <p class="env-date" id="heroDate">10 de octubre de 2026 · 5:00 p.m.</p>
           </div>
-        </div>
+        </article>
 
-        <!-- Frente del sobre (bolsillo inferior) -->
-        <div class="he-front" aria-hidden="true"></div>
-        <!-- Solapa triangular -->
-        <div class="he-flap" aria-hidden="true"></div>
-        <!-- Sello de lacre -->
-        <div class="he-seal" aria-hidden="true"><span>A</span></div>
+        <!-- 3. Bolsillo frontal (por encima de la carta cuando está cerrada) -->
+        <div class="env-pocket" aria-hidden="true"></div>
+
+        <!-- 4. Solapa -->
+        <div class="env-flap" aria-hidden="true"></div>
+
+        <!-- 5. Sello -->
+        <div class="env-seal" aria-hidden="true"><span>A</span></div>
       </div>
 
-      <p class="he-hint" id="heHint">Toca el sobre para abrir la invitación</p>
+      <p class="env-hint" id="heHint">Toca el sobre para abrir</p>
 
-      <div class="he-reserve">
+      <div class="env-cta">
         <a href="#reservar" class="btn btn-gold">Reservar</a>
       </div>
 
-      <div class="he-butterflies" id="heButterflies" aria-hidden="true"></div>
+      <div class="env-fx" id="heButterflies" aria-hidden="true"></div>
     </div>
   </header>
 
@@ -494,6 +494,6 @@
 
   <script src="/pr-towns.js"></script>
   <script src="/vendor/page-flip.browser.js"></script>
-  <script src="/app.js?v=20260814env1"></script>
+  <script src="/app.js?v=20260814env2"></script>
 </body>
 </html>

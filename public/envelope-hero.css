@@ -1,10 +1,17 @@
-/* =========================================================
-   Sobre de invitación — rebuild limpio
-   Patrón: bolsillo + carta + solapa (rotateX) + sello
-   Apertura: clic/toque → clase .is-open (CSS transitions)
-   ========================================================= */
+/* ============================================================
+   Sobre moderno de invitación (rebuild total)
+   Orden z cerrado: back < letter < pocket < flap < seal
+   Orden z abierto:  back < pocket < flap < letter (ARRIBA)
+   ============================================================ */
 
-.hero-envelope {
+.env {
+  --env-red: #9b1c1c;
+  --env-red-deep: #5c1018;
+  --env-red-mid: #7a1520;
+  --env-gold: #d4af37;
+  --env-cream: #fffcf8;
+  --env-ease: cubic-bezier(0.4, 0.05, 0.2, 1);
+
   position: relative;
   z-index: 4;
   min-height: 100vh;
@@ -12,310 +19,364 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5.5rem 1rem 2.5rem;
-  text-align: center;
+  padding: 5.75rem 1rem 2.5rem;
+  box-sizing: border-box;
   overflow: hidden;
+  text-align: center;
   background:
-    radial-gradient(ellipse 75% 50% at 50% 28%, rgba(212, 175, 55, 0.14), transparent 60%),
-    linear-gradient(165deg, #f8f3ec 0%, #efe6dc 55%, #e8ddd2 100%);
+    radial-gradient(ellipse 70% 45% at 50% 22%, rgba(212, 175, 55, 0.16), transparent 58%),
+    linear-gradient(168deg, #faf6f0 0%, #f0e6db 48%, #e8ddd2 100%);
 }
 
-.he-stage {
-  width: min(480px, 92vw);
+.env-stage {
+  width: min(460px, 94vw);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.15rem;
+  gap: 1.1rem;
   position: relative;
+  /* Espacio arriba para que la carta suba sin chocar con el nav */
+  padding-top: 2.5rem;
 }
 
-/* ——— Sobre ——— */
-.he-envelope {
+/* ——— Cuerpo del sobre ——— */
+.env-body {
   position: relative;
   width: 100%;
-  max-width: 440px;
-  height: min(300px, 42vh);
+  max-width: 400px;
+  height: 230px;
   margin: 0 auto;
-  perspective: 1000px;
+  perspective: 1200px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  /* La carta puede salir por arriba sin recortar el triángulo del flap */
-  overflow: visible;
+  outline: none;
 }
 
-/* Bolsillo trasero */
-.he-back {
+.env-body:focus-visible {
+  outline: 2px solid var(--env-gold);
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+
+/* Fondo */
+.env-back {
   position: absolute;
   inset: 0;
   z-index: 1;
-  border-radius: 12px;
-  background: linear-gradient(155deg, #8b1520 0%, #5c0f16 50%, #3a0a10 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.45);
-  box-shadow: 0 22px 48px rgba(60, 15, 20, 0.28);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #a61e2c 0%, var(--env-red-mid) 40%, var(--env-red-deep) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  box-shadow:
+    0 20px 50px rgba(60, 15, 20, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* Carta — metida dentro del sobre al cerrar */
-.he-card {
+/* ——— Carta (invitación) ———
+   Cerrada: z-index 2 (detrás del bolsillo)
+   Abierta: z-index 20 (DELANTE de todo el sobre) */
+.env-letter {
   position: absolute;
-  left: 6%;
-  right: 6%;
-  top: 10%;
+  left: 7%;
+  right: 7%;
+  top: 8%;
   z-index: 2;
-  transform: translateY(52%);
-  transition: transform 1s cubic-bezier(0.4, 0.05, 0.2, 1);
+  transform: translate3d(0, 42%, 0) scale(0.98);
+  transition:
+    transform 0.95s var(--env-ease) 0.22s,
+    z-index 0s linear 0.18s,
+    box-shadow 0.5s ease;
   pointer-events: none;
-  isolation: isolate;
-  -webkit-font-smoothing: antialiased;
+  will-change: transform;
 }
 
-.hero-envelope.is-open .he-card {
-  transform: translateY(-58%);
+.env.is-open .env-letter {
+  /* Sube y queda ENCIMA del bolsillo */
+  z-index: 20;
+  transform: translate3d(0, -72%, 0) scale(1);
   pointer-events: auto;
+  box-shadow: 0 18px 40px rgba(40, 10, 15, 0.22);
 }
 
-.he-card-inner {
-  max-width: none !important;
-  width: 100%;
-  padding: 1.55rem 1.25rem 2.75rem !important;
-  box-shadow: 0 14px 36px rgba(40, 10, 15, 0.18);
-  background: #fffcf8 !important;
-  background-image: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  filter: none !important;
-  transform: none !important;
+.env-letter-inner {
+  background: var(--env-cream);
+  border-radius: 6px;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  padding: 1.45rem 1.15rem 1.6rem;
+  box-shadow: 0 8px 24px rgba(40, 10, 15, 0.12);
+  position: relative;
 }
 
-.he-card-inner .hero-name .first {
-  font-size: clamp(2.2rem, 8vw, 3.4rem);
-  background: none !important;
-  -webkit-background-clip: unset !important;
-  background-clip: unset !important;
-  -webkit-text-fill-color: #9b1c1c;
-  color: #9b1c1c !important;
-  text-shadow: none;
-  filter: none;
+.env-letter-inner::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(155, 28, 28, 0.12);
+  border-radius: 3px;
+  pointer-events: none;
 }
 
-.he-card-inner .hero-name .middle {
-  font-size: clamp(0.8rem, 2.5vw, 1.05rem);
-}
-
-.he-card-inner .hero-tagline {
-  font-size: clamp(1.05rem, 2.8vw, 1.4rem);
-  margin-bottom: 0.5rem;
-}
-
-.he-card-inner .eyebrow {
+.env-eyebrow {
+  margin: 0 0 0.65rem;
   font-size: 0.58rem;
-  margin-bottom: 0.7rem;
-  line-height: 1.45;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #6b5a52;
+  font-weight: 500;
+  line-height: 1.4;
+  position: relative;
 }
 
-.he-card-inner .hero-date {
-  margin-bottom: 0 !important;
-  padding-bottom: 2.5rem;
-  font-size: 0.75rem;
+.env-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+  position: relative;
 }
 
-/* Bolsillo frontal (opaco, tapa la carta cuando está adentro) */
-.he-front {
+.env-ornament span {
+  width: 36px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(155, 28, 28, 0.35), transparent);
+}
+
+.env-ornament i {
+  font-style: normal;
+  color: var(--env-gold);
+  font-size: 0.7rem;
+}
+
+.env-name {
+  margin: 0 0 0.45rem;
+  position: relative;
+}
+
+.env-name-main {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 8vw, 3.1rem);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.05;
+  color: #9b1c1c;
+}
+
+.env-name-sub {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: clamp(0.72rem, 2.4vw, 0.92rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #5a4a44;
+}
+
+.env-tagline {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1rem, 2.8vw, 1.25rem);
+  color: #3a2a28;
+  position: relative;
+}
+
+.env-date {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: #6b5a52;
+  font-weight: 500;
+  position: relative;
+}
+
+/* Bolsillo frontal — por encima de la carta al cerrar */
+.env-pocket {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 66%;
+  height: 62%;
   z-index: 3;
-  border-radius: 0 0 12px 12px;
-  background: linear-gradient(180deg, #b01a2a 0%, #6b1018 52%, #4a0c12 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  border-radius: 0 0 14px 14px;
+  background: linear-gradient(180deg, #b42333 0%, #7a1520 48%, #4a0c12 100%);
+  border: 1px solid rgba(212, 175, 55, 0.38);
   border-top: none;
-  /* V de la boca del sobre */
-  clip-path: polygon(0 28%, 50% 0, 100% 28%, 100% 100%, 0 100%);
-  box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.1);
+  /* Boca en V del sobre */
+  clip-path: polygon(0 32%, 50% 0, 100% 32%, 100% 100%, 0 100%);
+  box-shadow: inset 0 12px 22px rgba(0, 0, 0, 0.12);
   pointer-events: none;
 }
 
-.he-front::after {
+.env-pocket::after {
   content: "";
   position: absolute;
-  left: 14%;
-  right: 14%;
-  top: 40%;
+  left: 16%;
+  right: 16%;
+  top: 38%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.45), transparent);
 }
 
-/* Solapa triangular — se abre hacia atrás (rotateX) */
-.he-flap {
+/* Solapa triangular */
+.env-flap {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
-  height: 56%;
+  height: 54%;
   z-index: 4;
   transform-origin: top center;
   transform: rotateX(0deg);
   transform-style: preserve-3d;
-  transition: transform 0.85s cubic-bezier(0.4, 0.05, 0.2, 1);
-  background: linear-gradient(180deg, #c41e3a 0%, #8b1520 55%, #5c1018 100%);
+  transition: transform 0.75s var(--env-ease);
+  background: linear-gradient(185deg, #c92a3a 0%, #8b1520 55%, #5c1018 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.5);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.48);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
   pointer-events: none;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
-.hero-envelope.is-open .he-flap {
-  transform: rotateX(-168deg);
+.env.is-open .env-flap {
+  transform: rotateX(-172deg);
+  /* Al abrir, solapa detrás de la carta */
+  z-index: 6;
 }
 
-.he-flap::after {
+.env-flap::after {
   content: "";
   position: absolute;
-  left: 16%;
-  right: 16%;
-  top: 12%;
-  bottom: 32%;
+  left: 18%;
+  right: 18%;
+  top: 14%;
+  bottom: 34%;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  border: 1px solid rgba(232, 213, 163, 0.28);
+  border: 1px solid rgba(232, 213, 163, 0.3);
   pointer-events: none;
 }
 
-/* Sello de lacre */
-.he-seal {
+/* Sello */
+.env-seal {
   position: absolute;
   left: 50%;
-  top: 46%;
-  width: 56px;
-  height: 56px;
-  margin: -8px 0 0 -28px;
-  z-index: 5;
+  top: 44%;
+  width: 54px;
+  height: 54px;
+  margin: -6px 0 0 -27px;
+  z-index: 8;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 30% 28%, #f2e4a8, #d4af37 45%, #8a7020 100%);
-  border: 2px solid rgba(255, 250, 240, 0.5);
+  background: radial-gradient(circle at 32% 28%, #f5e8b0, #d4af37 42%, #8a7020 100%);
+  border: 2px solid rgba(255, 250, 240, 0.55);
   box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  opacity: 1;
-  transform: scale(1);
-  transition:
-    opacity 0.45s ease,
-    transform 0.45s ease;
+    0 8px 18px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  transition: opacity 0.4s ease, transform 0.4s ease;
   pointer-events: none;
 }
 
-.hero-envelope.is-open .he-seal {
+.env.is-open .env-seal {
   opacity: 0;
-  transform: scale(0.7);
-  pointer-events: none;
+  transform: scale(0.65);
 }
 
-.he-seal span {
+.env-seal span {
   font-family: var(--font-display);
-  font-size: 1.45rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: #3a2410;
+  line-height: 1;
 }
 
 /* Hint */
-.he-hint {
-  margin: 0;
-  text-align: center;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
+.env-hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--ink-soft);
-  opacity: 1;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
+  color: #6b5a52;
   cursor: pointer;
   user-select: none;
-  -webkit-user-select: none;
-  padding: 0.45rem 0.75rem;
   min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
-.hero-envelope.is-open .he-hint {
+.env.is-open .env-hint {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
 }
 
-/* Botón reservar */
-.he-reserve {
-  margin-top: 0.15rem;
-  opacity: 0.55;
-  transform: translateY(6px);
-  transition: opacity 0.5s ease 0.15s, transform 0.5s ease 0.15s;
+/* CTA */
+.env-cta {
+  opacity: 0.45;
+  transform: translateY(8px);
+  transition: opacity 0.55s ease 0.25s, transform 0.55s ease 0.25s;
 }
 
-.hero-envelope.is-open .he-reserve {
+.env.is-open .env-cta {
   opacity: 1;
   transform: translateY(0);
 }
 
-.he-reserve .btn {
-  min-width: 160px;
+.env-cta .btn {
+  min-width: 150px;
 }
 
-/* ——— Mariposas al abrir ——— */
-.he-butterflies {
+/* Mariposas */
+.env-fx {
   position: absolute;
-  inset: -18% -12% -5%;
+  inset: -15% -10% 0;
   pointer-events: none;
-  z-index: 12;
+  z-index: 30;
   overflow: visible;
   visibility: hidden;
 }
 
-.hero-envelope.is-open .he-butterflies {
+.env.is-open .env-fx {
   visibility: visible;
 }
 
 .he-butterfly {
   position: absolute;
   left: 50%;
-  top: 55%;
+  top: 48%;
   font-size: var(--bf-size, 1.1rem);
   line-height: 1;
   opacity: 0;
   filter: drop-shadow(0 2px 4px rgba(80, 20, 40, 0.2));
-  animation: he-butterfly-fly var(--bf-dur, 4.5s) ease-out var(--bf-delay, 0s) forwards;
+  animation: env-fly var(--bf-dur, 4.2s) ease-out var(--bf-delay, 0s) forwards;
 }
 
 .he-butterfly span {
   display: inline-block;
-  animation: he-butterfly-flutter 0.28s ease-in-out infinite alternate;
-  transform-origin: center center;
+  animation: env-flutter 0.28s ease-in-out infinite alternate;
 }
 
-@keyframes he-butterfly-fly {
+@keyframes env-fly {
   0% {
     opacity: 0;
-    transform: translate(-50%, 0) scale(0.4) rotate(0deg);
+    transform: translate(-50%, 0) scale(0.35);
   }
-  10% {
+  12% {
     opacity: 0.95;
-  }
-  70% {
-    opacity: 0.85;
   }
   100% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--bf-dx, 40px)), var(--bf-dy, -160px)) scale(1.05)
-      rotate(var(--bf-rot, 15deg));
+    transform: translate(calc(-50% + var(--bf-dx, 50px)), var(--bf-dy, -180px)) scale(1.05)
+      rotate(var(--bf-rot, 12deg));
   }
 }
 
-@keyframes he-butterfly-flutter {
+@keyframes env-flutter {
   from {
     transform: scaleX(1) rotate(-8deg);
   }
@@ -324,86 +385,78 @@
   }
 }
 
-/* ——— Móvil ——— */
+/* Móvil */
 @media (max-width: 540px) {
-  .hero-envelope {
-    padding: 6.25rem 0.85rem 2rem;
+  .env {
+    padding: 6.5rem 0.75rem 2.25rem;
     align-items: flex-end;
-    padding-bottom: 2.75rem;
   }
 
-  .he-stage {
-    width: min(480px, 94vw);
-    margin-bottom: 0.25rem;
+  .env-stage {
+    width: min(100%, 96vw);
+    padding-top: 1.5rem;
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
-  .he-envelope {
-    height: min(250px, 36vh);
+  .env-body {
+    height: 200px;
+    max-width: 340px;
   }
 
-  .he-card {
-    transform: translateY(48%);
+  .env.is-open .env-letter {
+    /* Un poco menos alto para no meterse bajo el nav */
+    transform: translate3d(0, -62%, 0) scale(1);
   }
 
-  .hero-envelope.is-open .he-card {
-    /* Un poco menos alto: no choca con el nav fijo */
-    transform: translateY(-46%);
+  .env-letter-inner {
+    padding: 1.2rem 0.95rem 1.35rem;
   }
 
-  .he-card-inner {
-    padding: 1.3rem 1rem 3.5rem !important;
+  .env-name-main {
+    font-size: clamp(1.9rem, 9vw, 2.6rem);
   }
 
-  .he-card-inner .hero-date {
-    padding-bottom: 3.25rem;
+  .env-seal {
+    width: 46px;
+    height: 46px;
+    margin-left: -23px;
   }
 
-  .he-seal {
-    width: 48px;
-    height: 48px;
-    margin-left: -24px;
-  }
-
-  .he-seal span {
-    font-size: 1.25rem;
-  }
-
-  .he-hint {
-    font-size: 0.66rem;
-    letter-spacing: 0.12em;
+  .env-seal span {
+    font-size: 1.2rem;
   }
 }
 
-/* Sin animación: invitación ya abierta */
 @media (prefers-reduced-motion: reduce) {
-  .he-card,
-  .he-flap,
-  .he-seal,
-  .he-hint,
-  .he-reserve {
+  .env-letter,
+  .env-flap,
+  .env-seal,
+  .env-hint,
+  .env-cta {
     transition: none !important;
   }
 
-  .he-butterflies {
+  .env-fx {
     display: none !important;
   }
 
-  .hero-envelope .he-card {
-    transform: translateY(-50%) !important;
-    pointer-events: auto;
+  .env .env-letter {
+    z-index: 20 !important;
+    transform: translate3d(0, -70%, 0) scale(1) !important;
+    pointer-events: auto !important;
   }
 
-  .hero-envelope .he-flap {
-    transform: rotateX(-168deg) !important;
+  .env .env-flap {
+    transform: rotateX(-172deg) !important;
   }
 
-  .hero-envelope .he-seal,
-  .hero-envelope .he-hint {
+  .env .env-seal,
+  .env .env-hint {
     opacity: 0 !important;
     visibility: hidden !important;
   }
 
-  .hero-envelope .he-reserve {
+  .env .env-cta {
     opacity: 1 !important;
     transform: none !important;
   }

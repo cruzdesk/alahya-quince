@@ -3,12 +3,12 @@
   const EVENT_FALLBACK = "2026-10-10T17:00:00-04:00";
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // ——— Sobre de invitación (rebuild: toca para abrir)
+  // ——— Sobre moderno: toca → solapa → carta ENCIMA
   (function setupEnvelope() {
-    const heroEnvelope = document.getElementById("inicio");
+    const root = document.getElementById("inicio");
     const envelope = document.getElementById("heEnvelope");
     const hint = document.getElementById("heHint");
-    if (!heroEnvelope || !envelope) return;
+    if (!root || !envelope) return;
 
     let butterfliesLaunched = false;
 
@@ -18,21 +18,18 @@
       if (!field) return;
       butterfliesLaunched = true;
       field.innerHTML = "";
-      const n = window.innerWidth < 600 ? 10 : 16;
+      const n = window.innerWidth < 600 ? 10 : 14;
       const glyphs = ["🦋", "🦋", "✨", "🦋"];
       for (let i = 0; i < n; i++) {
         const b = document.createElement("div");
         b.className = "he-butterfly";
         const side = Math.random() > 0.5 ? 1 : -1;
-        const dx = side * (40 + Math.random() * 160);
-        const dy = -(120 + Math.random() * 220);
-        const rot = side * (10 + Math.random() * 40);
-        b.style.setProperty("--bf-dx", dx.toFixed(1) + "px");
-        b.style.setProperty("--bf-dy", dy.toFixed(1) + "px");
-        b.style.setProperty("--bf-rot", rot.toFixed(1) + "deg");
-        b.style.setProperty("--bf-dur", (3.2 + Math.random() * 2.4).toFixed(2) + "s");
-        b.style.setProperty("--bf-delay", (Math.random() * 0.55).toFixed(2) + "s");
-        b.style.setProperty("--bf-size", (0.85 + Math.random() * 0.75).toFixed(2) + "rem");
+        b.style.setProperty("--bf-dx", (side * (35 + Math.random() * 150)).toFixed(1) + "px");
+        b.style.setProperty("--bf-dy", (-(100 + Math.random() * 200)).toFixed(1) + "px");
+        b.style.setProperty("--bf-rot", (side * (8 + Math.random() * 35)).toFixed(1) + "deg");
+        b.style.setProperty("--bf-dur", (3 + Math.random() * 2.2).toFixed(2) + "s");
+        b.style.setProperty("--bf-delay", (Math.random() * 0.5).toFixed(2) + "s");
+        b.style.setProperty("--bf-size", (0.85 + Math.random() * 0.7).toFixed(2) + "rem");
         const span = document.createElement("span");
         span.textContent = glyphs[i % glyphs.length];
         b.appendChild(span);
@@ -40,34 +37,31 @@
       }
       window.setTimeout(() => {
         butterfliesLaunched = false;
-      }, 6500);
+      }, 6000);
     }
 
     function openEnvelope() {
-      if (heroEnvelope.classList.contains("is-open")) return;
-      heroEnvelope.classList.add("is-open");
+      if (root.classList.contains("is-open")) return;
+      root.classList.add("is-open");
       envelope.setAttribute("aria-expanded", "true");
       launchButterflies();
     }
 
-    // Reduced motion: ya abierto
     if (reduceMotion) {
-      heroEnvelope.classList.add("is-open");
+      root.classList.add("is-open");
       envelope.setAttribute("aria-expanded", "true");
       return;
     }
 
-    // Clic / toque en el sobre o el texto de ayuda
     function onOpenClick(e) {
-      if (e.target.closest("a, button, input, textarea, select, label")) return;
-      if (heroEnvelope.classList.contains("is-open")) return;
+      if (e.target.closest("a.btn, a[href^='#reservar']")) return;
+      if (root.classList.contains("is-open")) return;
       e.preventDefault();
       openEnvelope();
     }
 
     envelope.addEventListener("click", onOpenClick);
     hint && hint.addEventListener("click", onOpenClick);
-
     envelope.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
