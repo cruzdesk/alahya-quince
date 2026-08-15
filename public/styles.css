@@ -558,13 +558,15 @@ body {
   padding: 1.15rem 1.15rem 0.9rem;
 }
 
-/* ——— PORTADA (tapa dura, gira sobre el lomo) ——— */
+/* ——— PORTADA: hermana del interior (siempre visible al cerrar) ——— */
 .book-cover {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: var(--page-w);
+  /* Cerrado: llena todo el cuerpo (1 página). Abierto: sigue midiendo 1 página a la der. */
+  width: 100%;
+  max-width: var(--page-w);
   z-index: 50;
   margin: 0;
   padding: 0;
@@ -579,6 +581,11 @@ body {
   transform: rotateY(0deg);
   transition: transform var(--turn) var(--ease);
   -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+}
+
+.book.is-open .book-cover {
+  width: var(--page-w);
 }
 
 .book-cover:focus-visible {

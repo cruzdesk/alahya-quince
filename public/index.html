@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=20260814j" />
+  <link rel="stylesheet" href="/styles.css?v=20260814k" />
   <link rel="stylesheet" href="/envelope-hero.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
 </head>
@@ -84,38 +84,37 @@
       <div class="book-scene">
         <div class="book" id="book" role="region" aria-expanded="false" aria-label="Libro de la historia de Alahya" tabindex="0">
           <div class="book-body">
-            <!-- Interior siempre 2 páginas (a la derecha del lienzo) -->
+            <!-- Interior (2 páginas). Se oculta hasta abrir — NO incluye la portada -->
             <div class="book-inner">
               <div class="book-spine" aria-hidden="true"></div>
               <div class="book-page book-page--left" id="bookLeft"></div>
               <div class="book-page book-page--right" id="bookRight"></div>
 
-              <!-- Hoja para pasar páginas -->
               <div class="book-flip" id="bookFlip" aria-hidden="true">
                 <div class="book-flip__face book-flip__front" id="bookFlipFront"></div>
                 <div class="book-flip__face book-flip__back" id="bookFlipBack"></div>
               </div>
-
-              <!-- Portada = hoja derecha (gira sobre el lomo al abrir) -->
-              <button type="button" class="book-cover" id="bookCover" aria-label="Abrir el libro">
-                <span class="book-cover__face book-cover__front">
-                  <span class="book-cover__frame" aria-hidden="true"></span>
-                  <span class="book-cover__ornament">✦</span>
-                  <span class="book-cover__kicker">Mis XV Años</span>
-                  <span class="book-cover__name">Alahya</span>
-                  <span class="book-cover__sub">Thaís Saltares Ortega</span>
-                  <span class="book-cover__theme">Victorian Masquerade</span>
-                  <span class="book-cover__ornament">✦</span>
-                  <span class="book-cover__tap">Abrir</span>
-                </span>
-                <span class="book-cover__face book-cover__back" aria-hidden="true">
-                  <span class="book-cover__back-inner">
-                    <span class="book-cover__back-mark">A</span>
-                    <span class="book-cover__back-sub">XV</span>
-                  </span>
-                </span>
-              </button>
             </div>
+
+            <!-- Portada FUERA del interior (si no, opacity:0 la deja en rojo y no se puede tocar) -->
+            <button type="button" class="book-cover" id="bookCover" aria-label="Abrir el libro">
+              <span class="book-cover__face book-cover__front">
+                <span class="book-cover__frame" aria-hidden="true"></span>
+                <span class="book-cover__ornament">✦</span>
+                <span class="book-cover__kicker">Mis XV Años</span>
+                <span class="book-cover__name">Alahya</span>
+                <span class="book-cover__sub">Thaís Saltares Ortega</span>
+                <span class="book-cover__theme">Victorian Masquerade</span>
+                <span class="book-cover__ornament">✦</span>
+                <span class="book-cover__tap">Abrir</span>
+              </span>
+              <span class="book-cover__face book-cover__back" aria-hidden="true">
+                <span class="book-cover__back-inner">
+                  <span class="book-cover__back-mark">A</span>
+                  <span class="book-cover__back-sub">XV</span>
+                </span>
+              </span>
+            </button>
           </div>
 
           <div class="book-controls" id="bookControls" hidden>
@@ -443,6 +442,6 @@
   </footer>
 
   <script src="/pr-towns.js"></script>
-  <script src="/app.js?v=20260814j"></script>
+  <script src="/app.js?v=20260814k"></script>
 </body>
 </html>
