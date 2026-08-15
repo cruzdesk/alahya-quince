@@ -259,7 +259,7 @@
       isOpen = false;
       index = 0;
       busy = false;
-      book.classList.remove("is-open");
+      book.classList.remove("is-open", "is-turning");
       cover.classList.remove("is-turned", "is-resting");
       if (controls) controls.hidden = true;
       book.setAttribute("aria-expanded", "false");
@@ -277,22 +277,27 @@
       resetPageFlip();
       if (controls) controls.hidden = true;
       if (hint) hint.textContent = "Abriendo…";
-
-      // 1) Ensancha a 2 páginas (portada sigue a la derecha, sin girar aún)
-      cover.classList.remove("is-resting", "is-turned");
-      book.classList.add("is-open");
       book.setAttribute("aria-expanded", "true");
 
-      // 2) Siguiente frame: girar portada como hoja (-180°)
+      // ORDEN CORRECTO (evita que salte la doble página):
+      // 1) Sigue 1 página de ancho
+      // 2) Gira la portada (-180°)
+      // 3) Al terminar: oculta portada y ENTONCES ensancha a 2 páginas
+      cover.classList.remove("is-resting", "is-turned");
+      book.classList.remove("is-open");
+      book.classList.add("is-turning");
+
+      void cover.offsetWidth;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           cover.classList.add("is-turned");
         });
       });
 
-      // 3) Al terminar el giro: portada en reposo (oculta), controles listos
-      after(TURN_MS + 40, () => {
+      after(TURN_MS + 50, () => {
         cover.classList.add("is-resting");
+        book.classList.remove("is-turning");
+        book.classList.add("is-open");
         isOpen = true;
         busy = false;
         if (controls) controls.hidden = false;
@@ -309,14 +314,15 @@
       if (controls) controls.hidden = true;
       if (hint) hint.textContent = "Cerrando…";
 
-      // Portada cerrada encima del lado derecho (sin girar al revés)
+      // Portada cerrada en el lado derecho (sin giro inverso)
       cover.classList.remove("is-resting", "is-turned");
+      book.classList.remove("is-turning");
       void cover.offsetWidth;
 
-      // Un instante para que se vea la portada, luego recortar a 1 página
-      after(reduceMotion ? 0 : 80, () => {
+      // Primero recortar a 1 página (la portada tapa lo visible)
+      after(reduceMotion ? 0 : 60, () => {
         book.classList.remove("is-open");
-        after(reduceMotion ? 0 : 400, () => {
+        after(reduceMotion ? 0 : 380, () => {
           setClosedUI();
         });
       });

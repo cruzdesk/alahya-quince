@@ -414,10 +414,10 @@ body {
 /* ========== HISTORIA — libro de verdad (rebuild limpio) ========== */
 /*
   Modelo:
-  - Cerrado: ancho 1 página; interior de 2 páginas recortado; portada a la derecha.
-  - Abrir: se ensancha a 2 páginas y la portada gira -180° como hoja (lomo al centro).
-  - Cerrar: portada vuelve cerrada sin 3D inverso; se recorta de nuevo a 1 página.
-  - Páginas: se pasan con otra hoja (book-flip) sobre el lado derecho.
+  - Cerrado: 1 página (solo portada; la izq del interior está recortada).
+  - Al abrir: PRIMERO gira la portada (sigue 1 página) → DESPUÉS se ensancha a 2.
+    Así no “salta” la doble página a la vez que la portada.
+  - Cerrar: portada cerrada y se recorta otra vez a 1 página.
 */
 .book-hint {
   margin: -0.25rem 0 1rem;
@@ -431,6 +431,7 @@ body {
   display: flex;
   justify-content: center;
   padding: 0.75rem 0.5rem 2rem;
+  /* espacio a la izq para que la tapa pueda girar sin cortarse */
   overflow: visible;
 }
 
@@ -443,15 +444,16 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: width 0.55s var(--ease);
+  transition: width 0.5s var(--ease);
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Solo abierto del todo = 2 páginas */
 .book.is-open {
   width: calc(var(--page-w) * 2);
 }
 
-/* Ventana del libro: recorta a 1 página cuando está cerrado */
+/* Ventana: 1 página mientras gira; 2 cuando is-open */
 .book-body {
   position: relative;
   width: 100%;
@@ -465,9 +467,19 @@ body {
   transition: border-radius 0.4s ease;
 }
 
+/* Durante el giro de portada: permitir que la hoja salga a la izquierda */
+.book.is-turning .book-body {
+  overflow: visible;
+}
+
 .book.is-open .book-body {
   overflow: visible;
   border-radius: 6px;
+}
+
+/* Mientras gira (aún no is-open): la página izq no se ve */
+.book.is-turning:not(.is-open) .book-page--left {
+  visibility: hidden;
 }
 
 /* Lienzo interior siempre de 2 páginas, alineado a la derecha */
@@ -558,13 +570,13 @@ body {
   outline-offset: 3px;
 }
 
-/* Abierta: giró como hoja sobre el lomo */
-.book.is-open .book-cover.is-turned {
+/* Portada girando / abierta: -180° como una hoja */
+.book-cover.is-turned {
   transform: rotateY(-180deg);
   pointer-events: none;
 }
 
-/* Tras el giro: fuera del camino */
+/* Tras el giro y al estar abierto: portada fuera */
 .book-cover.is-resting {
   visibility: hidden;
   pointer-events: none;
