@@ -125,8 +125,12 @@
   --env-c: #5c1018;
   --env-d: #3a0a10;
   --env-gold: rgba(212, 175, 55, 0.5);
-  /* Ápice común de las solapas (misma geometría V) */
-  --env-apex-y: 52%;
+  /*
+   * Ápice al 50%: la TAPA (triángulo superior) y la V del bolsillo
+   * (triángulo inferior) tienen EXACTAMENTE el mismo tamaño.
+   * Al abrir, el hueco que deja la tapa = el espacio en V de la carta.
+   */
+  --env-apex-y: 50%;
   position: relative;
   width: 100%;
   max-width: 480px;
@@ -158,11 +162,12 @@
  */
 .he-card {
   position: absolute;
-  left: 8%;
-  right: 8%;
-  top: 6%;
+  left: 6%;
+  right: 6%;
+  top: 4%;
   z-index: 2;
-  transform: translateY(calc(48% - var(--out) * 118%));
+  /* Sale por el mismo triángulo que la tapa (mitad superior) */
+  transform: translateY(calc(50% - var(--out) * 115%));
   transform-style: flat;
   isolation: isolate;
   pointer-events: none;
@@ -173,7 +178,6 @@
   will-change: auto;
   filter: none;
   box-sizing: border-box;
-  /* Sin marco rojo falso: los bordes reales son las solapas del sobre */
   background: transparent;
   border: none;
   padding: 0;
@@ -182,8 +186,11 @@
 
 .hero-envelope.is-open .he-card {
   pointer-events: auto;
-  /* Sale alto: queda apoyada en la V de la base */
-  transform: translateY(-72%);
+  /*
+   * Carta en el hueco de la tapa: base metida en la V inferior
+   * (mismo tamaño que la tapa, ápice 50%).
+   */
+  transform: translateY(-58%);
   will-change: auto;
   filter: none;
 }
@@ -249,9 +256,8 @@
 }
 
 /*
- * Solapas laterales (bordes reales del sobre).
- * Triángulos que cubren izq/der siempre — al abrir la tapa NO quedan
- * dos huecos vacíos: estos pliegues son el “borde” del sobre.
+ * Solapas laterales: triángulos al MISMO ápice que la tapa.
+ * Junto con la base forman la V del sobre (= tamaño de la tapa).
  */
 .he-side-l,
 .he-side-r {
@@ -262,49 +268,46 @@
   border-radius: 10px;
 }
 
-/*
- * Cuadriláteros laterales: cubren esquina superior + lateral + base al ápice.
- * Canal central (~16% arriba) = por donde sale la carta.
- * Así al abrir la tapa NO quedan dos huecos vacíos a izq/der.
- */
 .he-side-l {
   background: linear-gradient(145deg, var(--env-a) 0%, var(--env-b) 42%, var(--env-d) 100%);
-  clip-path: polygon(0 0, 44% 0, 50% var(--env-apex-y), 0 100%);
-  -webkit-clip-path: polygon(0 0, 44% 0, 50% var(--env-apex-y), 0 100%);
+  /* Triángulo izq. → ápice central (espejo de la mitad de la tapa) */
+  clip-path: polygon(0 0, 0 100%, 50% var(--env-apex-y));
+  -webkit-clip-path: polygon(0 0, 0 100%, 50% var(--env-apex-y));
   box-shadow: inset -4px 0 12px rgba(0, 0, 0, 0.18);
 }
 
 .he-side-r {
   background: linear-gradient(215deg, var(--env-a) 0%, var(--env-b) 42%, var(--env-d) 100%);
-  clip-path: polygon(100% 0, 56% 0, 50% var(--env-apex-y), 100% 100%);
-  -webkit-clip-path: polygon(100% 0, 56% 0, 50% var(--env-apex-y), 100% 100%);
+  clip-path: polygon(100% 0, 100% 100%, 50% var(--env-apex-y));
+  -webkit-clip-path: polygon(100% 0, 100% 100%, 50% var(--env-apex-y));
   box-shadow: inset 4px 0 12px rgba(0, 0, 0, 0.18);
 }
 
-/* Filo dorado en el pliegue diagonal de cada lado */
+/* Filo dorado en la diagonal del pliegue (= borde de la V) */
 .he-side-l::after,
 .he-side-r::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.5;
-  background: rgba(232, 213, 163, 0.4);
+  opacity: 0.55;
+  background: rgba(232, 213, 163, 0.45);
 }
 
 .he-side-l::after {
-  /* Cinta fina en el borde interior del pliegue */
-  clip-path: polygon(43% 0, 44% 0, 50% var(--env-apex-y), 49.2% var(--env-apex-y));
-  -webkit-clip-path: polygon(43% 0, 44% 0, 50% var(--env-apex-y), 49.2% var(--env-apex-y));
+  clip-path: polygon(0 0, 1.2% 0, 50% var(--env-apex-y), 48.5% var(--env-apex-y));
+  -webkit-clip-path: polygon(0 0, 1.2% 0, 50% var(--env-apex-y), 48.5% var(--env-apex-y));
 }
 
 .he-side-r::after {
-  clip-path: polygon(56% 0, 57% 0, 50.8% var(--env-apex-y), 50% var(--env-apex-y));
-  -webkit-clip-path: polygon(56% 0, 57% 0, 50.8% var(--env-apex-y), 50% var(--env-apex-y));
+  clip-path: polygon(100% 0, 98.8% 0, 50% var(--env-apex-y), 51.5% var(--env-apex-y));
+  -webkit-clip-path: polygon(100% 0, 98.8% 0, 50% var(--env-apex-y), 51.5% var(--env-apex-y));
 }
 
 /*
- * Base del bolsillo (triángulo inferior) — misma V / mismo ápice que lados y tapa.
+ * V del bolsillo (base) = MISMO tamaño que la tapa.
+ * Tapa:  (0,0) · (100%,0) · (50%, 50%)
+ * Base:  (0,100%) · (100%,100%) · (50%, 50%)  ← triángulo espejo, igual área
  */
 .he-front {
   position: absolute;
@@ -325,12 +328,12 @@
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(232, 213, 163, 0.45) 0%,
-    transparent 14%
+    rgba(232, 213, 163, 0.5) 0%,
+    transparent 18%
   );
   clip-path: polygon(0 100%, 50% var(--env-apex-y), 100% 100%);
   -webkit-clip-path: polygon(0 100%, 50% var(--env-apex-y), 100% 100%);
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .he-front::after {
@@ -338,15 +341,15 @@
   position: absolute;
   left: 22%;
   right: 22%;
-  top: 72%;
+  top: 74%;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.4), transparent);
   pointer-events: none;
 }
 
 /*
- * Tapa superior (triángulo): misma geometría que el hueco entre solapas.
- * Al abrir, rotateX hacia atrás; lados + base siguen cubriendo el sobre.
+ * Tapa: triángulo superior del mismo tamaño que la V de la base.
+ * clip-path idéntico en altura (ápice 50%).
  */
 .he-flap {
   position: absolute;
@@ -370,30 +373,33 @@
   transform: rotateX(-172deg);
   opacity: 1;
   visibility: visible;
-  /* Detrás del canal de la carta al abrir (no tapa el texto) */
+  /* Detrás: deja el hueco en V (mismo tamaño) con la carta */
   z-index: 3;
 }
 
 .he-flap::after {
   content: "";
   position: absolute;
-  left: 14%;
-  right: 14%;
-  top: 10%;
-  bottom: 42%;
+  left: 12%;
+  right: 12%;
+  top: 8%;
+  /* Marco interior del triángulo de la tapa (proporción al ápice 50%) */
+  height: 38%;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   -webkit-clip-path: polygon(0 0, 100% 0, 50% 100%);
   border: 1px solid rgba(232, 213, 163, 0.3);
   pointer-events: none;
+  box-sizing: border-box;
 }
 
 .he-seal {
   position: absolute;
   left: 50%;
-  top: 48%;
+  /* Centro del ápice compartido tapa ↔ V */
+  top: 50%;
   width: 56px;
   height: 56px;
-  margin: -10px 0 0 -28px;
+  margin: -28px 0 0 -28px;
   z-index: 7;
   border-radius: 50%;
   display: flex;
@@ -477,18 +483,19 @@
     height: min(260px, 38vh);
   }
   .he-card {
-    left: 7%;
-    right: 7%;
-    transform: translateY(calc(46% - var(--out) * 112%));
+    left: 5%;
+    right: 5%;
+    transform: translateY(calc(48% - var(--out) * 108%));
   }
   .hero-envelope.is-open .he-card {
-    transform: translateY(-66%);
+    /* Mismo anclaje a la V (ápice 50%) en móvil */
+    transform: translateY(-52%);
   }
   .he-card-inner {
-    padding: 1.2rem 0.9rem 2.5rem !important;
+    padding: 1.2rem 0.9rem 2.35rem !important;
   }
   .he-card-inner .hero-date {
-    padding-bottom: 2rem;
+    padding-bottom: 1.75rem;
   }
   .he-seal {
     width: 48px;
