@@ -1,59 +1,283 @@
-/* Sobre rojo + única invitación (sale al hacer scroll) */
+/* =========================================================
+   Sobre de invitación — rebuild limpio
+   Patrón: bolsillo + carta + solapa (rotateX) + sello
+   Apertura: clic/toque → clase .is-open (CSS transitions)
+   ========================================================= */
+
 .hero-envelope {
-  --flap: 0;
-  --out: 0;
-  --seal: 1;
-  --hint: 1;
-  padding: 0 !important;
-  min-height: 0 !important;
-  display: block !important;
   position: relative;
   z-index: 4;
-  text-align: center;
-}
-
-.he-track {
-  /* Desktop: un poco de scroll para la animación */
-  height: 175vh;
-  position: relative;
-  touch-action: pan-y;
-}
-
-.he-sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
-  /* Un poco más abajo del centro (también en computadora) */
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  /* overflow hidden: scroll táctil más fluido en móvil (overflow-y:visible lo trababa) */
+  padding: 5.5rem 1rem 2.5rem;
+  text-align: center;
   overflow: hidden;
-  padding: 5.5rem 1rem 3.25rem;
-  touch-action: pan-y;
   background:
-    radial-gradient(ellipse 75% 50% at 50% 30%, rgba(212, 175, 55, 0.14), transparent 60%),
+    radial-gradient(ellipse 75% 50% at 50% 28%, rgba(212, 175, 55, 0.14), transparent 60%),
     linear-gradient(165deg, #f8f3ec 0%, #efe6dc 55%, #e8ddd2 100%);
 }
 
 .he-stage {
-  width: min(520px, 92vw);
+  width: min(480px, 92vw);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.1rem;
-  margin-bottom: 0.5rem;
+  gap: 1.15rem;
   position: relative;
 }
 
-/* ——— Mariposas al abrir la invitación ——— */
+/* ——— Sobre ——— */
+.he-envelope {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  height: min(300px, 42vh);
+  margin: 0 auto;
+  perspective: 1000px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* La carta puede salir por arriba sin recortar el triángulo del flap */
+  overflow: visible;
+}
+
+/* Bolsillo trasero */
+.he-back {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 12px;
+  background: linear-gradient(155deg, #8b1520 0%, #5c0f16 50%, #3a0a10 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 22px 48px rgba(60, 15, 20, 0.28);
+}
+
+/* Carta — metida dentro del sobre al cerrar */
+.he-card {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 10%;
+  z-index: 2;
+  transform: translateY(52%);
+  transition: transform 1s cubic-bezier(0.4, 0.05, 0.2, 1);
+  pointer-events: none;
+  isolation: isolate;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hero-envelope.is-open .he-card {
+  transform: translateY(-58%);
+  pointer-events: auto;
+}
+
+.he-card-inner {
+  max-width: none !important;
+  width: 100%;
+  padding: 1.55rem 1.25rem 2.75rem !important;
+  box-shadow: 0 14px 36px rgba(40, 10, 15, 0.18);
+  background: #fffcf8 !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+.he-card-inner .hero-name .first {
+  font-size: clamp(2.2rem, 8vw, 3.4rem);
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: #9b1c1c;
+  color: #9b1c1c !important;
+  text-shadow: none;
+  filter: none;
+}
+
+.he-card-inner .hero-name .middle {
+  font-size: clamp(0.8rem, 2.5vw, 1.05rem);
+}
+
+.he-card-inner .hero-tagline {
+  font-size: clamp(1.05rem, 2.8vw, 1.4rem);
+  margin-bottom: 0.5rem;
+}
+
+.he-card-inner .eyebrow {
+  font-size: 0.58rem;
+  margin-bottom: 0.7rem;
+  line-height: 1.45;
+}
+
+.he-card-inner .hero-date {
+  margin-bottom: 0 !important;
+  padding-bottom: 2.5rem;
+  font-size: 0.75rem;
+}
+
+/* Bolsillo frontal (opaco, tapa la carta cuando está adentro) */
+.he-front {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 66%;
+  z-index: 3;
+  border-radius: 0 0 12px 12px;
+  background: linear-gradient(180deg, #b01a2a 0%, #6b1018 52%, #4a0c12 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  border-top: none;
+  /* V de la boca del sobre */
+  clip-path: polygon(0 28%, 50% 0, 100% 28%, 100% 100%, 0 100%);
+  box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+.he-front::after {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 40%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.4), transparent);
+}
+
+/* Solapa triangular — se abre hacia atrás (rotateX) */
+.he-flap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 56%;
+  z-index: 4;
+  transform-origin: top center;
+  transform: rotateX(0deg);
+  transform-style: preserve-3d;
+  transition: transform 0.85s cubic-bezier(0.4, 0.05, 0.2, 1);
+  background: linear-gradient(180deg, #c41e3a 0%, #8b1520 55%, #5c1018 100%);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.5);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.hero-envelope.is-open .he-flap {
+  transform: rotateX(-168deg);
+}
+
+.he-flap::after {
+  content: "";
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 12%;
+  bottom: 32%;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border: 1px solid rgba(232, 213, 163, 0.28);
+  pointer-events: none;
+}
+
+/* Sello de lacre */
+.he-seal {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 56px;
+  height: 56px;
+  margin: -8px 0 0 -28px;
+  z-index: 5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 28%, #f2e4a8, #d4af37 45%, #8a7020 100%);
+  border: 2px solid rgba(255, 250, 240, 0.5);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 0.45s ease,
+    transform 0.45s ease;
+  pointer-events: none;
+}
+
+.hero-envelope.is-open .he-seal {
+  opacity: 0;
+  transform: scale(0.7);
+  pointer-events: none;
+}
+
+.he-seal span {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #3a2410;
+}
+
+/* Hint */
+.he-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-soft);
+  opacity: 1;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 0.45rem 0.75rem;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-envelope.is-open .he-hint {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Botón reservar */
+.he-reserve {
+  margin-top: 0.15rem;
+  opacity: 0.55;
+  transform: translateY(6px);
+  transition: opacity 0.5s ease 0.15s, transform 0.5s ease 0.15s;
+}
+
+.hero-envelope.is-open .he-reserve {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.he-reserve .btn {
+  min-width: 160px;
+}
+
+/* ——— Mariposas al abrir ——— */
 .he-butterflies {
   position: absolute;
-  inset: -20% -15% -5%;
+  inset: -18% -12% -5%;
   pointer-events: none;
   z-index: 12;
   overflow: visible;
+  visibility: hidden;
+}
+
+.hero-envelope.is-open .he-butterflies {
+  visibility: visible;
 }
 
 .he-butterfly {
@@ -64,11 +288,7 @@
   line-height: 1;
   opacity: 0;
   filter: drop-shadow(0 2px 4px rgba(80, 20, 40, 0.2));
-  will-change: transform, opacity;
   animation: he-butterfly-fly var(--bf-dur, 4.5s) ease-out var(--bf-delay, 0s) forwards;
-  --bf-dx: 0px;
-  --bf-dy: -180px;
-  --bf-rot: 20deg;
 }
 
 .he-butterfly span {
@@ -82,16 +302,16 @@
     opacity: 0;
     transform: translate(-50%, 0) scale(0.4) rotate(0deg);
   }
-  8% {
+  10% {
     opacity: 0.95;
   }
   70% {
-    opacity: 0.9;
+    opacity: 0.85;
   }
   100% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--bf-dx)), var(--bf-dy)) scale(1.05)
-      rotate(var(--bf-rot));
+    transform: translate(calc(-50% + var(--bf-dx, 40px)), var(--bf-dy, -160px)) scale(1.05)
+      rotate(var(--bf-rot, 15deg));
   }
 }
 
@@ -104,347 +324,87 @@
   }
 }
 
-.hero-envelope:not(.is-open) .he-butterflies {
-  visibility: hidden;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .he-butterflies {
-    display: none !important;
-  }
-}
-
-.he-envelope {
-  position: relative;
-  width: 100%;
-  max-width: 480px;
-  height: min(320px, 44vh);
-  margin: 0 auto;
-  /* perspective solo para la solapa; la tarjeta usa transform-style: flat */
-  perspective: 900px;
-  transform-style: flat;
-  /* Permite que la carta salga ARRIBA; recorta lo que asoma ABAJO del sobre */
-  clip-path: inset(-200% -10% 0 -10%);
-  -webkit-clip-path: inset(-200% -10% 0 -10%);
-}
-
-.he-back {
-  position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  background: linear-gradient(155deg, #8b1520 0%, #5c0f16 45%, #3a0a10 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.45);
-  box-shadow: 0 22px 48px rgba(60, 15, 20, 0.28);
-  z-index: 1;
-}
-
-/* Tarjeta: metida (out=0) o fuera hacia arriba (out=1) — solo translateY 2D (nítido) */
-.he-card {
-  position: absolute;
-  left: 6%;
-  right: 6%;
-  top: 8%;
-  z-index: 2;
-  /* translateY 2D (no 3d) + isolation: evita subpixel blur del compositing */
-  transform: translateY(calc(58% - var(--out) * 118%));
-  transform-style: flat;
-  isolation: isolate;
-  pointer-events: none;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: geometricPrecision;
-  backface-visibility: hidden;
-  will-change: auto;
-  filter: none;
-}
-
-.hero-envelope.is-open .he-card {
-  pointer-events: auto;
-  /* Valor fijo sin var() al estar abierta: composición más limpia */
-  transform: translateY(-60%);
-  will-change: auto;
-  filter: none;
-}
-
-.he-card-inner {
-  max-width: none !important;
-  width: 100%;
-  /* Más aire abajo (debajo de la fecha) */
-  padding: 1.65rem 1.3rem 3.25rem !important;
-  box-shadow: 0 14px 36px rgba(40, 10, 15, 0.18);
-  /* Opaco sólido: sin glass ni blur */
-  background: #fffcf8 !important;
-  background-image: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  filter: none !important;
-  /* Sin translateZ (a veces desenfoca texto en algunos browsers) */
-  transform: none !important;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: geometricPrecision;
-}
-
-/* Nombre nítido: color sólido (clip de gradiente + transform padre = borroso) */
-.he-card-inner .hero-name .first {
-  font-size: clamp(2.3rem, 8.5vw, 3.5rem);
-  background: none !important;
-  -webkit-background-clip: unset !important;
-  background-clip: unset !important;
-  -webkit-text-fill-color: #9b1c1c;
-  color: #9b1c1c !important;
-  -webkit-font-smoothing: antialiased;
-  text-shadow: none;
-  filter: none;
-}
-
-.he-card-inner .hero-name .middle {
-  font-size: clamp(0.82rem, 2.6vw, 1.1rem);
-  -webkit-font-smoothing: antialiased;
-}
-
-.he-card-inner .hero-tagline {
-  font-size: clamp(1.1rem, 3vw, 1.45rem);
-  margin-bottom: 0.55rem;
-  -webkit-font-smoothing: antialiased;
-}
-
-.he-card-inner .eyebrow {
-  font-size: 0.6rem;
-  margin-bottom: 0.75rem;
-  line-height: 1.45;
-}
-
-/* Espacio en blanco debajo de la fecha (la punta del sobre no debe tapar el texto) */
-.he-card-inner .hero-date {
-  margin-bottom: 0 !important;
-  padding-bottom: 3.25rem;
-  font-size: 0.75rem;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Frente del sobre — opaco, tapa la tarjeta cuando está adentro */
-.he-front {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 68%;
-  z-index: 3;
-  border-radius: 0 0 10px 10px;
-  background: linear-gradient(180deg, #b01a2a 0%, #6b1018 50%, #4a0c12 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.4);
-  border-top: none;
-  clip-path: polygon(0 30%, 50% 0, 100% 30%, 100% 100%, 0 100%);
-  box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.1);
-  pointer-events: none;
-}
-
-.he-front::after {
-  content: "";
-  position: absolute;
-  left: 12%;
-  right: 12%;
-  top: 42%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.4), transparent);
-}
-
-/*
- * Solapa superior (triángulo del sobre).
- * No usar scaleY(0) ni visibility:hidden al abrir: eso “cortaba” el triángulo.
- * Se abre con rotateX (queda arriba, fuera del papel blanco).
- */
-.he-flap {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 58%;
-  z-index: 4;
-  transform-origin: top center;
-  transform: rotateX(calc(var(--flap) * -168deg));
-  transform-style: preserve-3d;
-  background: linear-gradient(180deg, #c41e3a 0%, #8b1520 60%, #5c1018 100%);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.5);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-  pointer-events: none;
-  backface-visibility: hidden;
-  will-change: transform;
-  opacity: 1;
-}
-
-/* Al abrir del todo: solapa abierta arriba (triángulo intacto), sin ocultarla */
-.hero-envelope.is-open .he-flap {
-  transform: rotateX(-168deg);
-  opacity: 1;
-  visibility: visible;
-}
-
-.he-flap::after {
-  content: "";
-  position: absolute;
-  left: 16%;
-  right: 16%;
-  top: 12%;
-  bottom: 30%;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  border: 1px solid rgba(232, 213, 163, 0.28);
-  pointer-events: none;
-}
-
-.he-seal {
-  position: absolute;
-  left: 50%;
-  top: 48%;
-  width: 56px;
-  height: 56px;
-  margin: -10px 0 0 -28px;
-  z-index: 5;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at 30% 28%, #f2e4a8, #d4af37 45%, #8a7020 100%);
-  border: 2px solid rgba(255, 250, 240, 0.5);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  opacity: var(--seal);
-  transform: scale(calc(0.9 + var(--seal) * 0.1));
-  pointer-events: none;
-}
-
-.he-seal span {
-  font-family: var(--font-display);
-  font-size: 1.45rem;
-  font-weight: 700;
-  color: #3a2410;
-}
-
-.he-hint {
-  margin: 0;
-  text-align: center;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: var(--ink-soft);
-  opacity: var(--hint);
-  transition: opacity 0.2s;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  padding: 0.5rem 0.75rem;
-  /* Área táctil más grande en móvil */
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hero-envelope.is-open .he-hint {
-  opacity: 0;
-  visibility: hidden;
-}
-
-/* Botón Reservar — debajo del sobre, aparte */
-.he-reserve {
-  margin-top: 0.35rem;
-  opacity: calc(0.35 + var(--out) * 0.65);
-  transform: translateY(calc((1 - var(--out)) * 8px));
-  transition: opacity 0.15s linear;
-  pointer-events: auto;
-}
-
-.he-reserve .btn {
-  min-width: 160px;
-}
-
+/* ——— Móvil ——— */
 @media (max-width: 540px) {
-  /* Menos altura de pista = menos deslizar para abrir el sobre */
-  .he-track {
-    height: 125vh;
-  }
-  /*
-   * Baja el sobre: más aire arriba (nav A.XV + menú) para que la
-   * invitación abierta no quede tapada por la barra blanca fija.
-   */
-  .he-sticky {
-    padding: 6.75rem 0.85rem 2.5rem;
+  .hero-envelope {
+    padding: 6.25rem 0.85rem 2rem;
     align-items: flex-end;
-    justify-content: center;
+    padding-bottom: 2.75rem;
   }
+
   .he-stage {
-    /* Empuja el bloque un poco más abajo del centro */
-    margin-bottom: 0.35rem;
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    width: min(520px, 94vw);
+    width: min(480px, 94vw);
+    margin-bottom: 0.25rem;
   }
+
   .he-envelope {
-    height: min(260px, 38vh);
+    height: min(250px, 36vh);
   }
-  /* La carta no sube tanto: deja espacio libre bajo el nav */
+
   .he-card {
-    transform: translateY(calc(52% - var(--out) * 100%));
+    transform: translateY(48%);
   }
+
   .hero-envelope.is-open .he-card {
-    transform: translateY(-48%);
+    /* Un poco menos alto: no choca con el nav fijo */
+    transform: translateY(-46%);
   }
+
   .he-card-inner {
-    /* Más papel blanco abajo: la punta roja del sobre cae en el vacío, no en “octubre” */
-    padding: 1.35rem 1rem 4.25rem !important;
+    padding: 1.3rem 1rem 3.5rem !important;
   }
+
   .he-card-inner .hero-date {
-    padding-bottom: 4.5rem;
+    padding-bottom: 3.25rem;
   }
+
   .he-seal {
     width: 48px;
     height: 48px;
     margin-left: -24px;
   }
+
+  .he-seal span {
+    font-size: 1.25rem;
+  }
+
   .he-hint {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     letter-spacing: 0.12em;
   }
 }
 
+/* Sin animación: invitación ya abierta */
 @media (prefers-reduced-motion: reduce) {
-  .he-track {
-    height: auto;
-  }
-  .he-sticky {
-    position: relative;
-    height: auto;
-    min-height: 100vh;
-  }
-  .hero-envelope {
-    --flap: 1;
-    --out: 1;
-    --seal: 0;
-    --hint: 0;
-  }
-  .he-card {
-    position: relative;
-    left: auto;
-    right: auto;
-    top: auto;
-    transform: none !important;
-    pointer-events: auto;
-  }
-  .he-back,
-  .he-front,
+  .he-card,
   .he-flap,
   .he-seal,
-  .he-hint {
-    display: none;
-  }
-  .he-envelope {
-    height: auto;
-    transform: none;
-    clip-path: none;
-  }
+  .he-hint,
   .he-reserve {
-    opacity: 1;
-    transform: none;
+    transition: none !important;
+  }
+
+  .he-butterflies {
+    display: none !important;
+  }
+
+  .hero-envelope .he-card {
+    transform: translateY(-50%) !important;
+    pointer-events: auto;
+  }
+
+  .hero-envelope .he-flap {
+    transform: rotateX(-168deg) !important;
+  }
+
+  .hero-envelope .he-seal,
+  .hero-envelope .he-hint {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  .hero-envelope .he-reserve {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
