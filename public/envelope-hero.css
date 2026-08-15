@@ -460,6 +460,7 @@
 }
 
 @media (max-width: 540px) {
+  /* Estado estable móvil (sin compactar texto ni subir la carta) */
   .he-track {
     height: 125vh;
   }
@@ -486,56 +487,14 @@
     transform: translateY(calc(48% - var(--out) * 108%));
   }
   .hero-envelope.is-open .he-card {
-    /* Posición estable (sin subir bajo el menú); la info se compacta abajo */
     transform: translateY(-62%);
   }
-
-  /*
-   * Compactar texto de la invitación en móvil para que quepa en el
-   * hueco visible sobre la V (sin mover la carta ni el layout del sobre).
-   */
   .he-card-inner {
-    padding: 0.75rem 0.7rem 0.85rem !important;
-  }
-  .he-card-inner.hero-frame::before {
-    inset: 6px;
-  }
-  .he-card-inner .eyebrow {
-    font-size: 0.48rem;
-    letter-spacing: 0.12em;
-    margin-bottom: 0.35rem;
-    line-height: 1.3;
-  }
-  .he-card-inner .ornament {
-    margin-bottom: 0.4rem;
-    gap: 0.4rem;
-  }
-  .he-card-inner .ornament .line {
-    width: 28px;
-  }
-  .he-card-inner .hero-name {
-    margin: 0 0 0.25rem;
-  }
-  .he-card-inner .hero-name .first {
-    font-size: clamp(1.65rem, 7.2vw, 2.15rem);
-    line-height: 1.05;
-  }
-  .he-card-inner .hero-name .middle {
-    font-size: clamp(0.68rem, 2.4vw, 0.82rem);
-    margin-top: 0.15rem;
-  }
-  .he-card-inner .hero-tagline {
-    font-size: clamp(0.78rem, 2.8vw, 0.95rem);
-    margin-bottom: 0.35rem;
-    line-height: 1.25;
+    padding: 1.2rem 0.9rem 2.35rem !important;
   }
   .he-card-inner .hero-date {
-    font-size: 0.68rem;
-    padding-bottom: 0.15rem;
-    margin-top: 0;
-    line-height: 1.3;
+    padding-bottom: 1.75rem;
   }
-
   .he-seal {
     width: 48px;
     height: 48px;
