@@ -131,7 +131,7 @@
 
 
 
-// ——— Historia: libro real con StPageFlip (apertura + paso de páginas)
+// ——— Historia: libro (móvil = simple y fiable; desktop = StPageFlip)
   (function setupStoryBook() {
     const root = document.getElementById("flipbook");
     const hint = document.getElementById("bookHint");
@@ -139,51 +139,136 @@
     const nextBtn = document.getElementById("bookNext");
     const closeBtn = document.getElementById("bookClose");
     const label = document.getElementById("bookLabel");
-    if (!root || typeof St === "undefined" || !St.PageFlip) {
-      if (hint) {
-        hint.textContent = "El libro no pudo cargar. Recarga la página.";
+    if (!root) return;
+
+    const pages = Array.from(root.querySelectorAll(".page"));
+    if (!pages.length) return;
+
+    const isMobile =
+      window.innerWidth < 700 ||
+      window.matchMedia("(pointer: coarse)").matches ||
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+
+    function setLabel(i, n) {
+      const contentTotal = Math.max(0, n - 2);
+      if (!label) return;
+      if (i === 0) label.textContent = "Portada";
+      else if (i >= n - 1) label.textContent = "Fin";
+      else label.textContent = i + " / " + contentTotal;
+    }
+
+    function setHint(i, n) {
+      if (!hint) return;
+      if (i === 0) hint.textContent = "Toca → para abrir el libro";
+      else if (i >= n - 1) hint.textContent = "Fin · ← o Portada";
+      else hint.textContent = "Usa ← → para pasar las páginas";
+    }
+
+    // ——— MÓVIL: un página a la vez, botones 100% nativos (sin StPageFlip)
+    if (isMobile) {
+      root.classList.add("flipbook--simple");
+      let index = 0;
+      const n = pages.length;
+
+      function show(i) {
+        index = Math.max(0, Math.min(n - 1, i));
+        pages.forEach((p, k) => {
+          p.classList.toggle("is-active", k === index);
+          p.setAttribute("aria-hidden", k === index ? "false" : "true");
+        });
+        if (prevBtn) prevBtn.disabled = index <= 0;
+        if (nextBtn) nextBtn.disabled = index >= n - 1;
+        setLabel(index, n);
+        setHint(index, n);
       }
+
+      // click nativo (sin touchend preventDefault que rompe en iOS)
+      if (prevBtn) {
+        prevBtn.type = "button";
+        prevBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          show(index - 1);
+        });
+      }
+      if (nextBtn) {
+        nextBtn.type = "button";
+        nextBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          show(index + 1);
+        });
+      }
+      if (closeBtn) {
+        closeBtn.type = "button";
+        closeBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          show(0);
+        });
+      }
+
+      // swipe horizontal suave en el libro
+      let touchX = null;
+      root.addEventListener(
+        "touchstart",
+        (e) => {
+          touchX = e.changedTouches[0].clientX;
+        },
+        { passive: true }
+      );
+      root.addEventListener(
+        "touchend",
+        (e) => {
+          if (touchX == null) return;
+          const dx = e.changedTouches[0].clientX - touchX;
+          touchX = null;
+          if (Math.abs(dx) < 40) return;
+          if (dx < 0) show(index + 1);
+          else show(index - 1);
+        },
+        { passive: true }
+      );
+
+      // toque en portada = siguiente
+      pages[0] &&
+        pages[0].addEventListener("click", () => {
+          if (index === 0) show(1);
+        });
+
+      show(0);
       return;
     }
 
-    const pages = root.querySelectorAll(".page");
-    if (!pages.length) return;
+    // ——— DESKTOP: StPageFlip
+    if (typeof St === "undefined" || !St.PageFlip) {
+      if (hint) hint.textContent = "El libro no pudo cargar. Recarga la página.";
+      return;
+    }
 
-    const isMobile = window.innerWidth < 700;
-    // Tamaño base de UNA página (móvil: que quepa en pantalla)
-    const pageW = Math.min(
-      isMobile ? 300 : 290,
-      Math.max(230, isMobile ? window.innerWidth - 40 : 290)
-    );
-    const pageH = Math.min(isMobile ? 400 : 420, Math.round(pageW * (isMobile ? 1.35 : 1.4)));
+    const pageW = Math.min(290, Math.max(240, 290));
+    const pageH = Math.min(420, Math.round(pageW * 1.4));
 
     let pageFlip;
-    let flipping = false;
     try {
       pageFlip = new St.PageFlip(root, {
         width: pageW,
         height: pageH,
         size: "stretch",
-        minWidth: isMobile ? 200 : 220,
-        maxWidth: isMobile ? Math.min(360, window.innerWidth - 24) : 340,
-        minHeight: isMobile ? 280 : 320,
-        maxHeight: isMobile ? 460 : 480,
-        drawShadow: !isMobile, // sombras pesadas en móvil pueden trabar el toque
+        minWidth: 220,
+        maxWidth: 340,
+        minHeight: 320,
+        maxHeight: 480,
+        drawShadow: true,
         maxShadowOpacity: 0.4,
         showCover: true,
-        // true = al tocar el libro no pelea con el scroll de la página (mejor flip en móvil)
         mobileScrollSupport: true,
-        // retrato en móvil: una página a la vez (más fácil de pasar)
-        usePortrait: isMobile,
-        flippingTime: isMobile ? 700 : 900,
+        usePortrait: false,
+        flippingTime: 900,
         startPage: 0,
         autoSize: true,
         clickEventForward: true,
         useMouseEvents: true,
         showPageCorners: true,
-        // en móvil el clic en toda la hoja a veces falla; los botones son la vía principal
-        disableFlipByClick: isMobile,
-        swipeDistance: isMobile ? 12 : 28,
+        disableFlipByClick: false,
+        swipeDistance: 28,
       });
       pageFlip.loadFromHTML(pages);
     } catch (err) {
@@ -195,128 +280,67 @@
     function updateUI() {
       const i = pageFlip.getCurrentPageIndex();
       const n = pageFlip.getPageCount();
-      // Hojas: 0 = portada, 1..n-2 = páginas numeradas, n-1 = contraportada
-      const contentTotal = Math.max(0, n - 2);
-      if (label) {
-        if (i === 0) {
-          label.textContent = "Portada";
-        } else if (i >= n - 1) {
-          label.textContent = "Fin";
-        } else {
-          // i=1 → página 1, i=2 → página 2, … (coincide con .page-num)
-          label.textContent = i + " / " + contentTotal;
-        }
-      }
-      if (prevBtn) prevBtn.disabled = i <= 0 || flipping;
-      if (nextBtn) nextBtn.disabled = i >= n - 1 || flipping;
-      if (hint) {
-        if (i === 0) {
-          hint.textContent = isMobile
-            ? "Toca → o desliza para abrir"
-            : "Toca la portada o desliza para abrir el libro";
-        } else if (i >= n - 1) {
-          hint.textContent = "Fin del libro · ← o Portada";
-        } else {
-          hint.textContent = isMobile
-            ? "Usa ← → o desliza la hoja"
-            : "Pasa las páginas · desliza o usa ← →";
-        }
-      }
+      setLabel(i, n);
+      if (prevBtn) prevBtn.disabled = i <= 0;
+      if (nextBtn) nextBtn.disabled = i >= n - 1;
+      setHint(i, n);
     }
 
     function goNext() {
-      if (flipping) return;
-      const i = pageFlip.getCurrentPageIndex();
-      const n = pageFlip.getPageCount();
-      if (i >= n - 1) return;
       try {
-        const st = pageFlip.getState && pageFlip.getState();
-        if (st && st !== "read") {
-          pageFlip.turnToNextPage();
-        } else {
-          pageFlip.flipNext("bottom");
-        }
+        pageFlip.flipNext();
       } catch (_) {
         try {
           pageFlip.turnToNextPage();
         } catch (e2) {}
       }
-      // fallback UI update (por si el evento flip no dispara)
-      window.setTimeout(updateUI, 50);
-      window.setTimeout(updateUI, 400);
+      window.setTimeout(updateUI, 80);
     }
 
     function goPrev() {
-      if (flipping) return;
-      const i = pageFlip.getCurrentPageIndex();
-      if (i <= 0) return;
       try {
-        const st = pageFlip.getState && pageFlip.getState();
-        if (st && st !== "read") {
-          pageFlip.turnToPrevPage();
-        } else {
-          pageFlip.flipPrev("bottom");
-        }
+        pageFlip.flipPrev();
       } catch (_) {
         try {
           pageFlip.turnToPrevPage();
         } catch (e2) {}
       }
-      window.setTimeout(updateUI, 50);
-      window.setTimeout(updateUI, 400);
+      window.setTimeout(updateUI, 80);
     }
 
-    pageFlip.on("flip", () => {
-      flipping = false;
-      updateUI();
-    });
+    pageFlip.on("flip", updateUI);
     pageFlip.on("init", updateUI);
-    pageFlip.on("changeState", (e) => {
-      const st = e && e.data;
-      flipping = st === "flipping" || st === "user_fold" || st === "fold_corner";
-      updateUI();
-    });
 
-    // pointerup: más fiable en móvil que solo click
-    function bindTap(el, fn) {
-      if (!el) return;
-      el.addEventListener("click", (e) => {
+    if (prevBtn) {
+      prevBtn.type = "button";
+      prevBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        fn();
+        goPrev();
       });
-      el.addEventListener(
-        "touchend",
-        (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          fn();
-        },
-        { passive: false }
-      );
     }
-
-    bindTap(prevBtn, goPrev);
-    bindTap(nextBtn, goNext);
-    bindTap(closeBtn, () => {
-      try {
-        pageFlip.flip(0, "bottom");
-      } catch (_) {
+    if (nextBtn) {
+      nextBtn.type = "button";
+      nextBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        goNext();
+      });
+    }
+    if (closeBtn) {
+      closeBtn.type = "button";
+      closeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
         try {
           pageFlip.turnToPage(0);
-        } catch (e2) {}
-      }
-      window.setTimeout(updateUI, 50);
-      window.setTimeout(updateUI, 500);
-    });
+        } catch (_) {}
+        updateUI();
+      });
+    }
 
-    // Teclado
     document.addEventListener("keydown", (e) => {
       const hist = document.getElementById("historia");
       if (!hist) return;
       const rect = hist.getBoundingClientRect();
-      const inView = rect.top < window.innerHeight && rect.bottom > 0;
-      if (!inView) return;
+      if (rect.top >= window.innerHeight || rect.bottom <= 0) return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         goPrev();
@@ -326,15 +350,10 @@
       }
     });
 
-    // Ajuste al rotar / redimensionar
-    let resizeT;
     window.addEventListener("resize", () => {
-      window.clearTimeout(resizeT);
-      resizeT = window.setTimeout(() => {
-        try {
-          pageFlip.update();
-        } catch (_) {}
-      }, 200);
+      try {
+        pageFlip.update();
+      } catch (_) {}
     });
 
     updateUI();
