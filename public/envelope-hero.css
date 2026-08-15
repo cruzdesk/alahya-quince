@@ -485,17 +485,19 @@
   .he-card {
     left: 5%;
     right: 5%;
-    transform: translateY(calc(48% - var(--out) * 108%));
+    /* Móvil: el sobre es más bajo → la carta debe subir más al abrir */
+    transform: translateY(calc(48% - var(--out) * 128%));
   }
   .hero-envelope.is-open .he-card {
-    /* Móvil: un poco más alta para no tapar la fecha con la V */
-    transform: translateY(-62%);
+    /* Fecha por encima de la V (solo móvil; desktop se deja como está) */
+    transform: translateY(-82%);
   }
   .he-card-inner {
-    padding: 1.2rem 0.9rem 2.35rem !important;
+    /* Menos aire abajo: el texto (fecha) queda más arriba en la tarjeta */
+    padding: 1.1rem 0.85rem 1.35rem !important;
   }
   .he-card-inner .hero-date {
-    padding-bottom: 1.75rem;
+    padding-bottom: 0.35rem;
   }
   .he-seal {
     width: 48px;
