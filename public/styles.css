@@ -427,65 +427,47 @@ body {
 }
 
 /*
-  Modelo de libro real:
-  - --pw = ancho de UNA página
-  - Cerrado: escenario = 1 página (recorta la izquierda del interior)
-  - Abierto: escenario = 2 páginas
-  - Tapa SIEMPRE mide 1 página y vive a la derecha (nunca se estira)
+  Libro:
+  - Cerrado: 1 página = solo portada
+  - Abrir: se ensancha a 2 páginas y la portada gira como HOJA (-180°)
+  - Cerrar: fundido suave a portada (sin 3D inverso feo)
 */
 .story-book {
   --pw: min(300px, calc(100vw - 2.5rem));
+  --cover-ms: 0.8s;
   width: var(--pw);
   display: flex;
   flex-direction: column;
   align-items: center;
   -webkit-tap-highlight-color: transparent;
-  transition: width 0.7s cubic-bezier(0.4, 0.05, 0.2, 1);
+  transition: width 0.55s cubic-bezier(0.4, 0.05, 0.2, 1);
 }
 
-/* Abierto (o abriéndose ya ensanchado): 2 páginas */
-.story-book.is-open {
+.story-book.is-open,
+.story-book.is-opening {
   width: min(100%, calc(var(--pw) * 2));
 }
 
-/* Escenario */
 .sb-stage {
   position: relative;
-  width: var(--pw);
+  width: 100%;
   height: min(420px, 58vh);
   min-height: 360px;
   margin: 0 auto;
-  /* perspective en el escenario; preserve-3d SOLO en la tapa (evita glitches) */
-  perspective: 1600px;
-  perspective-origin: 50% 45%;
-  overflow: hidden; /* cerrado: no se ve la página izq del interior */
-  transition: width 0.5s cubic-bezier(0.4, 0.05, 0.2, 1);
-}
-
-.story-book.is-open .sb-stage {
-  width: min(100%, calc(var(--pw) * 2));
+  perspective: 1800px;
+  perspective-origin: 50% 50%;
   overflow: visible;
 }
 
-/* Solo girando tapa, aún sin is-open: 1 página */
-.story-book.is-opening:not(.is-open) .sb-stage {
-  width: var(--pw);
-  overflow: hidden;
-}
-
-/* Mientras se ensancha con la tapa aún girando, permitir que asome la izq */
-.story-book.is-opening.is-open .sb-stage {
-  overflow: visible;
-}
-
-/* ——— Portada: 1 página a la derecha; 2 caras 3D bien aisladas ——— */
+/* ——— Portada (hoja que se voltea) ——— */
 .sb-cover {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   width: var(--pw);
-  z-index: 30;
+  max-width: 50%;
+  z-index: 40;
   margin: 0;
   padding: 0;
   border: none;
@@ -498,21 +480,63 @@ body {
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
   transform: rotateY(0deg);
-  opacity: 1;
-  visibility: visible;
-  transition: transform 0.85s cubic-bezier(0.4, 0.05, 0.2, 1);
-  will-change: transform;
+  transition: transform var(--cover-ms) cubic-bezier(0.4, 0.05, 0.2, 1);
 }
 
-/* Gira sobre el lomo */
+/* Cerrado: portada ocupa todo el escenario (1 página) */
+.story-book:not(.is-opening):not(.is-open):not(.is-closing) .sb-cover {
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: none;
+  transform-origin: left center;
+}
+
+/* Al abrir: portada anclada a la derecha (como hoja) y gira 180° */
+.story-book.is-opening .sb-cover,
+.story-book.is-open .sb-cover {
+  left: auto;
+  right: 0;
+  width: var(--pw);
+  max-width: 50%;
+}
+
 .story-book.is-cover-open .sb-cover {
-  transform: rotateY(-160deg);
+  transform: rotateY(-180deg);
   pointer-events: none;
 }
 
-/* Al terminar: tapa fuera (ya no se anima el rotate a 0) */
+/* Tras abrir: tapa fuera */
 .story-book.is-cover-done .sb-cover {
   display: none !important;
+}
+
+/* Cerrar: portada cerrada encima a pantalla completa del libro, fundido */
+.story-book.is-closing .sb-cover {
+  display: block !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  transform: rotateY(0deg) !important;
+  opacity: 0;
+  animation: sb-cover-close-in 0.45s ease forwards;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.story-book.is-closing {
+  /* mantiene ancho 2 páginas un instante; la portada tapa todo */
+  width: min(100%, calc(var(--pw) * 2));
+}
+
+@keyframes sb-cover-close-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .sb-cover:focus-visible {
@@ -525,10 +549,8 @@ body {
   inset: 0;
   border-radius: 4px 12px 12px 4px;
   box-sizing: border-box;
-  /* Crítico: sin esto se ve la portada al revés (letras espejo en rojo) */
-  backface-visibility: hidden !important;
-  -webkit-backface-visibility: hidden !important;
-  -moz-backface-visibility: hidden !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   overflow: hidden;
 }
 
@@ -546,27 +568,16 @@ body {
   box-shadow:
     0 16px 36px rgba(40, 10, 15, 0.32),
     inset 0 0 0 1px rgba(255, 250, 240, 0.1);
-  /* Un poco hacia la cámara para que gane a la cara interior */
-  transform: translateZ(1px);
   z-index: 2;
 }
 
-/*
-  Cinturón de seguridad: al abrir, la cara con “Alahya” se apaga a mitad del giro
-  por si el navegador ignora backface-visibility (evita letras al revés).
-*/
-.story-book.is-cover-open .sb-cover-front {
-  opacity: 0;
-  transition: opacity 0.05s linear 0.32s;
-}
-
-.story-book:not(.is-opening):not(.is-open) .sb-cover:hover .sb-cover-front {
+.story-book:not(.is-opening):not(.is-open):not(.is-closing) .sb-cover:hover .sb-cover-front {
   box-shadow:
     0 20px 40px rgba(40, 10, 15, 0.38),
     inset 0 0 0 1px rgba(255, 250, 240, 0.12);
 }
 
-/* Interior de tapa: legible cuando la tapa está abierta (no espejo) */
+/* Reverso de la hoja-portada (se ve al voltear) */
 .sb-cover-inside {
   display: flex;
   align-items: center;
@@ -575,8 +586,8 @@ body {
   background: #9b1c1c;
   border: 2px solid #7a1515;
   border-radius: 12px 4px 4px 12px;
-  transform: rotateY(180deg) translateZ(1px);
-  box-shadow: -10px 0 24px rgba(0, 0, 0, 0.25);
+  transform: rotateY(180deg);
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
   z-index: 1;
 }
 
@@ -679,15 +690,12 @@ body {
   z-index: 1;
 }
 
-/* ——— Interior: siempre 2 páginas de ancho, alineado a la derecha ——— */
+/* ——— Interior (doble página) ——— */
 .sb-open {
   display: none;
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  /* 2 páginas: al estar cerrado solo se ve la derecha (bajo la tapa) */
-  width: min(100vw - 1rem, calc(var(--pw) * 2));
+  inset: 0;
+  width: 100%;
   height: 100%;
   min-height: 0;
   border-radius: 6px;
@@ -698,13 +706,19 @@ body {
   padding: 10px;
   gap: 0;
   box-sizing: border-box;
-  transform-style: preserve-3d;
   grid-template-columns: 1fr 1fr;
+  transform-style: preserve-3d;
 }
 
 .story-book.is-opening .sb-open,
-.story-book.is-open .sb-open {
+.story-book.is-open .sb-open,
+.story-book.is-closing .sb-open {
   display: grid;
+}
+
+.story-book.is-closing .sb-open {
+  opacity: 0.35;
+  transition: opacity 0.4s ease;
 }
 
 .sb-open[hidden] {
