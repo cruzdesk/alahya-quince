@@ -276,13 +276,13 @@
       paint(0);
       resetPageFlip();
       if (controls) controls.hidden = true;
-      if (hint) hint.textContent = "Abriendo…";
+      if (hint) hint.textContent = "Abriendo el libro…";
       book.setAttribute("aria-expanded", "true");
 
-      // ORDEN CORRECTO (evita que salte la doble página):
-      // 1) Sigue 1 página de ancho
-      // 2) Gira la portada (-180°)
-      // 3) Al terminar: oculta portada y ENTONCES ensancha a 2 páginas
+      // Patrón flipbook estándar:
+      // 1) Sigue cerrado a 1 página; gira SOLO la portada
+      // 2) Bajo la tapa se ve la página derecha al levantar
+      // 3) Cuando termina el giro → se ensancha y aparece la doble página
       cover.classList.remove("is-resting", "is-turned");
       book.classList.remove("is-open");
       book.classList.add("is-turning");
@@ -294,7 +294,8 @@
         });
       });
 
-      after(TURN_MS + 50, () => {
+      after(TURN_MS + 60, () => {
+        // Portada ya abierta: ahora sí las páginas
         cover.classList.add("is-resting");
         book.classList.remove("is-turning");
         book.classList.add("is-open");
@@ -314,17 +315,15 @@
       if (controls) controls.hidden = true;
       if (hint) hint.textContent = "Cerrando…";
 
-      // Portada cerrada en el lado derecho (sin giro inverso)
-      cover.classList.remove("is-resting", "is-turned");
+      // 1) Quitar doble página YA (interior se oculta por CSS al no ser is-open)
+      // 2) Portada cerrada encima, sin giro inverso
       book.classList.remove("is-turning");
+      book.classList.remove("is-open");
+      cover.classList.remove("is-resting", "is-turned");
       void cover.offsetWidth;
 
-      // Primero recortar a 1 página (la portada tapa lo visible)
-      after(reduceMotion ? 0 : 60, () => {
-        book.classList.remove("is-open");
-        after(reduceMotion ? 0 : 380, () => {
-          setClosedUI();
-        });
+      after(reduceMotion ? 0 : 420, () => {
+        setClosedUI();
       });
     }
 

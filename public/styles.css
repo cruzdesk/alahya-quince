@@ -411,13 +411,14 @@ body {
   border-radius: 16px;
 }
 
-/* ========== HISTORIA — libro de verdad (rebuild limpio) ========== */
+/* ========== HISTORIA — libro real (patrón flip estándar) ========== */
 /*
-  Modelo:
-  - Cerrado: 1 página (solo portada; la izq del interior está recortada).
-  - Al abrir: PRIMERO gira la portada (sigue 1 página) → DESPUÉS se ensancha a 2.
-    Así no “salta” la doble página a la vez que la portada.
-  - Cerrar: portada cerrada y se recorta otra vez a 1 página.
+  Cómo se hace bien (CSS 3D book / flipbook):
+  1) Cerrado = solo se ve la portada (1 página).
+  2) Al abrir: la portada gira con rotateY sobre el lomo (preserve-3d + backface-hidden).
+  3) Las páginas del interior solo se revelan CUANDO la portada ya abrió
+     (no se ensancha a doble página al mismo tiempo).
+  4) Al cerrar: se ocultan páginas y vuelve la portada, sin giro inverso raro.
 */
 .book-hint {
   margin: -0.25rem 0 1rem;
@@ -430,44 +431,41 @@ body {
 .book-scene {
   display: flex;
   justify-content: center;
-  padding: 0.75rem 0.5rem 2rem;
-  /* espacio a la izq para que la tapa pueda girar sin cortarse */
+  padding: 1rem 0.75rem 2rem;
   overflow: visible;
 }
 
 .book {
   --page-w: min(290px, calc(100vw - 2.75rem));
   --page-h: min(410px, 56vh);
-  --ease: cubic-bezier(0.4, 0.05, 0.2, 1);
-  --turn: 0.85s;
+  --ease: cubic-bezier(0.45, 0.05, 0.2, 1);
+  --turn: 0.9s;
   width: var(--page-w);
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: width 0.5s var(--ease);
+  transition: width 0.55s var(--ease);
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Solo abierto del todo = 2 páginas */
+/* Doble página solo cuando YA terminó de abrir */
 .book.is-open {
   width: calc(var(--page-w) * 2);
 }
 
-/* Ventana: 1 página mientras gira; 2 cuando is-open */
 .book-body {
   position: relative;
   width: 100%;
   height: var(--page-h);
   overflow: hidden;
-  border-radius: 4px 10px 10px 4px;
-  box-shadow: 0 16px 36px rgba(40, 10, 15, 0.28);
-  perspective: 2000px;
-  perspective-origin: 50% 50%;
-  background: #6b1018;
-  transition: border-radius 0.4s ease;
+  border-radius: 5px 12px 12px 5px;
+  box-shadow: 0 16px 36px rgba(40, 10, 15, 0.3);
+  perspective: 2200px;
+  perspective-origin: 50% 45%;
+  background: #5c0e14;
 }
 
-/* Durante el giro de portada: permitir que la hoja salga a la izquierda */
+/* Mientras la tapa gira, permitir que salga un poco a la izquierda */
 .book.is-turning .book-body {
   overflow: visible;
 }
@@ -477,12 +475,7 @@ body {
   border-radius: 6px;
 }
 
-/* Mientras gira (aún no is-open): la página izq no se ve */
-.book.is-turning:not(.is-open) .book-page--left {
-  visibility: hidden;
-}
-
-/* Lienzo interior siempre de 2 páginas, alineado a la derecha */
+/* Lienzo de 2 páginas, anclado a la derecha (cerrado = solo se ve la der.) */
 .book-inner {
   position: absolute;
   top: 0;
@@ -491,11 +484,31 @@ body {
   width: calc(var(--page-w) * 2);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0;
-  padding: 9px;
+  padding: 10px;
   box-sizing: border-box;
-  background: linear-gradient(90deg, #5c0e14 0%, #8b1520 10%, #8b1520 90%, #5c0e14 100%);
-  transform-style: preserve-3d;
+  gap: 0;
+  background: linear-gradient(90deg, #4a0c12 0%, #8b1520 12%, #8b1520 88%, #4a0c12 100%);
+  /* Interior invisible hasta is-open: no se ve “doble página” al abrir */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.book.is-open .book-inner {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Durante el giro: solo se revela la página DERECHA bajo la tapa (no la izquierda) */
+.book.is-turning .book-inner {
+  opacity: 1;
+  visibility: visible;
+}
+
+.book.is-turning .book-page--left,
+.book.is-turning .book-spine {
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 
 .book-spine {
@@ -505,7 +518,7 @@ body {
   left: 50%;
   width: 12px;
   transform: translateX(-50%);
-  z-index: 6;
+  z-index: 5;
   pointer-events: none;
   background: linear-gradient(
     90deg,
@@ -542,14 +555,14 @@ body {
   padding: 1.15rem 1.15rem 0.9rem;
 }
 
-/* ——— PORTADA: siempre 1 página, anclada a la DERECHA del lienzo ——— */
+/* ——— PORTADA (tapa dura, gira sobre el lomo) ——— */
 .book-cover {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   width: var(--page-w);
-  z-index: 40;
+  z-index: 50;
   margin: 0;
   padding: 0;
   border: 0;
@@ -570,13 +583,13 @@ body {
   outline-offset: 3px;
 }
 
-/* Portada girando / abierta: -180° como una hoja */
+/* Giro de apertura (~-160° se ve más natural que -180 en demos) */
 .book-cover.is-turned {
-  transform: rotateY(-180deg);
+  transform: rotateY(-160deg);
   pointer-events: none;
 }
 
-/* Tras el giro y al estar abierto: portada fuera */
+/* Portada ya no hace falta encima del libro abierto */
 .book-cover.is-resting {
   visibility: hidden;
   pointer-events: none;
@@ -585,14 +598,13 @@ body {
 .book-cover__face {
   position: absolute;
   inset: 0;
-  border-radius: 4px 10px 10px 4px;
+  border-radius: 5px 12px 12px 5px;
   box-sizing: border-box;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   overflow: hidden;
 }
 
-/* Cara exterior (cerrado) */
 .book-cover__front {
   display: flex;
   flex-direction: column;
@@ -610,7 +622,7 @@ body {
   z-index: 2;
 }
 
-.book:not(.is-open) .book-cover:hover .book-cover__front {
+.book:not(.is-open):not(.is-turning) .book-cover:hover .book-cover__front {
   box-shadow:
     0 18px 38px rgba(40, 10, 15, 0.4),
     inset 0 0 0 1px rgba(255, 250, 240, 0.12);
@@ -687,7 +699,6 @@ body {
   z-index: 1;
 }
 
-/* Cara interior (se ve al abrir la hoja) */
 .book-cover__back {
   display: flex;
   align-items: center;
@@ -695,7 +706,7 @@ body {
   padding: 11px;
   background: #9b1c1c;
   border: 2px solid #7a1515;
-  border-radius: 10px 4px 4px 10px;
+  border-radius: 12px 5px 5px 12px;
   transform: rotateY(180deg);
   z-index: 1;
 }
@@ -728,13 +739,13 @@ body {
   color: #c9a227;
 }
 
-/* ——— Pasar página (hoja sobre la derecha) ——— */
+/* Pasar página */
 .book-flip {
   position: absolute;
-  top: 9px;
-  bottom: 9px;
-  right: 9px;
-  width: calc(50% - 9px);
+  top: 10px;
+  bottom: 10px;
+  right: 10px;
+  width: calc(50% - 10px);
   z-index: 20;
   transform-origin: left center;
   transform-style: preserve-3d;
@@ -779,7 +790,7 @@ body {
   z-index: 1;
 }
 
-/* Contenido de página */
+/* Contenido */
 .book-leaf {
   flex: 1;
   display: flex;
@@ -885,7 +896,6 @@ body {
   font-weight: 600;
 }
 
-/* Controles */
 .book-controls {
   display: flex;
   align-items: center;
@@ -1000,7 +1010,8 @@ body {
     display: none !important;
   }
 
-  .book.is-open .book-cover {
+  .book.is-open .book-cover,
+  .book.is-turning .book-cover {
     display: none !important;
   }
 
@@ -1019,7 +1030,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .book,
   .book-cover,
-  .book-flip {
+  .book-flip,
+  .book-inner {
     transition-duration: 0.01ms !important;
   }
 }
