@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=20260814btn2" />
+  <link rel="stylesheet" href="/styles.css?v=20260814btn5" />
   <link rel="stylesheet" href="/envelope-hero.css?v=20260814rev2" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
 </head>
@@ -87,76 +87,78 @@
 
       <div class="book-scene">
         <div class="book-shell" id="bookShell">
-          <!-- Páginas del flipbook (StPageFlip las anima) -->
-          <div class="flipbook" id="flipbook">
-            <!-- Portada dura -->
-            <div class="page page--cover" data-density="hard">
-              <div class="page-cover-inner">
-                <span class="page-cover-frame" aria-hidden="true"></span>
-                <span class="page-cover-ornament">✦</span>
-                <span class="page-cover-kicker">Mis XV Años</span>
-                <span class="page-cover-name">Alahya</span>
-                <span class="page-cover-sub">Thaís Saltares Ortega</span>
-                <span class="page-cover-theme">Victorian Masquerade</span>
-                <span class="page-cover-ornament">✦</span>
-                <span class="page-cover-tap">Abrir →</span>
+          <!-- Mount: se recrea el flipbook si StPageFlip se traba al final (móvil) -->
+          <div class="book-mount" id="bookMount">
+            <div class="flipbook" id="flipbook">
+              <!-- Portada dura -->
+              <div class="page page--cover" data-density="hard">
+                <div class="page-cover-inner">
+                  <span class="page-cover-frame" aria-hidden="true"></span>
+                  <span class="page-cover-ornament">✦</span>
+                  <span class="page-cover-kicker">Mis XV Años</span>
+                  <span class="page-cover-name">Alahya</span>
+                  <span class="page-cover-sub">Thaís Saltares Ortega</span>
+                  <span class="page-cover-theme">Victorian Masquerade</span>
+                  <span class="page-cover-ornament">✦</span>
+                  <span class="page-cover-tap">Abrir →</span>
+                </div>
               </div>
-            </div>
 
-            <!-- 1 · Interior de portada -->
-            <div class="page page--paper">
-              <div class="page-paper-inner page-center">
-                <span class="page-decor-mark">A</span>
-                <span class="page-decor-line" aria-hidden="true"></span>
-                <span class="page-decor-sub">XV</span>
-                <p class="page-small">Una noche de cuento</p>
-                <span class="page-num">1</span>
+              <!-- 1 · Interior de portada -->
+              <div class="page page--paper">
+                <div class="page-paper-inner page-center">
+                  <span class="page-decor-mark">A</span>
+                  <span class="page-decor-line" aria-hidden="true"></span>
+                  <span class="page-decor-sub">XV</span>
+                  <p class="page-small">Una noche de cuento</p>
+                  <span class="page-num">1</span>
+                </div>
               </div>
-            </div>
 
-            <!-- 2 · Historia -->
-            <div class="page page--paper">
-              <div class="page-paper-inner page-center">
-                <p>Hay momentos que marcan un antes y un después. Los quince años de <strong>Alahya</strong> son uno de ellos: el umbral entre la niña que soñaba castillos y la joven que camina con gracia hacia su propio destino.</p>
-                <span class="page-num">2</span>
+              <!-- 2 · Historia -->
+              <div class="page page--paper">
+                <div class="page-paper-inner page-center">
+                  <p>Hay momentos que marcan un antes y un después. Los quince años de <strong>Alahya</strong> son uno de ellos: el umbral entre la niña que soñaba castillos y la joven que camina con gracia hacia su propio destino.</p>
+                  <span class="page-num">2</span>
+                </div>
               </div>
-            </div>
 
-            <!-- 3 · Historia -->
-            <div class="page page--paper">
-              <div class="page-paper-inner page-center">
-                <p>Esta noche no es solo un baile. Es gratitud a su madre, quien la crió con fe, ternura y fuerza; y un cariño eterno al recuerdo de su papá, siempre presente en el corazón.</p>
-                <span class="page-num">3</span>
+              <!-- 3 · Historia -->
+              <div class="page page--paper">
+                <div class="page-paper-inner page-center">
+                  <p>Esta noche no es solo un baile. Es gratitud a su madre, quien la crió con fe, ternura y fuerza; y un cariño eterno al recuerdo de su papá, siempre presente en el corazón.</p>
+                  <span class="page-num">3</span>
+                </div>
               </div>
-            </div>
 
-            <!-- 4 · Historia -->
-            <div class="page page--paper">
-              <div class="page-paper-inner page-center">
-                <p>Es amistad, risas, vals y estrellas. Es el comienzo de un capítulo escrito en oro y rosa.</p>
-                <span class="page-num">4</span>
+              <!-- 4 · Historia -->
+              <div class="page page--paper">
+                <div class="page-paper-inner page-center">
+                  <p>Es amistad, risas, vals y estrellas. Es el comienzo de un capítulo escrito en oro y rosa.</p>
+                  <span class="page-num">4</span>
+                </div>
               </div>
-            </div>
 
-            <!-- 5 · Mensaje Alahya -->
-            <div class="page page--paper">
-              <div class="page-paper-inner page-center">
-                <p class="page-title">Mensaje de Alahya</p>
-                <blockquote>
-                  “Hoy celebro la vida, el amor de mi familia y el milagro de crecer rodeada de ustedes.”
-                  <cite>— Alahya</cite>
-                </blockquote>
-                <span class="page-num">5</span>
+              <!-- 5 · Mensaje Alahya -->
+              <div class="page page--paper">
+                <div class="page-paper-inner page-center">
+                  <p class="page-title">Mensaje de Alahya</p>
+                  <blockquote>
+                    “Hoy celebro la vida, el amor de mi familia y el milagro de crecer rodeada de ustedes.”
+                    <cite>— Alahya</cite>
+                  </blockquote>
+                  <span class="page-num">5</span>
+                </div>
               </div>
-            </div>
 
-            <!-- Contraportada -->
-            <div class="page page--back" data-density="hard">
-              <div class="page-cover-inner">
-                <span class="page-cover-ornament">✦</span>
-                <span class="page-cover-name page-cover-name--sm">Con cariño</span>
-                <span class="page-cover-theme">10 de octubre de 2026</span>
-                <span class="page-cover-ornament">✦</span>
+              <!-- Contraportada -->
+              <div class="page page--back" data-density="hard">
+                <div class="page-cover-inner">
+                  <span class="page-cover-ornament">✦</span>
+                  <span class="page-cover-name page-cover-name--sm">Con cariño</span>
+                  <span class="page-cover-theme">10 de octubre de 2026</span>
+                  <span class="page-cover-ornament">✦</span>
+                </div>
               </div>
             </div>
           </div>
@@ -487,6 +489,6 @@
 
   <script src="/pr-towns.js"></script>
   <script src="/vendor/page-flip.browser.js"></script>
-  <script src="/app.js?v=20260814btn4"></script>
+  <script src="/app.js?v=20260814btn5"></script>
 </body>
 </html>

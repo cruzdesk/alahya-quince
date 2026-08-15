@@ -439,6 +439,17 @@ body {
   max-width: 640px;
 }
 
+/* Mount: recorta overflow del canvas para que no tape los botones */
+.book-mount {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  /* Aísla stacking del libro respecto a .book-controls */
+  isolation: isolate;
+}
+
 /* Contenedor del libro 3D (mismo en móvil y PC) */
 .flipbook {
   width: min(100%, 580px);
@@ -447,6 +458,8 @@ body {
   margin: 0 auto;
   position: relative;
   max-width: 100%;
+  overflow: hidden;
+  z-index: 1;
 }
 
 /* StPageFlip */
@@ -458,6 +471,12 @@ body {
   margin-right: auto !important;
 }
 
+.book-mount .stf__parent,
+.book-mount .stf__wrapper {
+  max-height: 100%;
+  overflow: hidden !important;
+}
+
 /* Estilos base de cada página */
 .flipbook .page {
   background: #fffcf8;
@@ -465,10 +484,10 @@ body {
   box-shadow: 0 0 8px rgba(40, 10, 15, 0.12);
 }
 
-/* Controles siempre por encima del canvas del flipbook */
+/* Controles SIEMPRE encima del canvas (no comparten stacking con el libro) */
 .book-controls {
   position: relative;
-  z-index: 500 !important;
+  z-index: 50 !important;
   pointer-events: auto !important;
   display: flex;
   align-items: center;
@@ -476,17 +495,22 @@ body {
   gap: 0.45rem;
   flex-wrap: wrap;
   width: 100%;
-  margin-top: 0.35rem;
+  margin-top: 0.5rem;
+  padding-top: 0.15rem;
   isolation: isolate;
+  /* Fondo mínimo evita que capas hijas del libro “atraviesen” en algunos WebKit */
+  background: transparent;
 }
 
 .book-controls .book-btn {
   position: relative;
-  z-index: 501 !important;
+  z-index: 51 !important;
   pointer-events: auto !important;
   cursor: pointer;
   -webkit-tap-highlight-color: rgba(155, 28, 28, 0.15);
   touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .book-controls .book-btn:disabled {
@@ -495,6 +519,7 @@ body {
 }
 
 /* El bloque de StPageFlip no debe tapar los botones de abajo */
+.book-shell--live .book-mount,
 .book-shell--live .stf__parent {
   position: relative;
   z-index: 1;
