@@ -147,7 +147,9 @@
     if (!book || !cover || !leftEl || !rightEl) return;
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const TURN_MS = reduceMotion ? 20 : 850;
+    const TURN_MS = reduceMotion ? 20 : 1050;
+    const EXPAND_AT = reduceMotion ? 0 : 520; /* ensancha a mitad del giro (tapa ya pasó de 90°) */
+    const FADE_MS = reduceMotion ? 0 : 420;
     const FLIP_MS = reduceMotion ? 20 : 750;
 
     function leaf(html, num) {
@@ -279,10 +281,10 @@
       if (hint) hint.textContent = "Abriendo el libro…";
       book.setAttribute("aria-expanded", "true");
 
-      // Patrón flipbook estándar:
-      // 1) Sigue cerrado a 1 página; gira SOLO la portada
-      // 2) Bajo la tapa se ve la página derecha al levantar
-      // 3) Cuando termina el giro → se ensancha y aparece la doble página
+      // Apertura más natural (como libro real):
+      // 1) Gira la tapa (1 página; se ve la hoja derecha al levantar)
+      // 2) A mitad del giro (tapa ya >90°): ensancha → aparece la izquierda
+      // 3) Tapa se desvanece suave; salen los controles
       cover.classList.remove("is-resting", "is-turned");
       book.classList.remove("is-open");
       book.classList.add("is-turning");
@@ -294,16 +296,20 @@
         });
       });
 
-      after(TURN_MS + 60, () => {
-        // Portada ya abierta: ahora sí las páginas
-        cover.classList.add("is-resting");
-        book.classList.remove("is-turning");
+      after(EXPAND_AT, () => {
         book.classList.add("is-open");
-        isOpen = true;
-        busy = false;
-        if (controls) controls.hidden = false;
-        if (hint) hint.textContent = spreads[0].hint;
-        paint(0);
+      });
+
+      after(TURN_MS + 40, () => {
+        cover.classList.add("is-resting");
+        after(FADE_MS, () => {
+          book.classList.remove("is-turning");
+          isOpen = true;
+          busy = false;
+          if (controls) controls.hidden = false;
+          if (hint) hint.textContent = spreads[0].hint;
+          paint(0);
+        });
       });
     }
 
