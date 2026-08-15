@@ -89,30 +89,37 @@
           aria-expanded="false"
           aria-label="Libro de la historia de Alahya"
         >
-          <!-- CERRADO: solo portada -->
-          <button type="button" class="sb-cover" id="storyBookCover" aria-label="Abrir el libro">
-            <span class="sb-cover-frame" aria-hidden="true"></span>
-            <span class="sb-cover-ornament">✦</span>
-            <span class="sb-cover-kicker">Mis XV Años</span>
-            <span class="sb-cover-name">Alahya</span>
-            <span class="sb-cover-sub">Thaís Saltares Ortega</span>
-            <span class="sb-cover-theme">Victorian Masquerade</span>
-            <span class="sb-cover-ornament">✦</span>
-            <span class="sb-cover-tap" id="storyBookTap">Abrir</span>
-          </button>
-
-          <!-- ABIERTO: libro de dos páginas + hoja que se voltea -->
-          <div class="sb-open" id="storyBookOpen" hidden>
-            <div class="sb-binding" aria-hidden="true"></div>
-
-            <div class="sb-page sb-page-left" id="storyBookLeft"></div>
-            <div class="sb-page sb-page-right" id="storyBookRight"></div>
-
-            <!-- Hoja animada (pasa como libro real) -->
-            <div class="sb-flip" id="storyBookFlip" aria-hidden="true">
-              <div class="sb-flip-face sb-flip-front" id="storyBookFlipFront"></div>
-              <div class="sb-flip-face sb-flip-back" id="storyBookFlipBack"></div>
+          <div class="sb-stage" id="storyBookStage">
+            <!-- Interior del libro (debajo de la tapa) -->
+            <div class="sb-open" id="storyBookOpen" hidden>
+              <div class="sb-binding" aria-hidden="true"></div>
+              <div class="sb-page sb-page-left" id="storyBookLeft"></div>
+              <div class="sb-page sb-page-right" id="storyBookRight"></div>
+              <div class="sb-flip" id="storyBookFlip" aria-hidden="true">
+                <div class="sb-flip-face sb-flip-front" id="storyBookFlipFront"></div>
+                <div class="sb-flip-face sb-flip-back" id="storyBookFlipBack"></div>
+              </div>
             </div>
+
+            <!-- Portada: se abre como tapa de libro -->
+            <button type="button" class="sb-cover" id="storyBookCover" aria-label="Abrir el libro">
+              <span class="sb-cover-face sb-cover-front">
+                <span class="sb-cover-frame" aria-hidden="true"></span>
+                <span class="sb-cover-ornament">✦</span>
+                <span class="sb-cover-kicker">Mis XV Años</span>
+                <span class="sb-cover-name">Alahya</span>
+                <span class="sb-cover-sub">Thaís Saltares Ortega</span>
+                <span class="sb-cover-theme">Victorian Masquerade</span>
+                <span class="sb-cover-ornament">✦</span>
+                <span class="sb-cover-tap" id="storyBookTap">Abrir</span>
+              </span>
+              <span class="sb-cover-face sb-cover-inside" aria-hidden="true">
+                <span class="sb-cover-inside-panel">
+                  <span class="sb-cover-inside-mark">A</span>
+                  <span class="sb-cover-inside-text">XV</span>
+                </span>
+              </span>
+            </button>
           </div>
 
           <div class="story-book-nav" id="storyBookNav" hidden>

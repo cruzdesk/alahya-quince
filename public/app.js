@@ -130,7 +130,7 @@
   }
 
   // ——— Historia: libro 3D + paso que se voltean
-  // ——— Historia: libro real con pasada de hoja
+  // ——— Historia: libro real (portada que se abre + pasada de hoja)
   (function setupStoryBook() {
     const book = document.getElementById("storyBook");
     const cover = document.getElementById("storyBookCover");
@@ -149,6 +149,7 @@
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const FLIP_MS = reduceMotion ? 0 : 780;
+    const COVER_MS = reduceMotion ? 0 : 950;
 
     const decor = (mark, sub) =>
       '<div class="sb-leaf-decor">' +
@@ -161,17 +162,28 @@
       "</span>" +
       "</div>";
 
+    // Cuerpo centrado verticalmente; número abajo
     const leaf = (html, num) =>
       '<article class="sb-leaf">' +
+      '<div class="sb-leaf-body">' +
       html +
+      "</div>" +
       '<span class="sb-page-num">' +
       num +
       "</span></article>";
 
-    // Spreads [izquierda | derecha] — texto centrado, sin "Página N ·" arriba
+    const decorLeaf = (mark, sub, num) =>
+      '<article class="sb-leaf">' +
+      '<div class="sb-leaf-body">' +
+      decor(mark, sub) +
+      "</div>" +
+      '<span class="sb-page-num">' +
+      (num || " ") +
+      "</span></article>";
+
     const spreads = [
       {
-        left: decor("A", "XV") + '<span class="sb-page-num"> </span>',
+        left: decorLeaf("A", "XV", " "),
         right: leaf(
           "<p>Hay momentos que marcan un antes y un después. Los quince años de " +
             "<strong>Alahya</strong> son uno de ellos: el umbral entre la niña que " +
@@ -195,15 +207,14 @@
         hint: "Libro abierto · Continúa la historia",
       },
       {
-        left:
-          '<article class="sb-leaf sb-leaf-quote">' +
+        left: leaf(
           '<p class="sb-title">Mensaje de Alahya</p>' +
-          "<blockquote>“Hoy celebro la vida, el amor de mi familia y el milagro de crecer " +
-          'rodeada de ustedes.”' +
-          "<cite>— Alahya</cite></blockquote>" +
-          '<span class="sb-page-num">4</span>' +
-          "</article>",
-        right: decor("✦", "Fin") + '<span class="sb-page-num"> </span>',
+            "<blockquote>“Hoy celebro la vida, el amor de mi familia y el milagro de crecer " +
+            "rodeada de ustedes.”" +
+            "<cite>— Alahya</cite></blockquote>",
+          "4"
+        ),
+        right: decorLeaf("✦", "Fin", " "),
         hint: "Mensaje de Alahya · ← volver o Cerrar",
       },
     ];
@@ -212,10 +223,12 @@
     let spread = 0;
     let open = false;
     let flipping = false;
+    let coverBusy = false;
+    let coverTimer = null;
 
     function updateNav() {
-      if (prevBtn) prevBtn.disabled = !open || flipping || spread <= 0;
-      if (nextBtn) nextBtn.disabled = !open || flipping || spread >= total - 1;
+      if (prevBtn) prevBtn.disabled = !open || flipping || coverBusy || spread <= 0;
+      if (nextBtn) nextBtn.disabled = !open || flipping || coverBusy || spread >= total - 1;
       if (pageLabel) pageLabel.textContent = open ? spread + 1 + " / " + total : "";
     }
 
@@ -233,7 +246,6 @@
       flipEl.style.transition = "none";
       if (flipFront) flipFront.innerHTML = "";
       if (flipBack) flipBack.innerHTML = "";
-      // force reflow so next transition applies
       void flipEl.offsetWidth;
       flipEl.style.transition = "";
     }
@@ -245,15 +257,21 @@
       updateNav();
     }
 
+    function clearCoverTimer() {
+      if (coverTimer) {
+        window.clearTimeout(coverTimer);
+        coverTimer = null;
+      }
+    }
+
     function flipTo(nextIndex, direction) {
-      if (flipping || nextIndex < 0 || nextIndex >= total) return;
+      if (flipping || coverBusy || nextIndex < 0 || nextIndex >= total) return;
       if (nextIndex === spread) return;
 
       const from = spreads[spread];
       const to = spreads[nextIndex];
       if (!from || !to) return;
 
-      // Sin animación 3D
       if (!flipEl || !flipFront || !flipBack || FLIP_MS === 0) {
         renderInstant(nextIndex);
         return;
@@ -263,17 +281,13 @@
       updateNav();
 
       if (direction === "forward") {
-        // Hoja derecha se voltea a la izquierda
-        // Frente = página derecha actual; reverso = nueva izquierda
         flipFront.innerHTML = from.right;
         flipBack.innerHTML = to.left;
-        // Debajo: nueva derecha ya lista; izquierda se actualiza al terminar
         rightEl.innerHTML = to.right;
 
         flipEl.classList.remove("is-backward", "is-flipped");
         flipEl.classList.add("is-active", "is-forward");
         flipEl.style.transition = "none";
-        flipEl.classList.remove("is-flipped");
         void flipEl.offsetWidth;
         flipEl.style.transition = "";
 
@@ -292,8 +306,6 @@
           updateNav();
         }, FLIP_MS + 40);
       } else {
-        // Atrás: hoja viene desde la izquierda hacia la derecha
-        // Estado inicial volteado: se ve el reverso (izquierda actual) a la izq
         flipFront.innerHTML = to.right;
         flipBack.innerHTML = from.left;
         leftEl.innerHTML = to.left;
@@ -322,29 +334,82 @@
     }
 
     function setOpen(nextOpen) {
-      if (flipping) return;
-      open = !!nextOpen;
-      book.classList.toggle("is-open", open);
-      book.setAttribute("aria-expanded", open ? "true" : "false");
-      openEl.hidden = !open;
-      if (nav) nav.hidden = !open;
-      if (open) {
+      if (flipping || coverBusy) return;
+      if (!!nextOpen === open) return;
+
+      clearCoverTimer();
+
+      if (nextOpen) {
+        // Abrir: expandir + voltear tapa como libro
+        coverBusy = true;
+        open = false;
+        book.classList.remove("is-open", "is-cover-done");
+        book.classList.add("is-opening");
+        book.setAttribute("aria-expanded", "true");
+        openEl.hidden = false;
+        if (nav) nav.hidden = true;
         renderInstant(0);
-      } else {
-        resetFlip();
-        if (hint) hint.textContent = "Toca la portada para abrir el libro";
+        if (hint) hint.textContent = "Abriendo el libro…";
         updateNav();
+
+        // Un frame para aplicar ancho, luego girar tapa
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            book.classList.add("is-cover-open");
+          });
+        });
+
+        coverTimer = window.setTimeout(() => {
+          book.classList.remove("is-opening");
+          book.classList.add("is-open", "is-cover-done");
+          open = true;
+          coverBusy = false;
+          if (nav) nav.hidden = false;
+          if (hint) hint.textContent = spreads[0].hint;
+          updateNav();
+        }, COVER_MS + 80);
+      } else {
+        // Cerrar: mostrar tapa abierta y cerrarla
+        coverBusy = true;
+        if (nav) nav.hidden = true;
+        resetFlip();
+        renderInstant(0);
+
+        book.classList.remove("is-cover-done");
+        book.classList.add("is-opening", "is-cover-open");
+        book.classList.remove("is-open");
+        openEl.hidden = false;
+
+        // Un frame y cerrar tapa
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            book.classList.remove("is-cover-open");
+          });
+        });
+
+        coverTimer = window.setTimeout(() => {
+          book.classList.remove("is-opening", "is-open", "is-cover-open", "is-cover-done");
+          openEl.hidden = true;
+          open = false;
+          coverBusy = false;
+          if (nav) nav.hidden = true;
+          if (hint) hint.textContent = "Toca la portada para abrir el libro";
+          book.setAttribute("aria-expanded", "false");
+          updateNav();
+        }, COVER_MS + 80);
       }
     }
 
     function go(delta) {
-      if (!open || flipping) return;
+      if (!open || flipping || coverBusy) return;
       const next = spread + delta;
       if (next < 0 || next >= total) return;
       flipTo(next, delta > 0 ? "forward" : "backward");
     }
 
-    cover.addEventListener("click", () => setOpen(true));
+    cover.addEventListener("click", () => {
+      if (!open && !coverBusy) setOpen(true);
+    });
 
     prevBtn &&
       prevBtn.addEventListener("click", (e) => {
@@ -367,7 +432,13 @@
       });
 
     book.addEventListener("keydown", (e) => {
-      if (!open || flipping) return;
+      if (coverBusy || flipping) return;
+      if (!open && e.key === "Enter") {
+        e.preventDefault();
+        setOpen(true);
+        return;
+      }
+      if (!open) return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         go(-1);
@@ -380,7 +451,14 @@
       }
     });
 
-    setOpen(false);
+    // Estado inicial cerrado
+    open = false;
+    book.classList.remove("is-open", "is-opening", "is-cover-open", "is-cover-done");
+    openEl.hidden = true;
+    if (nav) nav.hidden = true;
+    book.setAttribute("aria-expanded", "false");
+    if (hint) hint.textContent = "Toca la portada para abrir el libro";
+    updateNav();
   })();
 
   // ——— Particles
