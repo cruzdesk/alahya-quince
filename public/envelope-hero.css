@@ -138,15 +138,19 @@
   z-index: 1;
 }
 
-/* Tarjeta: metida (out=0) o fuera hacia arriba (out=1) — solo translateY 2D (nítido) */
+/*
+ * Carta: entre el dorso (z1) y el bolsillo en V (z3+).
+ * Al subir, los lados del bolsillo tapan los bordes: sale por la V, no como
+ * un rectángulo suelto por encima de un hueco cuadrado.
+ */
 .he-card {
   position: absolute;
-  left: 6%;
-  right: 6%;
-  top: 8%;
+  left: 7%;
+  right: 7%;
+  top: 10%;
   z-index: 2;
-  /* translateY 2D (no 3d) + isolation: evita subpixel blur del compositing */
-  transform: translateY(calc(58% - var(--out) * 118%));
+  /* out=0: metida; out=1: arriba pero aún enganchada en la V */
+  transform: translateY(calc(52% - var(--out) * 96%));
   transform-style: flat;
   isolation: isolate;
   pointer-events: none;
@@ -160,8 +164,8 @@
 
 .hero-envelope.is-open .he-card {
   pointer-events: auto;
-  /* Valor fijo sin var() al estar abierta: composición más limpia */
-  transform: translateY(-60%);
+  /* Menos subida que antes: el borde inferior queda DENTRO de la V del bolsillo */
+  transform: translateY(-44%);
   will-change: auto;
   filter: none;
 }
@@ -169,20 +173,19 @@
 .he-card-inner {
   max-width: none !important;
   width: 100%;
-  /* Más aire abajo (debajo de la fecha) */
-  padding: 1.65rem 1.3rem 3.25rem !important;
+  /* Más aire abajo: la punta de la V cae en papel en blanco, no sobre el texto */
+  padding: 1.55rem 1.25rem 3.75rem !important;
   box-shadow: 0 14px 36px rgba(40, 10, 15, 0.18);
-  /* Opaco sólido: sin glass ni blur */
   background: #fffcf8 !important;
   background-image: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   filter: none !important;
-  /* Sin translateZ (a veces desenfoca texto en algunos browsers) */
   transform: none !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
+  border-radius: 4px;
 }
 
 /* Nombre nítido: color sólido (clip de gradiente + transform padre = borroso) */
@@ -218,36 +221,67 @@
 /* Espacio en blanco debajo de la fecha (la punta del sobre no debe tapar el texto) */
 .he-card-inner .hero-date {
   margin-bottom: 0 !important;
-  padding-bottom: 3.25rem;
+  padding-bottom: 3.75rem;
   font-size: 0.75rem;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Frente del sobre — opaco, tapa la tarjeta cuando está adentro */
+/*
+ * Bolsillo frontal en V (no un rectángulo).
+ * Altura casi total del sobre: la boca es la V, no un hueco cuadrado arriba.
+ * clip-path: picos laterales bajos + cúspide central alta (abertura en V).
+ */
 .he-front {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 68%;
+  /* Cubre casi todo el cuerpo: la carta solo asoma por la V */
+  height: 92%;
   z-index: 3;
   border-radius: 0 0 10px 10px;
-  background: linear-gradient(180deg, #b01a2a 0%, #6b1018 50%, #4a0c12 100%);
+  background:
+    linear-gradient(180deg, rgba(196, 30, 58, 0.15) 0%, transparent 28%),
+    linear-gradient(180deg, #b01a2a 0%, #6b1018 48%, #4a0c12 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.4);
   border-top: none;
-  clip-path: polygon(0 30%, 50% 0, 100% 30%, 100% 100%, 0 100%);
-  box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.1);
+  /* V marcada: laterales a ~48% de altura del panel, punta arriba al 2% */
+  clip-path: polygon(0 48%, 50% 2%, 100% 48%, 100% 100%, 0 100%);
+  -webkit-clip-path: polygon(0 48%, 50% 2%, 100% 48%, 100% 100%, 0 100%);
+  box-shadow: inset 0 12px 22px rgba(0, 0, 0, 0.12);
   pointer-events: none;
+}
+
+/* Filo dorado a lo largo de la V (boca del sobre) */
+.he-front::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(212, 175, 55, 0.25),
+    rgba(242, 228, 168, 0.85) 50%,
+    rgba(212, 175, 55, 0.25)
+  );
+  /* Cinta fina siguiendo el borde superior en V */
+  clip-path: polygon(0 48%, 50% 2%, 100% 48%, 97.2% 49.2%, 50% 5.5%, 2.8% 49.2%);
+  -webkit-clip-path: polygon(0 48%, 50% 2%, 100% 48%, 97.2% 49.2%, 50% 5.5%, 2.8% 49.2%);
+  opacity: 0.9;
 }
 
 .he-front::after {
   content: "";
   position: absolute;
-  left: 12%;
-  right: 12%;
-  top: 42%;
+  left: 14%;
+  right: 14%;
+  top: 58%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.38), transparent);
+  pointer-events: none;
 }
 
 /*
@@ -260,13 +294,15 @@
   left: 0;
   right: 0;
   top: 0;
-  height: 58%;
-  z-index: 4;
+  height: 56%;
+  /* Por encima del bolsillo en V y de la carta */
+  z-index: 5;
   transform-origin: top center;
   transform: rotateX(calc(var(--flap) * -168deg));
   transform-style: preserve-3d;
   background: linear-gradient(180deg, #c41e3a 0%, #8b1520 60%, #5c1018 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
+  -webkit-clip-path: polygon(0 0, 100% 0, 50% 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.5);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
   pointer-events: none;
@@ -297,11 +333,11 @@
 .he-seal {
   position: absolute;
   left: 50%;
-  top: 48%;
+  top: 46%;
   width: 56px;
   height: 56px;
   margin: -10px 0 0 -28px;
-  z-index: 5;
+  z-index: 6;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -383,19 +419,22 @@
   .he-envelope {
     height: min(260px, 38vh);
   }
-  /* La carta no sube tanto: deja espacio libre bajo el nav */
+  /* Carta anclada a la V; no flota como cuadrado suelto sobre el sobre */
   .he-card {
-    transform: translateY(calc(52% - var(--out) * 100%));
+    transform: translateY(calc(48% - var(--out) * 88%));
   }
   .hero-envelope.is-open .he-card {
-    transform: translateY(-48%);
+    transform: translateY(-38%);
   }
   .he-card-inner {
-    /* Más papel blanco abajo: la punta roja del sobre cae en el vacío, no en “octubre” */
-    padding: 1.35rem 1rem 4.25rem !important;
+    /* Más papel blanco abajo: la punta de la V cae en el vacío, no en “octubre” */
+    padding: 1.3rem 1rem 4.5rem !important;
   }
   .he-card-inner .hero-date {
-    padding-bottom: 4.5rem;
+    padding-bottom: 4.75rem;
+  }
+  .he-front {
+    height: 94%;
   }
   .he-seal {
     width: 48px;
