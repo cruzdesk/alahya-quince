@@ -709,7 +709,16 @@
       const ampm = h >= 12 ? "p.m." : "a.m.";
       const h12 = h % 12 || 12;
       const mm = String(m).padStart(2, "0");
-      heroDate.textContent = `${eventDate.getDate()} de ${months[eventDate.getMonth()].toLowerCase()} de ${eventDate.getFullYear()} · ${h12}:${mm} ${ampm}`;
+      const dayStr = `${eventDate.getDate()} de ${months[eventDate.getMonth()].toLowerCase()} de ${eventDate.getFullYear()}`;
+      const timeStr = `${h12}:${mm} ${ampm}`;
+      const dayEl = document.getElementById("heroDateDay");
+      const timeEl = document.getElementById("heroDateTime");
+      if (dayEl && timeEl) {
+        dayEl.textContent = dayStr;
+        timeEl.textContent = timeStr;
+      } else {
+        heroDate.textContent = `${dayStr} · ${timeStr}`;
+      }
     }
     if (detailDate) detailDate.textContent = cap;
     tickCountdown();

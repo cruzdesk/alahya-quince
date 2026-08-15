@@ -255,6 +255,12 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Desktop: fecha y hora en una línea; móvil: hora debajo (ver @media) */
+.he-card-inner .hero-date-day,
+.he-card-inner .hero-date-time {
+  display: inline;
+}
+
 /*
  * Solapas laterales: triángulos al MISMO ápice que la tapa.
  * Junto con la base forman la V del sobre (= tamaño de la tapa).
@@ -494,6 +500,22 @@
   }
   .he-card-inner .hero-date {
     padding-bottom: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    line-height: 1.35;
+  }
+  /* Celular: hora en su propia línea debajo de la fecha */
+  .he-card-inner .hero-date-sep {
+    display: none;
+  }
+  .he-card-inner .hero-date-day,
+  .he-card-inner .hero-date-time {
+    display: block;
+  }
+  .he-card-inner .hero-date-time {
+    letter-spacing: 0.16em;
   }
   .he-seal {
     width: 48px;
