@@ -148,9 +148,7 @@
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const FLIP_MS = reduceMotion ? 0 : 780;
-    const COVER_MS = reduceMotion ? 0 : 900;
-    const COVER_EXPAND_AT = reduceMotion ? 0 : 420; /* ensanchar a mitad del giro */
-    const COVER_FADE_MS = reduceMotion ? 0 : 280;
+    const COVER_MS = reduceMotion ? 0 : 850;
 
     const decor = (mark, sub) =>
       '<div class="sb-leaf-decor">' +
@@ -342,11 +340,10 @@
       clearCoverTimer();
 
       if (nextOpen) {
-        // Abrir suave:
-        // 1) interior bajo la tapa (1 página)
-        // 2) girar tapa
-        // 3) a mitad del giro: ensanchar (la izq sale mientras la tapa sigue visible)
-        // 4) al final: desvanecer tapa (mismo diseño A/XV debajo → sin parpadeo)
+        // Abrir limpio (sin letras al revés ni parpadeos):
+        // 1) interior listo bajo la tapa (1 página)
+        // 2) girar tapa (cara exterior se oculta; solo se ve interior A/XV)
+        // 3) al terminar el giro: ensanchar + quitar tapa de una vez
         coverBusy = true;
         open = false;
         book.classList.remove("is-open", "is-cover-open", "is-cover-done");
@@ -363,25 +360,18 @@
           book.classList.add("is-cover-open");
         });
 
-        // Ensanchar a mitad del giro (no al final → evita “aparece de golpe”)
         coverTimer = window.setTimeout(() => {
-          book.classList.add("is-open");
-
-          coverTimer = window.setTimeout(() => {
-            book.classList.add("is-cover-done");
-            // Quitar is-cover-open DESPUÉS del fade (si se quita antes, salta a rotate 0)
-            coverTimer = window.setTimeout(() => {
-              book.classList.remove("is-opening", "is-cover-open");
-              open = true;
-              coverBusy = false;
-              if (nav) nav.hidden = false;
-              if (hint) hint.textContent = spreads[0].hint;
-              updateNav();
-            }, COVER_FADE_MS + 20);
-          }, Math.max(0, COVER_MS - COVER_EXPAND_AT));
-        }, COVER_EXPAND_AT);
+          // Ensanchar y tapa fuera en el mismo instante (tapa ya en -160°)
+          book.classList.add("is-open", "is-cover-done");
+          book.classList.remove("is-opening", "is-cover-open");
+          open = true;
+          coverBusy = false;
+          if (nav) nav.hidden = false;
+          if (hint) hint.textContent = spreads[0].hint;
+          updateNav();
+        }, COVER_MS + 40);
       } else {
-        // Cerrar: mostrar tapa abierta (fade in) → girar a cerrada → colapsar
+        // Cerrar: tapa reaparece abierta → gira a cerrada → colapsa
         coverBusy = true;
         if (nav) nav.hidden = true;
         resetFlip();
@@ -393,7 +383,6 @@
         void cover.offsetWidth;
 
         coverTimer = window.setTimeout(() => {
-          // Contraer a 1 página con tapa aún abierta
           book.classList.remove("is-open");
           coverTimer = window.setTimeout(() => {
             book.classList.remove("is-cover-open");
@@ -407,8 +396,8 @@
               book.setAttribute("aria-expanded", "false");
               updateNav();
             }, COVER_MS + 40);
-          }, reduceMotion ? 0 : 200);
-        }, reduceMotion ? 0 : 40);
+          }, reduceMotion ? 0 : 180);
+        }, reduceMotion ? 0 : 30);
       }
     }
 

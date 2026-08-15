@@ -455,11 +455,11 @@ body {
   height: min(420px, 58vh);
   min-height: 360px;
   margin: 0 auto;
-  perspective: 2000px;
+  /* perspective en el escenario; preserve-3d SOLO en la tapa (evita glitches) */
+  perspective: 1600px;
   perspective-origin: 50% 45%;
-  transform-style: preserve-3d;
   overflow: hidden; /* cerrado: no se ve la página izq del interior */
-  transition: width 0.55s cubic-bezier(0.4, 0.05, 0.2, 1);
+  transition: width 0.5s cubic-bezier(0.4, 0.05, 0.2, 1);
 }
 
 .story-book.is-open .sb-stage {
@@ -478,7 +478,7 @@ body {
   overflow: visible;
 }
 
-/* ——— Portada: siempre 1 página, anclada a la derecha ——— */
+/* ——— Portada: 1 página a la derecha; 2 caras 3D bien aisladas ——— */
 .sb-cover {
   position: absolute;
   top: 0;
@@ -496,35 +496,23 @@ body {
   -webkit-tap-highlight-color: transparent;
   transform-origin: left center;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   transform: rotateY(0deg);
   opacity: 1;
   visibility: visible;
-  transition:
-    transform 0.9s cubic-bezier(0.33, 0.1, 0.25, 1),
-    opacity 0.28s ease,
-    visibility 0.28s ease;
-  will-change: transform, opacity;
+  transition: transform 0.85s cubic-bezier(0.4, 0.05, 0.2, 1);
+  will-change: transform;
 }
 
-/* Gira sobre el lomo (borde izq de la tapa = centro del libro abierto) */
+/* Gira sobre el lomo */
 .story-book.is-cover-open .sb-cover {
-  transform: rotateY(-155deg);
+  transform: rotateY(-160deg);
   pointer-events: none;
 }
 
-/*
-  Fin de apertura: la tapa se DESVANECE en su sitio abierto (sin resetear
-  el rotate de golpe → eso causaba “desaparece y aparece”).
-*/
+/* Al terminar: tapa fuera (ya no se anima el rotate a 0) */
 .story-book.is-cover-done .sb-cover {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  /* mantiene el giro abierto mientras se desvanece */
-  transform: rotateY(-155deg);
-  transition:
-    opacity 0.28s ease,
-    visibility 0.28s ease;
+  display: none !important;
 }
 
 .sb-cover:focus-visible {
@@ -536,9 +524,12 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 4px 12px 12px 4px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   box-sizing: border-box;
+  /* Crítico: sin esto se ve la portada al revés (letras espejo en rojo) */
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  -moz-backface-visibility: hidden !important;
+  overflow: hidden;
 }
 
 .sb-cover-front {
@@ -555,7 +546,18 @@ body {
   box-shadow:
     0 16px 36px rgba(40, 10, 15, 0.32),
     inset 0 0 0 1px rgba(255, 250, 240, 0.1);
+  /* Un poco hacia la cámara para que gane a la cara interior */
+  transform: translateZ(1px);
   z-index: 2;
+}
+
+/*
+  Cinturón de seguridad: al abrir, la cara con “Alahya” se apaga a mitad del giro
+  por si el navegador ignora backface-visibility (evita letras al revés).
+*/
+.story-book.is-cover-open .sb-cover-front {
+  opacity: 0;
+  transition: opacity 0.05s linear 0.32s;
 }
 
 .story-book:not(.is-opening):not(.is-open) .sb-cover:hover .sb-cover-front {
@@ -564,6 +566,7 @@ body {
     inset 0 0 0 1px rgba(255, 250, 240, 0.12);
 }
 
+/* Interior de tapa: legible cuando la tapa está abierta (no espejo) */
 .sb-cover-inside {
   display: flex;
   align-items: center;
@@ -572,7 +575,7 @@ body {
   background: #9b1c1c;
   border: 2px solid #7a1515;
   border-radius: 12px 4px 4px 12px;
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(1px);
   box-shadow: -10px 0 24px rgba(0, 0, 0, 0.25);
   z-index: 1;
 }
