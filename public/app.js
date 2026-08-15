@@ -131,9 +131,10 @@
 
 
 
-// ——— Historia: libro (móvil = simple y fiable; desktop = StPageFlip)
+// ——— Historia: mismo libro 3D (StPageFlip) en móvil y computadora
   (function setupStoryBook() {
     const root = document.getElementById("flipbook");
+    const shell = document.getElementById("bookShell");
     const hint = document.getElementById("bookHint");
     const prevBtn = document.getElementById("bookPrev");
     const nextBtn = document.getElementById("bookNext");
@@ -144,10 +145,50 @@
     const pages = Array.from(root.querySelectorAll(".page"));
     if (!pages.length) return;
 
-    const isMobile =
-      window.innerWidth < 700 ||
-      window.matchMedia("(pointer: coarse)").matches ||
-      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+    if (typeof St === "undefined" || !St.PageFlip) {
+      if (hint) hint.textContent = "El libro no pudo cargar. Recarga la página.";
+      return;
+    }
+
+    // Misma vista que PC: paisaje (2 páginas abiertas). En móvil cada hoja es más estrecha.
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const narrow = vw < 700;
+    const pageW = narrow
+      ? Math.max(130, Math.min(200, Math.floor((vw - 28) / 2)))
+      : 290;
+    const pageH = Math.round(pageW * (narrow ? 1.45 : 1.4));
+
+    let pageFlip;
+    try {
+      pageFlip = new St.PageFlip(root, {
+        width: pageW,
+        height: pageH,
+        size: "stretch",
+        minWidth: narrow ? 120 : 220,
+        maxWidth: narrow ? Math.max(pageW, Math.floor((vw - 24) / 2)) : 340,
+        minHeight: narrow ? 200 : 320,
+        maxHeight: narrow ? 420 : 500,
+        drawShadow: true,
+        maxShadowOpacity: narrow ? 0.3 : 0.45,
+        showCover: true,
+        // false = SIEMPRE dos páginas (como en la computadora)
+        usePortrait: false,
+        mobileScrollSupport: true,
+        flippingTime: narrow ? 750 : 900,
+        startPage: 0,
+        autoSize: true,
+        clickEventForward: true,
+        useMouseEvents: true,
+        showPageCorners: true,
+        disableFlipByClick: false,
+        swipeDistance: narrow ? 18 : 28,
+      });
+      pageFlip.loadFromHTML(pages);
+    } catch (err) {
+      console.error("PageFlip init error", err);
+      if (hint) hint.textContent = "No se pudo iniciar el libro.";
+      return;
+    }
 
     function setLabel(i, n) {
       const contentTotal = Math.max(0, n - 2);
@@ -157,184 +198,110 @@
       else label.textContent = i + " / " + contentTotal;
     }
 
-    function setHint(i, n) {
-      if (!hint) return;
-      if (i === 0) hint.textContent = "Toca → para abrir el libro";
-      else if (i >= n - 1) hint.textContent = "Fin · ← o Portada";
-      else hint.textContent = "Usa ← → para pasar las páginas";
-    }
-
-    // ——— MÓVIL: un página a la vez, botones 100% nativos (sin StPageFlip)
-    if (isMobile) {
-      root.classList.add("flipbook--simple");
-      let index = 0;
-      const n = pages.length;
-
-      function show(i) {
-        index = Math.max(0, Math.min(n - 1, i));
-        pages.forEach((p, k) => {
-          p.classList.toggle("is-active", k === index);
-          p.setAttribute("aria-hidden", k === index ? "false" : "true");
-        });
-        if (prevBtn) prevBtn.disabled = index <= 0;
-        if (nextBtn) nextBtn.disabled = index >= n - 1;
-        setLabel(index, n);
-        setHint(index, n);
-      }
-
-      // click nativo (sin touchend preventDefault que rompe en iOS)
-      if (prevBtn) {
-        prevBtn.type = "button";
-        prevBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          show(index - 1);
-        });
-      }
-      if (nextBtn) {
-        nextBtn.type = "button";
-        nextBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          show(index + 1);
-        });
-      }
-      if (closeBtn) {
-        closeBtn.type = "button";
-        closeBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          show(0);
-        });
-      }
-
-      // swipe horizontal suave en el libro
-      let touchX = null;
-      root.addEventListener(
-        "touchstart",
-        (e) => {
-          touchX = e.changedTouches[0].clientX;
-        },
-        { passive: true }
-      );
-      root.addEventListener(
-        "touchend",
-        (e) => {
-          if (touchX == null) return;
-          const dx = e.changedTouches[0].clientX - touchX;
-          touchX = null;
-          if (Math.abs(dx) < 40) return;
-          if (dx < 0) show(index + 1);
-          else show(index - 1);
-        },
-        { passive: true }
-      );
-
-      // toque en portada = siguiente
-      pages[0] &&
-        pages[0].addEventListener("click", () => {
-          if (index === 0) show(1);
-        });
-
-      show(0);
-      return;
-    }
-
-    // ——— DESKTOP: StPageFlip
-    if (typeof St === "undefined" || !St.PageFlip) {
-      if (hint) hint.textContent = "El libro no pudo cargar. Recarga la página.";
-      return;
-    }
-
-    const pageW = Math.min(290, Math.max(240, 290));
-    const pageH = Math.min(420, Math.round(pageW * 1.4));
-
-    let pageFlip;
-    try {
-      pageFlip = new St.PageFlip(root, {
-        width: pageW,
-        height: pageH,
-        size: "stretch",
-        minWidth: 220,
-        maxWidth: 340,
-        minHeight: 320,
-        maxHeight: 480,
-        drawShadow: true,
-        maxShadowOpacity: 0.4,
-        showCover: true,
-        mobileScrollSupport: true,
-        usePortrait: false,
-        flippingTime: 900,
-        startPage: 0,
-        autoSize: true,
-        clickEventForward: true,
-        useMouseEvents: true,
-        showPageCorners: true,
-        disableFlipByClick: false,
-        swipeDistance: 28,
-      });
-      pageFlip.loadFromHTML(pages);
-    } catch (err) {
-      console.error("PageFlip init error", err);
-      if (hint) hint.textContent = "No se pudo iniciar el libro.";
-      return;
-    }
-
     function updateUI() {
       const i = pageFlip.getCurrentPageIndex();
       const n = pageFlip.getPageCount();
       setLabel(i, n);
-      if (prevBtn) prevBtn.disabled = i <= 0;
-      if (nextBtn) nextBtn.disabled = i >= n - 1;
-      setHint(i, n);
+      if (prevBtn) {
+        prevBtn.disabled = false;
+        prevBtn.removeAttribute("disabled");
+        if (i <= 0) prevBtn.disabled = true;
+      }
+      if (nextBtn) {
+        nextBtn.disabled = false;
+        nextBtn.removeAttribute("disabled");
+        if (i >= n - 1) nextBtn.disabled = true;
+      }
+      if (hint) {
+        if (i === 0) {
+          hint.textContent = "Toca la portada, desliza o usa → para abrir";
+        } else if (i >= n - 1) {
+          hint.textContent = "Fin del libro · ← o Portada";
+        } else {
+          hint.textContent = "Pasa las páginas · desliza o usa ← →";
+        }
+      }
     }
 
     function goNext() {
+      const before = pageFlip.getCurrentPageIndex();
+      const n = pageFlip.getPageCount();
+      if (before >= n - 1) return;
       try {
-        pageFlip.flipNext();
-      } catch (_) {
-        try {
-          pageFlip.turnToNextPage();
-        } catch (e2) {}
-      }
-      window.setTimeout(updateUI, 80);
+        pageFlip.flipNext("top");
+      } catch (_) {}
+      // Si no cambió (móvil a veces ignora flip), forzar
+      window.setTimeout(() => {
+        if (pageFlip.getCurrentPageIndex() === before) {
+          try {
+            pageFlip.turnToNextPage();
+          } catch (e2) {}
+        }
+        updateUI();
+      }, 100);
+      window.setTimeout(updateUI, 500);
     }
 
     function goPrev() {
+      const before = pageFlip.getCurrentPageIndex();
+      if (before <= 0) return;
       try {
-        pageFlip.flipPrev();
-      } catch (_) {
-        try {
-          pageFlip.turnToPrevPage();
-        } catch (e2) {}
-      }
-      window.setTimeout(updateUI, 80);
+        pageFlip.flipPrev("top");
+      } catch (_) {}
+      window.setTimeout(() => {
+        if (pageFlip.getCurrentPageIndex() === before) {
+          try {
+            pageFlip.turnToPrevPage();
+          } catch (e2) {}
+        }
+        updateUI();
+      }, 100);
+      window.setTimeout(updateUI, 500);
     }
 
     pageFlip.on("flip", updateUI);
-    pageFlip.on("init", updateUI);
-
-    if (prevBtn) {
-      prevBtn.type = "button";
-      prevBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        goPrev();
-      });
-    }
-    if (nextBtn) {
-      nextBtn.type = "button";
-      nextBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        goNext();
-      });
-    }
-    if (closeBtn) {
-      closeBtn.type = "button";
-      closeBtn.addEventListener("click", (e) => {
-        e.preventDefault();
+    pageFlip.on("init", () => {
+      updateUI();
+      // segundo update: en móvil el layout a veces se calcula tarde
+      window.setTimeout(() => {
         try {
-          pageFlip.turnToPage(0);
+          pageFlip.update();
         } catch (_) {}
         updateUI();
-      });
+      }, 120);
+    });
+
+    // Botones: solo click (fiable en iOS/Android)
+    function wireBtn(el, fn) {
+      if (!el) return;
+      el.type = "button";
+      el.style.pointerEvents = "auto";
+      el.addEventListener(
+        "click",
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          fn();
+        },
+        true
+      );
     }
+
+    wireBtn(prevBtn, goPrev);
+    wireBtn(nextBtn, goNext);
+    wireBtn(closeBtn, () => {
+      try {
+        pageFlip.turnToPage(0);
+      } catch (_) {
+        try {
+          pageFlip.flip(0);
+        } catch (e2) {}
+      }
+      updateUI();
+    });
+
+    // Controles por encima de cualquier capa del flip
+    if (shell) shell.classList.add("book-shell--live");
 
     document.addEventListener("keydown", (e) => {
       const hist = document.getElementById("historia");
@@ -350,10 +317,15 @@
       }
     });
 
+    let resizeT;
     window.addEventListener("resize", () => {
-      try {
-        pageFlip.update();
-      } catch (_) {}
+      window.clearTimeout(resizeT);
+      resizeT = window.setTimeout(() => {
+        try {
+          pageFlip.update();
+        } catch (_) {}
+        updateUI();
+      }, 180);
     });
 
     updateUI();

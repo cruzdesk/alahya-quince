@@ -434,19 +434,28 @@ body {
   gap: 1rem;
 }
 
-/* Contenedor del libro */
-.flipbook {
-  width: min(100%, 580px);
-  height: min(420px, 58vh);
-  margin: 0 auto;
-  position: relative;
+.book-shell--live {
+  width: min(100%, 100%);
+  max-width: 640px;
 }
 
-/* Clases StPageFlip (solo desktop) */
+/* Contenedor del libro 3D (mismo en móvil y PC) */
+.flipbook {
+  width: min(100%, 580px);
+  /* Alto suficiente; el ancho lo define StPageFlip (2 páginas) */
+  height: min(420px, 56vh);
+  margin: 0 auto;
+  position: relative;
+  max-width: 100%;
+}
+
+/* StPageFlip */
 .stf__parent,
 .stf__wrapper,
 .stf__block {
-  max-width: 100%;
+  max-width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 /* Estilos base de cada página */
@@ -456,47 +465,24 @@ body {
   box-shadow: 0 0 8px rgba(40, 10, 15, 0.12);
 }
 
-/*
- * Móvil (flipbook--simple): una página a la vez.
- * Botones nativos — sin librería 3D (en celular fallaba el toque).
- */
-.flipbook.flipbook--simple {
-  width: min(100%, 340px);
-  height: min(440px, 58vh);
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: 0 12px 28px rgba(40, 10, 15, 0.16);
-  touch-action: pan-y;
-}
-
-.flipbook.flipbook--simple .page {
-  display: none !important;
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  left: 0 !important;
-  top: 0 !important;
-  transform: none !important;
-  clip-path: none !important;
-  -webkit-clip-path: none !important;
-  z-index: 1 !important;
-}
-
-.flipbook.flipbook--simple .page.is-active {
-  display: block !important;
-}
-
+/* Controles siempre por encima y táctiles */
 .book-controls {
   position: relative;
-  z-index: 50;
-  pointer-events: auto;
+  z-index: 100;
+  pointer-events: auto !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 0.25rem;
 }
 
 .book-controls .book-btn {
   position: relative;
-  z-index: 51;
-  pointer-events: auto;
+  z-index: 101;
+  pointer-events: auto !important;
 }
 
 /* ——— Portada / contraportada (tapas duras) ——— */
@@ -779,55 +765,88 @@ body {
   letter-spacing: 0.04em;
 }
 
-@media (max-width: 600px) {
-  .book-shell {
-    width: 100%;
-    gap: 0.85rem;
+@media (max-width: 700px) {
+  .book-scene {
+    padding: 0.5rem 0.25rem 1.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
+  .book-shell,
+  .book-shell--live {
+    width: 100%;
+    max-width: 100%;
+    gap: 0.75rem;
+  }
+
+  /* Mismo libro abierto (2 páginas), un poco más bajo en móvil */
   .flipbook {
     width: 100%;
-    height: min(400px, 56vh);
+    height: min(380px, 52vh);
+    min-height: 280px;
   }
 
   .book-controls {
-    position: sticky;
-    bottom: 0.5rem;
-    z-index: 5;
+    z-index: 100;
     width: 100%;
-    padding: 0.5rem 0.25rem;
-    gap: 0.55rem;
-    background: linear-gradient(180deg, transparent, rgba(255, 252, 248, 0.92) 30%);
+    padding: 0.35rem 0.15rem 0.15rem;
+    gap: 0.5rem;
   }
 
   .book-btn {
-    min-width: 3rem;
-    min-height: 3rem;
-    height: 3rem;
-    font-size: 1rem;
+    min-width: 2.85rem;
+    min-height: 2.85rem;
+    height: 2.85rem;
+    font-size: 0.95rem;
   }
 
   .book-btn--close {
     min-width: auto;
-    padding: 0 0.9rem;
-    font-size: 0.7rem;
+    padding: 0 0.85rem;
+    font-size: 0.68rem;
   }
 
   .book-label {
-    font-size: 0.8rem;
-    min-width: 3.5rem;
+    font-size: 0.78rem;
+    min-width: 3.25rem;
   }
 
   .page-paper-inner p {
-    font-size: 0.82rem;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    max-width: 18em;
   }
 
   .page-paper-inner {
-    padding: 1rem 0.9rem 0.85rem;
+    padding: 0.75rem 0.55rem 1.75rem;
+  }
+
+  .page-cover-name {
+    font-size: clamp(1.35rem, 6vw, 1.9rem);
+  }
+
+  .page-cover-inner {
+    padding: 0.85rem 0.55rem;
+    gap: 0.15rem;
+  }
+
+  .page-cover-kicker,
+  .page-cover-sub,
+  .page-cover-tap {
+    font-size: 0.5rem;
+  }
+
+  .page-title {
+    font-size: 0.95rem;
+  }
+
+  .page-paper-inner blockquote {
+    font-size: 0.85rem;
+    padding: 0.55rem 0.25rem;
   }
 
   .book-hint {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
   }
 }
 
