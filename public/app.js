@@ -147,9 +147,8 @@
     if (!book || !cover || !leftEl || !rightEl) return;
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const TURN_MS = reduceMotion ? 20 : 1050;
-    const EXPAND_AT = reduceMotion ? 0 : 520; /* ensancha a mitad del giro (tapa ya pasó de 90°) */
-    const FADE_MS = reduceMotion ? 0 : 420;
+    const TURN_MS = reduceMotion ? 20 : 850;
+    const CLOSE_MS = reduceMotion ? 0 : 400;
     const FLIP_MS = reduceMotion ? 20 : 750;
 
     function leaf(html, num) {
@@ -281,35 +280,32 @@
       if (hint) hint.textContent = "Abriendo el libro…";
       book.setAttribute("aria-expanded", "true");
 
-      // Apertura más natural (como libro real):
-      // 1) Gira la tapa (1 página; se ve la hoja derecha al levantar)
-      // 2) A mitad del giro (tapa ya >90°): ensancha → aparece la izquierda
-      // 3) Tapa se desvanece suave; salen los controles
+      // Apertura simple y estable (sin ensanchar a mitad — eso se veía feo y rompía el cierre):
+      // 1) Gira la portada (1 página)
+      // 2) Al terminar: portada fuera + ensancha a 2 páginas + controles
       cover.classList.remove("is-resting", "is-turned");
       book.classList.remove("is-open");
       book.classList.add("is-turning");
 
+      // Quitar transition residual del cierre
+      cover.style.transition = "";
       void cover.offsetWidth;
+
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           cover.classList.add("is-turned");
         });
       });
 
-      after(EXPAND_AT, () => {
-        book.classList.add("is-open");
-      });
-
-      after(TURN_MS + 40, () => {
+      after(TURN_MS + 50, () => {
         cover.classList.add("is-resting");
-        after(FADE_MS, () => {
-          book.classList.remove("is-turning");
-          isOpen = true;
-          busy = false;
-          if (controls) controls.hidden = false;
-          if (hint) hint.textContent = spreads[0].hint;
-          paint(0);
-        });
+        book.classList.remove("is-turning");
+        book.classList.add("is-open");
+        isOpen = true;
+        busy = false;
+        if (controls) controls.hidden = false;
+        if (hint) hint.textContent = spreads[0].hint;
+        paint(0);
       });
     }
 
@@ -321,14 +317,15 @@
       if (controls) controls.hidden = true;
       if (hint) hint.textContent = "Cerrando…";
 
-      // 1) Quitar doble página YA (interior se oculta por CSS al no ser is-open)
-      // 2) Portada cerrada encima, sin giro inverso
-      book.classList.remove("is-turning");
-      book.classList.remove("is-open");
+      // Cierre limpio (como antes, el que te gustaba):
+      // Portada aparece YA cerrada (sin girar al revés) y se recorta a 1 página
+      cover.style.transition = "none";
       cover.classList.remove("is-resting", "is-turned");
+      book.classList.remove("is-turning", "is-open");
       void cover.offsetWidth;
+      cover.style.transition = "";
 
-      after(reduceMotion ? 0 : 420, () => {
+      after(CLOSE_MS, () => {
         setClosedUI();
       });
     }
