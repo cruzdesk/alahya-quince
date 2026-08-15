@@ -426,46 +426,60 @@ body {
   overflow: visible;
 }
 
+/*
+  Modelo de libro real:
+  - --pw = ancho de UNA página
+  - Cerrado: escenario = 1 página (recorta la izquierda del interior)
+  - Abierto: escenario = 2 páginas
+  - Tapa SIEMPRE mide 1 página y vive a la derecha (nunca se estira)
+*/
 .story-book {
-  width: min(100%, 320px);
+  --pw: min(300px, calc(100vw - 2.5rem));
+  width: var(--pw);
   display: flex;
   flex-direction: column;
   align-items: center;
   -webkit-tap-highlight-color: transparent;
-  transition: width 0.85s cubic-bezier(0.4, 0.05, 0.2, 1);
+  transition: width 0.7s cubic-bezier(0.4, 0.05, 0.2, 1);
 }
 
-.story-book.is-opening,
+/* Solo al estar abierto del todo se ensancha (no durante el giro de tapa) */
 .story-book.is-open {
-  width: min(100%, 720px);
+  width: min(100%, calc(var(--pw) * 2));
 }
 
-/* Escenario del libro (cerrado = 1 tapa; abierto = 2 páginas) */
+/* Escenario */
 .sb-stage {
   position: relative;
-  width: 100%;
-  max-width: 300px;
-  min-height: 400px;
-  height: 420px;
+  width: var(--pw);
+  height: min(420px, 58vh);
+  min-height: 360px;
   margin: 0 auto;
-  perspective: 2200px;
-  perspective-origin: 50% 50%;
+  perspective: 2000px;
+  perspective-origin: 50% 45%;
   transform-style: preserve-3d;
-  transition: max-width 0.85s cubic-bezier(0.4, 0.05, 0.2, 1);
+  overflow: hidden; /* cerrado: no se ve la página izq del interior */
+  transition: width 0.7s cubic-bezier(0.4, 0.05, 0.2, 1);
 }
 
-.story-book.is-opening .sb-stage,
 .story-book.is-open .sb-stage {
-  max-width: 720px;
+  width: min(100%, calc(var(--pw) * 2));
+  overflow: visible;
 }
 
-/* ——— Portada (tapa que se abre) ——— */
+/* Durante el giro de tapa: sigue 1 página, overflow hidden */
+.story-book.is-opening:not(.is-open) .sb-stage {
+  width: var(--pw);
+  overflow: hidden;
+}
+
+/* ——— Portada: siempre 1 página, anclada a la derecha ——— */
 .sb-cover {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: 100%;
+  width: var(--pw);
   z-index: 30;
   margin: 0;
   padding: 0;
@@ -478,20 +492,17 @@ body {
   transform-origin: left center;
   transform-style: preserve-3d;
   transform: rotateY(0deg);
-  transition: transform 0.95s cubic-bezier(0.4, 0.05, 0.2, 1);
+  transition: transform 0.9s cubic-bezier(0.33, 0.1, 0.25, 1);
+  will-change: transform;
 }
 
-/*
-  Cerrado / expandiendo: tapa al 100% (tapa el interior; no se ve “basura” a la izq).
-  Solo al girar (is-cover-open) pasa a 50% derecha y rota sobre el lomo.
-*/
+/* Gira sobre el lomo (borde izq de la tapa = centro del libro abierto) */
 .story-book.is-cover-open .sb-cover {
-  width: 50%;
-  transform: rotateY(-158deg);
+  transform: rotateY(-155deg);
   pointer-events: none;
 }
 
-/* Tras la animación: tapa fuera del todo (sin fantasma 3D) */
+/* Al terminar: tapa fuera sin fantasma */
 .story-book.is-cover-done .sb-cover {
   display: none !important;
   visibility: hidden !important;
@@ -649,12 +660,15 @@ body {
   z-index: 1;
 }
 
-/* ——— Libro abierto (dos páginas + volteo) ——— */
+/* ——— Interior: siempre 2 páginas de ancho, alineado a la derecha ——— */
 .sb-open {
   display: none;
   position: absolute;
-  inset: 0;
-  width: 100%;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  /* 2 páginas: al estar cerrado solo se ve la derecha (bajo la tapa) */
+  width: min(100vw - 1rem, calc(var(--pw) * 2));
   height: 100%;
   min-height: 0;
   border-radius: 6px;
@@ -662,16 +676,16 @@ body {
   box-shadow:
     0 18px 40px rgba(40, 10, 15, 0.28),
     inset 0 0 0 2px rgba(122, 21, 21, 0.9);
-  padding: 10px 10px 12px;
+  padding: 10px;
   gap: 0;
   box-sizing: border-box;
   transform-style: preserve-3d;
+  grid-template-columns: 1fr 1fr;
 }
 
 .story-book.is-opening .sb-open,
 .story-book.is-open .sb-open {
   display: grid;
-  grid-template-columns: 1fr 1fr;
 }
 
 .sb-open[hidden] {
@@ -980,21 +994,15 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* Móvil: libro un poco más compacto, sigue sin scroll */
+/* Móvil: página un poco más estrecha, misma lógica de libro */
 @media (max-width: 700px) {
-  .story-book.is-opening,
-  .story-book.is-open {
-    width: min(100%, 100%);
+  .story-book {
+    --pw: min(280px, calc(100vw - 2rem));
   }
 
   .sb-stage {
-    height: 380px;
-    min-height: 360px;
-  }
-
-  .story-book.is-opening .sb-stage,
-  .story-book.is-open .sb-stage {
-    max-width: 100%;
+    height: min(380px, 52vh);
+    min-height: 340px;
   }
 
   .sb-open {
@@ -1023,7 +1031,7 @@ body {
     right: 8px;
   }
 
-  .sb-leaf-quote blockquote {
+  .sb-leaf-body blockquote {
     font-size: 0.95rem;
     padding: 0.65rem 0.25rem;
   }
@@ -1038,26 +1046,39 @@ body {
 }
 
 @media (max-width: 480px) {
-  .sb-stage {
-    height: 360px;
-    max-width: 280px;
+  .story-book {
+    --pw: min(260px, calc(100vw - 1.5rem));
   }
 
-  .story-book.is-opening .sb-stage,
-  .story-book.is-open .sb-stage {
-    max-width: 100%;
+  .sb-stage {
+    height: min(360px, 50vh);
+    min-height: 320px;
   }
 }
 
+/* Pantallas muy estrechas: sin volteo 3D; tapa se oculta al abrir */
 @media (max-width: 380px) {
-  .story-book.is-opening .sb-open,
-  .story-book.is-open .sb-open {
-    grid-template-columns: 1fr;
+  .story-book {
+    --pw: min(100%, calc(100vw - 1.25rem));
   }
 
-  .sb-stage {
+  .story-book.is-open {
+    width: var(--pw);
+  }
+
+  .story-book.is-open .sb-stage {
+    width: var(--pw);
     height: auto;
     min-height: 420px;
+    overflow: visible;
+  }
+
+  .story-book.is-open .sb-open {
+    position: relative;
+    width: 100%;
+    height: auto;
+    grid-template-columns: 1fr;
+    right: auto;
   }
 
   .sb-binding,
@@ -1066,8 +1087,10 @@ body {
   }
 
   .story-book.is-cover-open .sb-cover,
-  .story-book.is-cover-done .sb-cover {
-    visibility: hidden;
+  .story-book.is-opening .sb-cover {
+    /* sin espacio para girar: fade */
+    opacity: 0;
+    pointer-events: none;
   }
 
   .sb-page-left {

@@ -340,7 +340,10 @@
       clearCoverTimer();
 
       if (nextOpen) {
-        // Abrir: 1) expandir con tapa al 100%  2) girar tapa  3) quitar tapa
+        // Abrir:
+        // 1) mostrar interior bajo la tapa (escenario sigue 1 página; izq recortada)
+        // 2) girar tapa
+        // 3) ensanchar a 2 páginas y quitar tapa
         coverBusy = true;
         open = false;
         book.classList.remove("is-open", "is-cover-open", "is-cover-done");
@@ -352,32 +355,35 @@
         if (hint) hint.textContent = "Abriendo el libro…";
         updateNav();
 
-        // Esperar a que el ancho crezca un poco, luego girar (tapa sigue tapando)
-        coverTimer = window.setTimeout(() => {
+        // Reflow y girar tapa (sin ensanchar todavía)
+        void cover.offsetWidth;
+        requestAnimationFrame(() => {
           book.classList.add("is-cover-open");
-          coverTimer = window.setTimeout(() => {
-            book.classList.remove("is-opening", "is-cover-open");
-            book.classList.add("is-open", "is-cover-done");
-            open = true;
-            coverBusy = false;
-            if (nav) nav.hidden = false;
-            if (hint) hint.textContent = spreads[0].hint;
-            updateNav();
-          }, COVER_MS + 40);
-        }, reduceMotion ? 0 : 120);
+        });
+
+        coverTimer = window.setTimeout(() => {
+          // Ensanchar + tapa fuera
+          book.classList.add("is-open", "is-cover-done");
+          book.classList.remove("is-opening", "is-cover-open");
+          open = true;
+          coverBusy = false;
+          if (nav) nav.hidden = false;
+          if (hint) hint.textContent = spreads[0].hint;
+          updateNav();
+        }, COVER_MS + 60);
       } else {
-        // Cerrar: reponer tapa abierta → cerrar → colapsar
+        // Cerrar: colapsar a 1 página → tapa abierta → cerrar tapa
         coverBusy = true;
         if (nav) nav.hidden = true;
         resetFlip();
         renderInstant(0);
 
+        // Primero volver a 1 página con tapa abierta (sobre la der.)
         book.classList.remove("is-cover-done", "is-open");
         book.classList.add("is-opening", "is-cover-open");
         openEl.hidden = false;
-
-        // Forzar reflow con tapa abierta visible, luego cerrar
         void cover.offsetWidth;
+
         coverTimer = window.setTimeout(() => {
           book.classList.remove("is-cover-open");
           coverTimer = window.setTimeout(() => {
@@ -390,7 +396,7 @@
             book.setAttribute("aria-expanded", "false");
             updateNav();
           }, COVER_MS + 40);
-        }, reduceMotion ? 0 : 40);
+        }, reduceMotion ? 0 : 50);
       }
     }
 
