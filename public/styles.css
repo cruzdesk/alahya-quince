@@ -443,7 +443,7 @@ body {
   transition: width 0.7s cubic-bezier(0.4, 0.05, 0.2, 1);
 }
 
-/* Solo al estar abierto del todo se ensancha (no durante el giro de tapa) */
+/* Abierto (o abriéndose ya ensanchado): 2 páginas */
 .story-book.is-open {
   width: min(100%, calc(var(--pw) * 2));
 }
@@ -459,7 +459,7 @@ body {
   perspective-origin: 50% 45%;
   transform-style: preserve-3d;
   overflow: hidden; /* cerrado: no se ve la página izq del interior */
-  transition: width 0.7s cubic-bezier(0.4, 0.05, 0.2, 1);
+  transition: width 0.55s cubic-bezier(0.4, 0.05, 0.2, 1);
 }
 
 .story-book.is-open .sb-stage {
@@ -467,10 +467,15 @@ body {
   overflow: visible;
 }
 
-/* Durante el giro de tapa: sigue 1 página, overflow hidden */
+/* Solo girando tapa, aún sin is-open: 1 página */
 .story-book.is-opening:not(.is-open) .sb-stage {
   width: var(--pw);
   overflow: hidden;
+}
+
+/* Mientras se ensancha con la tapa aún girando, permitir que asome la izq */
+.story-book.is-opening.is-open .sb-stage {
+  overflow: visible;
 }
 
 /* ——— Portada: siempre 1 página, anclada a la derecha ——— */
@@ -492,8 +497,13 @@ body {
   transform-origin: left center;
   transform-style: preserve-3d;
   transform: rotateY(0deg);
-  transition: transform 0.9s cubic-bezier(0.33, 0.1, 0.25, 1);
-  will-change: transform;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    transform 0.9s cubic-bezier(0.33, 0.1, 0.25, 1),
+    opacity 0.28s ease,
+    visibility 0.28s ease;
+  will-change: transform, opacity;
 }
 
 /* Gira sobre el lomo (borde izq de la tapa = centro del libro abierto) */
@@ -502,13 +512,19 @@ body {
   pointer-events: none;
 }
 
-/* Al terminar: tapa fuera sin fantasma */
+/*
+  Fin de apertura: la tapa se DESVANECE en su sitio abierto (sin resetear
+  el rotate de golpe → eso causaba “desaparece y aparece”).
+*/
 .story-book.is-cover-done .sb-cover {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  transform: none !important;
-  transition: none !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  /* mantiene el giro abierto mientras se desvanece */
+  transform: rotateY(-155deg);
+  transition:
+    opacity 0.28s ease,
+    visibility 0.28s ease;
 }
 
 .sb-cover:focus-visible {
