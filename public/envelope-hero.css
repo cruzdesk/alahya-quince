@@ -187,10 +187,10 @@
 .hero-envelope.is-open .he-card {
   pointer-events: auto;
   /*
-   * Carta en el hueco de la tapa: base metida en la V inferior
-   * (mismo tamaño que la tapa, ápice 50%).
+   * Un poco más alta: la fecha queda por encima de la V del sobre
+   * (base sigue metida en el bolsillo).
    */
-  transform: translateY(-58%);
+  transform: translateY(-68%);
   will-change: auto;
   filter: none;
 }
@@ -488,8 +488,8 @@
     transform: translateY(calc(48% - var(--out) * 108%));
   }
   .hero-envelope.is-open .he-card {
-    /* Mismo anclaje a la V (ápice 50%) en móvil */
-    transform: translateY(-52%);
+    /* Móvil: un poco más alta para no tapar la fecha con la V */
+    transform: translateY(-62%);
   }
   .he-card-inner {
     padding: 1.2rem 0.9rem 2.35rem !important;
