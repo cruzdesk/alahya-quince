@@ -316,31 +316,58 @@
       }, 120);
     });
 
-    // Delegación en #bookControls (más fiable si un botón se recubre en móvil)
+    // Delegación en #bookControls (por encima del flipbook)
     const controls = document.getElementById("bookControls");
+    let lastTap = 0;
     function onControlActivate(e) {
       const btn = e.target.closest("button");
-      if (!btn || !controls.contains(btn)) return;
+      if (!btn || (controls && !controls.contains(btn))) return;
+      // evitar doble disparo click+pointerup en el mismo toque
+      const now = Date.now();
+      if (now - lastTap < 320) return;
+      lastTap = now;
       e.preventDefault();
       e.stopPropagation();
-      if (btn.id === "bookPrev" || btn === prevBtn) goPrev();
-      else if (btn.id === "bookNext" || btn === nextBtn) goNext();
-      else if (btn.id === "bookClose" || btn === closeBtn) goCover();
+      if (btn.disabled) return;
+      if (btn.id === "bookPrev") goPrev();
+      else if (btn.id === "bookNext") goNext();
+      else if (btn.id === "bookClose") goCover();
     }
     if (controls) {
       controls.addEventListener("click", onControlActivate);
-      // pointerup cubre toques que a veces no generan click en iOS
-      controls.addEventListener("pointerup", (e) => {
-        if (e.pointerType === "touch" || e.pointerType === "pen") {
-          onControlActivate(e);
-        }
+    }
+    // fallbacks directos (por si la delegación falla)
+    if (prevBtn) {
+      prevBtn.type = "button";
+      prevBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const now = Date.now();
+        if (now - lastTap < 320) return;
+        lastTap = now;
+        goPrev();
       });
-    } else {
-      // fallback individual
-      [prevBtn, nextBtn, closeBtn].forEach((el) => {
-        if (!el) return;
-        el.type = "button";
-        el.addEventListener("click", onControlActivate);
+    }
+    if (nextBtn) {
+      nextBtn.type = "button";
+      nextBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const now = Date.now();
+        if (now - lastTap < 320) return;
+        lastTap = now;
+        goNext();
+      });
+    }
+    if (closeBtn) {
+      closeBtn.type = "button";
+      closeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const now = Date.now();
+        if (now - lastTap < 320) return;
+        lastTap = now;
+        goCover();
       });
     }
 
