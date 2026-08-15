@@ -1,307 +1,297 @@
-/* ============================================================
-   Sobre moderno de invitación (rebuild total)
-   Orden z cerrado: back < letter < pocket < flap < seal
-   Orden z abierto:  back < pocket < flap < letter (ARRIBA)
-   ============================================================ */
+/* =========================================================
+   Invitación en sobre — diseño moderno (cero)
+   Referencia: envelope 3D CSS (rotateX flap + letter slide + z-index)
+   Cerrado: back < letter < pocket < flap < wax
+   Abierto:  back < pocket < flap < letter (encima de todo)
+   ========================================================= */
 
-.env {
-  --env-red: #9b1c1c;
-  --env-red-deep: #5c1018;
-  --env-red-mid: #7a1520;
-  --env-gold: #d4af37;
-  --env-cream: #fffcf8;
-  --env-ease: cubic-bezier(0.4, 0.05, 0.2, 1);
+.invite {
+  --red: #9b1c1c;
+  --red-2: #6b1018;
+  --red-3: #4a0c12;
+  --gold: #d4af37;
+  --cream: #fffcf8;
+  --ink: #3a2a28;
+  --soft: #6b5a52;
+  --ease: cubic-bezier(0.33, 0.1, 0.2, 1);
 
   position: relative;
   z-index: 4;
   min-height: 100vh;
   min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5.75rem 1rem 2.5rem;
+  display: grid;
+  place-items: center;
+  padding: 5.5rem 1rem 2.5rem;
   box-sizing: border-box;
-  overflow: hidden;
-  text-align: center;
+  overflow: clip;
   background:
-    radial-gradient(ellipse 70% 45% at 50% 22%, rgba(212, 175, 55, 0.16), transparent 58%),
-    linear-gradient(168deg, #faf6f0 0%, #f0e6db 48%, #e8ddd2 100%);
+    radial-gradient(ellipse 80% 50% at 50% 18%, rgba(212, 175, 55, 0.18), transparent 55%),
+    linear-gradient(170deg, #fbf7f1 0%, #f1e7dc 50%, #e9ded3 100%);
 }
 
-.env-stage {
-  width: min(460px, 94vw);
+.invite-inner {
+  width: min(420px, 94vw);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.1rem;
+  gap: 1.15rem;
   position: relative;
-  /* Espacio arriba para que la carta suba sin chocar con el nav */
-  padding-top: 2.5rem;
 }
 
-/* ——— Cuerpo del sobre ——— */
-.env-body {
-  position: relative;
+/* Marco con aire arriba para la carta abierta */
+.invite-frame {
   width: 100%;
-  max-width: 400px;
-  height: 230px;
-  margin: 0 auto;
-  perspective: 1200px;
+  padding-top: 11rem; /* hueco para que la carta suba sin taparse */
+  display: flex;
+  justify-content: center;
+}
+
+/* ——— Sobre ——— */
+.invite-envelope {
+  position: relative;
+  width: min(380px, 100%);
+  height: 220px;
+  perspective: 1400px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  outline: none;
+  user-select: none;
 }
 
-.env-body:focus-visible {
-  outline: 2px solid var(--env-gold);
-  outline-offset: 6px;
-  border-radius: 12px;
+.invite-envelope:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 8px;
+  border-radius: 16px;
 }
 
-/* Fondo */
-.env-back {
+/* 1) Fondo */
+.invite-back {
   position: absolute;
   inset: 0;
   z-index: 1;
-  border-radius: 14px;
-  background: linear-gradient(145deg, #a61e2c 0%, var(--env-red-mid) 40%, var(--env-red-deep) 100%);
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 16px;
+  background: linear-gradient(150deg, #b01f2e 0%, #7a1520 42%, #3f0b11 100%);
+  border: 1px solid rgba(212, 175, 55, 0.42);
   box-shadow:
-    0 20px 50px rgba(60, 15, 20, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 24px 50px rgba(50, 12, 18, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* ——— Carta (invitación) ———
-   Cerrada: z-index 2 (detrás del bolsillo)
-   Abierta: z-index 20 (DELANTE de todo el sobre) */
-.env-letter {
+/* 2) Carta — detrás del bolsillo al cerrar; encima al abrir */
+.invite-letter {
   position: absolute;
-  left: 7%;
-  right: 7%;
-  top: 8%;
+  left: 8%;
+  right: 8%;
+  top: 10%;
   z-index: 2;
-  transform: translate3d(0, 42%, 0) scale(0.98);
-  transition:
-    transform 0.95s var(--env-ease) 0.22s,
-    z-index 0s linear 0.18s,
-    box-shadow 0.5s ease;
+  transform: translateY(48%);
+  transition: transform 1s var(--ease) 0.28s;
   pointer-events: none;
-  will-change: transform;
 }
 
-.env.is-open .env-letter {
-  /* Sube y queda ENCIMA del bolsillo */
-  z-index: 20;
-  transform: translate3d(0, -72%, 0) scale(1);
+.invite.is-open .invite-letter {
+  z-index: 30; /* CRÍTICO: por encima de bolsillo y solapa */
+  transform: translateY(-78%);
   pointer-events: auto;
-  box-shadow: 0 18px 40px rgba(40, 10, 15, 0.22);
+  transition:
+    transform 1s var(--ease) 0.28s,
+    z-index 0s linear 0.2s;
 }
 
-.env-letter-inner {
-  background: var(--env-cream);
-  border-radius: 6px;
-  border: 1px solid rgba(201, 162, 39, 0.35);
-  padding: 1.45rem 1.15rem 1.6rem;
-  box-shadow: 0 8px 24px rgba(40, 10, 15, 0.12);
+.invite-card {
   position: relative;
+  background: var(--cream);
+  border-radius: 8px;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  padding: 1.5rem 1.2rem 1.55rem;
+  box-shadow: 0 12px 32px rgba(40, 10, 15, 0.16);
+  text-align: center;
 }
 
-.env-letter-inner::before {
+.invite-card::before {
   content: "";
   position: absolute;
-  inset: 8px;
-  border: 1px solid rgba(155, 28, 28, 0.12);
-  border-radius: 3px;
+  inset: 9px;
+  border: 1px solid rgba(155, 28, 28, 0.14);
+  border-radius: 4px;
   pointer-events: none;
 }
 
-.env-eyebrow {
-  margin: 0 0 0.65rem;
+.invite-kicker {
+  margin: 0 0 0.7rem;
   font-size: 0.58rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #6b5a52;
+  color: var(--soft);
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.45;
   position: relative;
 }
 
-.env-ornament {
+.invite-rule {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.55rem;
+  gap: 0.5rem;
   margin-bottom: 0.75rem;
+  color: var(--gold);
+  font-size: 0.75rem;
   position: relative;
 }
 
-.env-ornament span {
-  width: 36px;
+.invite-rule span {
+  width: 40px;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(155, 28, 28, 0.35), transparent);
 }
 
-.env-ornament i {
-  font-style: normal;
-  color: var(--env-gold);
-  font-size: 0.7rem;
-}
-
-.env-name {
-  margin: 0 0 0.45rem;
-  position: relative;
-}
-
-.env-name-main {
-  display: block;
+.invite-title {
+  margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(2.1rem, 8vw, 3.1rem);
+  font-size: clamp(2.2rem, 8.5vw, 3.2rem);
   font-style: italic;
   font-weight: 400;
   line-height: 1.05;
-  color: #9b1c1c;
-}
-
-.env-name-sub {
-  display: block;
-  margin-top: 0.2rem;
-  font-size: clamp(0.72rem, 2.4vw, 0.92rem);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: #5a4a44;
-}
-
-.env-tagline {
-  margin: 0 0 0.4rem;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: clamp(1rem, 2.8vw, 1.25rem);
-  color: #3a2a28;
+  color: var(--red);
   position: relative;
 }
 
-.env-date {
+.invite-subtitle {
+  margin: 0.25rem 0 0.55rem;
+  font-size: clamp(0.7rem, 2.3vw, 0.88rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #5a4a44;
+  position: relative;
+}
+
+.invite-theme {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1rem, 2.8vw, 1.28rem);
+  color: var(--ink);
+  position: relative;
+}
+
+.invite-when {
   margin: 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  color: #6b5a52;
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
+  color: var(--soft);
   font-weight: 500;
   position: relative;
 }
 
-/* Bolsillo frontal — por encima de la carta al cerrar */
-.env-pocket {
+/* 3) Bolsillo — siempre por encima de la carta CERRADA */
+.invite-pocket {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 62%;
+  height: 64%;
   z-index: 3;
-  border-radius: 0 0 14px 14px;
-  background: linear-gradient(180deg, #b42333 0%, #7a1520 48%, #4a0c12 100%);
+  border-radius: 0 0 16px 16px;
+  background: linear-gradient(180deg, #c41e3a 0%, #8b1520 45%, #4a0c12 100%);
   border: 1px solid rgba(212, 175, 55, 0.38);
   border-top: none;
-  /* Boca en V del sobre */
-  clip-path: polygon(0 32%, 50% 0, 100% 32%, 100% 100%, 0 100%);
-  box-shadow: inset 0 12px 22px rgba(0, 0, 0, 0.12);
+  clip-path: polygon(0 30%, 50% 0, 100% 30%, 100% 100%, 0 100%);
+  box-shadow: inset 0 14px 24px rgba(0, 0, 0, 0.14);
   pointer-events: none;
 }
 
-.env-pocket::after {
+.invite-pocket::after {
   content: "";
   position: absolute;
-  left: 16%;
-  right: 16%;
-  top: 38%;
+  left: 15%;
+  right: 15%;
+  top: 36%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.45), transparent);
+  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.5), transparent);
 }
 
-/* Solapa triangular */
-.env-flap {
+/* 4) Solapa */
+.invite-flap {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
-  height: 54%;
-  z-index: 4;
+  height: 55%;
+  z-index: 5;
   transform-origin: top center;
   transform: rotateX(0deg);
   transform-style: preserve-3d;
-  transition: transform 0.75s var(--env-ease);
-  background: linear-gradient(185deg, #c92a3a 0%, #8b1520 55%, #5c1018 100%);
+  transition: transform 0.8s var(--ease);
+  background: linear-gradient(190deg, #d42a3c 0%, #8b1520 50%, #5c1018 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  border: 1px solid rgba(212, 175, 55, 0.48);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.2);
   pointer-events: none;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
-.env.is-open .env-flap {
-  transform: rotateX(-172deg);
-  /* Al abrir, solapa detrás de la carta */
-  z-index: 6;
+.invite.is-open .invite-flap {
+  transform: rotateX(-175deg);
+  z-index: 4; /* debajo de la carta abierta (30) */
 }
 
-.env-flap::after {
+.invite-flap::after {
   content: "";
   position: absolute;
-  left: 18%;
-  right: 18%;
-  top: 14%;
-  bottom: 34%;
+  left: 17%;
+  right: 17%;
+  top: 12%;
+  bottom: 32%;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  border: 1px solid rgba(232, 213, 163, 0.3);
+  border: 1px solid rgba(232, 213, 163, 0.32);
   pointer-events: none;
 }
 
-/* Sello */
-.env-seal {
+/* 5) Sello de lacre */
+.invite-wax {
   position: absolute;
   left: 50%;
-  top: 44%;
-  width: 54px;
-  height: 54px;
-  margin: -6px 0 0 -27px;
+  top: 45%;
+  width: 58px;
+  height: 58px;
+  margin: -8px 0 0 -29px;
   z-index: 8;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at 32% 28%, #f5e8b0, #d4af37 42%, #8a7020 100%);
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 30% 28%, #f7ebc0, #d4af37 40%, #8a7020 100%);
   border: 2px solid rgba(255, 250, 240, 0.55);
   box-shadow:
-    0 8px 18px rgba(0, 0, 0, 0.32),
+    0 10px 22px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity 0.4s ease, transform 0.45s var(--ease);
   pointer-events: none;
 }
 
-.env.is-open .env-seal {
+.invite.is-open .invite-wax {
   opacity: 0;
-  transform: scale(0.65);
+  transform: scale(0.6);
 }
 
-.env-seal span {
+.invite-wax em {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-style: normal;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #3a2410;
   line-height: 1;
 }
 
-/* Hint */
-.env-hint {
-  margin: 0.15rem 0 0;
+/* Hint + CTA */
+.invite-hint {
+  margin: 0;
   font-size: 0.7rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   font-weight: 500;
-  color: #6b5a52;
+  color: var(--soft);
   cursor: pointer;
-  user-select: none;
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -309,59 +299,58 @@
   transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
-.env.is-open .env-hint {
+.invite.is-open .invite-hint {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
 }
 
-/* CTA */
-.env-cta {
-  opacity: 0.45;
-  transform: translateY(8px);
-  transition: opacity 0.55s ease 0.25s, transform 0.55s ease 0.25s;
+.invite-actions {
+  opacity: 0.4;
+  transform: translateY(10px);
+  transition: opacity 0.55s ease 0.35s, transform 0.55s ease 0.35s;
 }
 
-.env.is-open .env-cta {
+.invite.is-open .invite-actions {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
-.env-cta .btn {
+.invite-actions .btn {
   min-width: 150px;
 }
 
-/* Mariposas */
-.env-fx {
+/* Efectos */
+.invite-sparkles {
   position: absolute;
-  inset: -15% -10% 0;
+  inset: 0 -10% 20%;
   pointer-events: none;
-  z-index: 30;
+  z-index: 40;
   overflow: visible;
   visibility: hidden;
 }
 
-.env.is-open .env-fx {
+.invite.is-open .invite-sparkles {
   visibility: visible;
 }
 
 .he-butterfly {
   position: absolute;
   left: 50%;
-  top: 48%;
-  font-size: var(--bf-size, 1.1rem);
+  top: 55%;
+  font-size: var(--bf-size, 1.05rem);
   line-height: 1;
   opacity: 0;
-  filter: drop-shadow(0 2px 4px rgba(80, 20, 40, 0.2));
-  animation: env-fly var(--bf-dur, 4.2s) ease-out var(--bf-delay, 0s) forwards;
+  filter: drop-shadow(0 2px 4px rgba(80, 20, 40, 0.18));
+  animation: invite-fly var(--bf-dur, 4s) ease-out var(--bf-delay, 0s) forwards;
 }
 
 .he-butterfly span {
   display: inline-block;
-  animation: env-flutter 0.28s ease-in-out infinite alternate;
+  animation: invite-flutter 0.26s ease-in-out infinite alternate;
 }
 
-@keyframes env-fly {
+@keyframes invite-fly {
   0% {
     opacity: 0;
     transform: translate(-50%, 0) scale(0.35);
@@ -371,92 +360,95 @@
   }
   100% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--bf-dx, 50px)), var(--bf-dy, -180px)) scale(1.05)
-      rotate(var(--bf-rot, 12deg));
+    transform: translate(calc(-50% + var(--bf-dx, 40px)), var(--bf-dy, -170px))
+      scale(1.05) rotate(var(--bf-rot, 10deg));
   }
 }
 
-@keyframes env-flutter {
+@keyframes invite-flutter {
   from {
-    transform: scaleX(1) rotate(-8deg);
+    transform: scaleX(1) rotate(-7deg);
   }
   to {
-    transform: scaleX(0.55) rotate(8deg);
+    transform: scaleX(0.55) rotate(7deg);
   }
 }
 
 /* Móvil */
 @media (max-width: 540px) {
-  .env {
-    padding: 6.5rem 0.75rem 2.25rem;
-    align-items: flex-end;
+  .invite {
+    padding: 6.25rem 0.75rem 2rem;
+    place-items: end center;
   }
 
-  .env-stage {
+  .invite-inner {
     width: min(100%, 96vw);
-    padding-top: 1.5rem;
-    padding-bottom: env(safe-area-inset-bottom, 0);
+    margin-bottom: 0.5rem;
   }
 
-  .env-body {
-    height: 200px;
-    max-width: 340px;
+  .invite-frame {
+    padding-top: 9rem;
   }
 
-  .env.is-open .env-letter {
-    /* Un poco menos alto para no meterse bajo el nav */
-    transform: translate3d(0, -62%, 0) scale(1);
+  .invite-envelope {
+    height: 190px;
+    width: min(340px, 100%);
   }
 
-  .env-letter-inner {
-    padding: 1.2rem 0.95rem 1.35rem;
+  .invite.is-open .invite-letter {
+    transform: translateY(-68%);
   }
 
-  .env-name-main {
-    font-size: clamp(1.9rem, 9vw, 2.6rem);
+  .invite-card {
+    padding: 1.25rem 0.95rem 1.3rem;
   }
 
-  .env-seal {
-    width: 46px;
-    height: 46px;
-    margin-left: -23px;
+  .invite-title {
+    font-size: clamp(1.95rem, 9vw, 2.55rem);
   }
 
-  .env-seal span {
-    font-size: 1.2rem;
+  .invite-wax {
+    width: 48px;
+    height: 48px;
+    margin-left: -24px;
+  }
+
+  .invite-wax em {
+    font-size: 1.25rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .env-letter,
-  .env-flap,
-  .env-seal,
-  .env-hint,
-  .env-cta {
+  .invite-letter,
+  .invite-flap,
+  .invite-wax,
+  .invite-hint,
+  .invite-actions {
     transition: none !important;
   }
 
-  .env-fx {
+  .invite-sparkles {
     display: none !important;
   }
 
-  .env .env-letter {
-    z-index: 20 !important;
-    transform: translate3d(0, -70%, 0) scale(1) !important;
+  .invite .invite-letter {
+    z-index: 30 !important;
+    transform: translateY(-75%) !important;
     pointer-events: auto !important;
   }
 
-  .env .env-flap {
-    transform: rotateX(-172deg) !important;
+  .invite .invite-flap {
+    transform: rotateX(-175deg) !important;
+    z-index: 4 !important;
   }
 
-  .env .env-seal,
-  .env .env-hint {
+  .invite .invite-wax,
+  .invite .invite-hint {
     opacity: 0 !important;
     visibility: hidden !important;
   }
 
-  .env .env-cta {
+  .invite .invite-actions {
     opacity: 1 !important;
     transform: none !important;
   }

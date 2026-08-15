@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css?v=20260814r" />
-  <link rel="stylesheet" href="/envelope-hero.css?v=20260814env2" />
+  <link rel="stylesheet" href="/envelope-hero.css?v=20260814env3" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
 </head>
 <body>
@@ -35,53 +35,50 @@
     </ul>
   </nav>
 
-  <!-- Sobre moderno: toca → solapa → carta sale ENCIMA -->
-  <header class="env" id="inicio">
-    <div class="env-stage" id="heStage">
-      <div
-        class="env-body"
-        id="heEnvelope"
-        role="button"
-        tabindex="0"
-        aria-label="Abrir la invitación"
-        aria-expanded="false"
-      >
-        <!-- 1. Fondo del sobre -->
-        <div class="env-back" aria-hidden="true"></div>
+  <!--
+    Sobre de invitación (rebuild total)
+    Patrón estándar CodePen / CSS 3D:
+    back → letter → pocket → flap → seal
+    Al abrir: flap gira, letter sube con z-index > pocket
+  -->
+  <header class="invite" id="inicio">
+    <div class="invite-inner">
+      <div class="invite-frame">
+        <!-- Espacio superior para la carta al salir -->
+        <div
+          class="invite-envelope"
+          id="heEnvelope"
+          role="button"
+          tabindex="0"
+          aria-label="Abrir la invitación"
+          aria-expanded="false"
+        >
+          <div class="invite-back" aria-hidden="true"></div>
 
-        <!-- 2. Carta (z bajo al cerrar; z alto al abrir = sale por encima) -->
-        <article class="env-letter" id="heCard">
-          <div class="env-letter-inner">
-            <p class="env-eyebrow">Con la bendición de Dios y el amor de mi familia</p>
-            <div class="env-ornament" aria-hidden="true">
-              <span></span><i>✦</i><span></span>
+          <article class="invite-letter" id="heCard">
+            <div class="invite-card">
+              <p class="invite-kicker">Con la bendición de Dios y el amor de mi familia</p>
+              <div class="invite-rule" aria-hidden="true"><span></span>✦<span></span></div>
+              <h1 class="invite-title">Alahya</h1>
+              <p class="invite-subtitle">Thaís Saltares Ortega</p>
+              <p class="invite-theme">Mis Quince Años · Victorian Masquerade Ball</p>
+              <p class="invite-when" id="heroDate">10 de octubre de 2026 · 5:00 p.m.</p>
             </div>
-            <h1 class="env-name">
-              <span class="env-name-main">Alahya</span>
-              <span class="env-name-sub">Thaís Saltares Ortega</span>
-            </h1>
-            <p class="env-tagline">Mis Quince Años · Victorian Masquerade Ball</p>
-            <p class="env-date" id="heroDate">10 de octubre de 2026 · 5:00 p.m.</p>
-          </div>
-        </article>
+          </article>
 
-        <!-- 3. Bolsillo frontal (por encima de la carta cuando está cerrada) -->
-        <div class="env-pocket" aria-hidden="true"></div>
-
-        <!-- 4. Solapa -->
-        <div class="env-flap" aria-hidden="true"></div>
-
-        <!-- 5. Sello -->
-        <div class="env-seal" aria-hidden="true"><span>A</span></div>
+          <div class="invite-pocket" aria-hidden="true"></div>
+          <div class="invite-flap" aria-hidden="true"></div>
+          <div class="invite-wax" aria-hidden="true"><em>A</em></div>
+        </div>
       </div>
 
-      <p class="env-hint" id="heHint">Toca el sobre para abrir</p>
+      <p class="invite-hint" id="heHint">Toca el sobre para abrir la invitación</p>
 
-      <div class="env-cta">
+      <div class="invite-actions">
         <a href="#reservar" class="btn btn-gold">Reservar</a>
       </div>
 
-      <div class="env-fx" id="heButterflies" aria-hidden="true"></div>
+      <div class="invite-sparkles" id="heButterflies" aria-hidden="true"></div>
     </div>
   </header>
 
@@ -494,6 +491,6 @@
 
   <script src="/pr-towns.js"></script>
   <script src="/vendor/page-flip.browser.js"></script>
-  <script src="/app.js?v=20260814env2"></script>
+  <script src="/app.js?v=20260814env3"></script>
 </body>
 </html>
