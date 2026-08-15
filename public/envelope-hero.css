@@ -117,36 +117,43 @@
 .he-envelope {
   position: relative;
   width: 100%;
-  max-width: 480px;
-  height: min(320px, 44vh);
+  max-width: 460px;
+  height: min(300px, 42vh);
   margin: 0 auto;
-  /* perspective solo para la solapa; la tarjeta usa transform-style: flat */
-  perspective: 900px;
-  transform-style: flat;
-  /* Permite que la carta salga ARRIBA; recorta lo que asoma ABAJO del sobre */
-  clip-path: inset(-200% -10% 0 -10%);
-  -webkit-clip-path: inset(-200% -10% 0 -10%);
+  /* 3D para la solapa; carta en 2D nítida */
+  perspective: 1100px;
+  perspective-origin: 50% 0%;
+  transform-style: preserve-3d;
+  /* Carta puede salir arriba; no recortar lados (evita “orilla” rara) */
+  overflow: visible;
+  clip-path: none;
+  -webkit-clip-path: none;
 }
 
 .he-back {
   position: absolute;
   inset: 0;
-  border-radius: 10px;
-  background: linear-gradient(155deg, #8b1520 0%, #5c0f16 45%, #3a0a10 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.45);
+  border-radius: 12px;
+  /* Mismo tono que el frente: sin franja más oscura “suelta” */
+  background: linear-gradient(155deg, #b01a2a 0%, #8b1520 40%, #5c1018 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.48);
   box-shadow: 0 22px 48px rgba(60, 15, 20, 0.28);
   z-index: 1;
 }
 
-/* Tarjeta: metida (out=0) o fuera hacia arriba (out=1) — solo translateY 2D (nítido) */
+/*
+ * Carta:
+ * Cerrada: detrás del bolsillo (z=2).
+ * Abierta: se asoma por la V del bolsillo (sigue z=2, bajo el frente)
+ *          y sube lo justo para leerse encima de la V — no flota demasiado.
+ */
 .he-card {
   position: absolute;
-  left: 6%;
-  right: 6%;
-  top: 8%;
+  left: 5%;
+  right: 5%;
+  top: 6%;
   z-index: 2;
-  /* translateY 2D (no 3d) + isolation: evita subpixel blur del compositing */
-  transform: translateY(calc(58% - var(--out) * 118%));
+  transform: translateY(calc(56% - var(--out) * 96%));
   transform-style: flat;
   isolation: isolate;
   pointer-events: none;
@@ -154,14 +161,15 @@
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
   backface-visibility: hidden;
-  will-change: auto;
+  will-change: transform;
   filter: none;
 }
 
 .hero-envelope.is-open .he-card {
   pointer-events: auto;
-  /* Valor fijo sin var() al estar abierta: composición más limpia */
-  transform: translateY(-60%);
+  /* Asentada en la V del sobre (no tan alta que deje orilla oscura) */
+  transform: translateY(-42%);
+  z-index: 2;
   will-change: auto;
   filter: none;
 }
@@ -169,17 +177,16 @@
 .he-card-inner {
   max-width: none !important;
   width: 100%;
-  /* Más aire abajo (debajo de la fecha) */
-  padding: 1.65rem 1.3rem 3.25rem !important;
-  box-shadow: 0 14px 36px rgba(40, 10, 15, 0.18);
-  /* Opaco sólido: sin glass ni blur */
+  /* Más blanco abajo: la punta de la V cae en papel, no en el texto */
+  padding: 1.55rem 1.25rem 3.5rem !important;
+  box-shadow: 0 14px 36px rgba(40, 10, 15, 0.16);
   background: #fffcf8 !important;
   background-image: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   filter: none !important;
-  /* Sin translateZ (a veces desenfoca texto en algunos browsers) */
   transform: none !important;
+  border: 1px solid rgba(201, 162, 39, 0.28);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
@@ -215,71 +222,78 @@
   line-height: 1.45;
 }
 
-/* Espacio en blanco debajo de la fecha (la punta del sobre no debe tapar el texto) */
+/* Espacio en blanco debajo de la fecha (la V del sobre no tapa “octubre”) */
 .he-card-inner .hero-date {
   margin-bottom: 0 !important;
-  padding-bottom: 3.25rem;
+  padding-bottom: 2.75rem;
   font-size: 0.75rem;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Frente del sobre — opaco, tapa la tarjeta cuando está adentro */
+/*
+ * Frente / bolsillo: boca en V (punta arriba).
+ * La carta se asoma por esa V al abrir.
+ * Color alineado con .he-back para que no se vea “orilla” más oscura.
+ */
 .he-front {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 68%;
+  height: 70%;
   z-index: 3;
-  border-radius: 0 0 10px 10px;
-  background: linear-gradient(180deg, #b01a2a 0%, #6b1018 50%, #4a0c12 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  border-radius: 0 0 12px 12px;
+  background: linear-gradient(180deg, #c41e3a 0%, #9b1c1c 28%, #7a1520 58%, #5c1018 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.45);
   border-top: none;
-  clip-path: polygon(0 30%, 50% 0, 100% 30%, 100% 100%, 0 100%);
-  box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.1);
+  /* V limpia: pico central al tope del bolsillo */
+  clip-path: polygon(0 34%, 50% 0, 100% 34%, 100% 100%, 0 100%);
+  box-shadow: inset 0 12px 22px rgba(0, 0, 0, 0.08);
   pointer-events: none;
 }
 
 .he-front::after {
   content: "";
   position: absolute;
-  left: 12%;
-  right: 12%;
-  top: 42%;
+  left: 14%;
+  right: 14%;
+  top: 40%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.42), transparent);
 }
 
 /*
- * Solapa superior (triángulo del sobre).
- * No usar scaleY(0) ni visibility:hidden al abrir: eso “cortaba” el triángulo.
- * Se abre con rotateX (queda arriba, fuera del papel blanco).
+ * Solapa superior (triángulo) — se abre en 3D con rotateX.
+ * El pico de la V del frente y el de la solapa coinciden al cerrar.
  */
 .he-flap {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
-  height: 58%;
+  height: 56%;
   z-index: 4;
   transform-origin: top center;
-  transform: rotateX(calc(var(--flap) * -168deg));
+  transform: rotateX(calc(var(--flap) * -155deg));
   transform-style: preserve-3d;
-  background: linear-gradient(180deg, #c41e3a 0%, #8b1520 60%, #5c1018 100%);
+  background: linear-gradient(180deg, #c41e3a 0%, #9b1c1c 45%, #6b1018 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.5);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
   pointer-events: none;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   will-change: transform;
   opacity: 1;
 }
 
-/* Al abrir del todo: solapa abierta arriba (triángulo intacto), sin ocultarla */
+/* Solapa abierta: arriba en 3D, triángulo intacto */
 .hero-envelope.is-open .he-flap {
-  transform: rotateX(-168deg);
+  transform: rotateX(-155deg);
   opacity: 1;
   visibility: visible;
+  /* Por debajo de la carta en el área de la V visual */
+  z-index: 3;
 }
 
 .he-flap::after {
@@ -292,6 +306,11 @@
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   border: 1px solid rgba(232, 213, 163, 0.28);
   pointer-events: none;
+}
+
+/* Al abrir: el frente en V se queda por encima de la carta en la base */
+.hero-envelope.is-open .he-front {
+  z-index: 4;
 }
 
 .he-seal {
@@ -381,21 +400,26 @@
     width: min(520px, 94vw);
   }
   .he-envelope {
-    height: min(260px, 38vh);
+    height: min(250px, 36vh);
   }
-  /* La carta no sube tanto: deja espacio libre bajo el nav */
+  /* Carta en la V: un poco menos alta para no chocar con el nav */
   .he-card {
-    transform: translateY(calc(52% - var(--out) * 100%));
+    left: 4.5%;
+    right: 4.5%;
+    transform: translateY(calc(50% - var(--out) * 88%));
   }
   .hero-envelope.is-open .he-card {
-    transform: translateY(-48%);
+    transform: translateY(-36%);
   }
   .he-card-inner {
-    /* Más papel blanco abajo: la punta roja del sobre cae en el vacío, no en “octubre” */
-    padding: 1.35rem 1rem 4.25rem !important;
+    padding: 1.3rem 0.95rem 3.75rem !important;
   }
   .he-card-inner .hero-date {
-    padding-bottom: 4.5rem;
+    padding-bottom: 3.5rem;
+  }
+  .he-front {
+    height: 72%;
+    clip-path: polygon(0 32%, 50% 0, 100% 32%, 100% 100%, 0 100%);
   }
   .he-seal {
     width: 48px;
