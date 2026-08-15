@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css?v=20260814btn5" />
-  <link rel="stylesheet" href="/envelope-hero.css?v=20260815v3" />
+  <link rel="stylesheet" href="/envelope-hero.css?v=20260815v4" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
 </head>
 <body>
@@ -41,8 +41,8 @@
       <div class="he-sticky">
         <div class="he-stage" id="heStage">
           <div class="he-envelope" id="heEnvelope">
+            <!-- Capas de sobre moderno: dorso → carta → lados → base → tapa → sello -->
             <div class="he-back" aria-hidden="true"></div>
-            <!-- Tarjeta = única invitación -->
             <div class="he-card" id="heCard">
               <div class="hero-frame he-card-inner">
                 <p class="eyebrow">Con la bendición de Dios y el amor de mi familia</p>
@@ -59,8 +59,12 @@
                 <p class="hero-date" id="heroDate">10 de octubre de 2026 · 5:00 p.m.</p>
               </div>
             </div>
-            <!-- Bolsillo frontal en V: la carta (z inferior) sale por la abertura -->
+            <!-- Solapas laterales: tapan los huecos izq/der cuando la tapa se abre -->
+            <div class="he-side-l" aria-hidden="true"></div>
+            <div class="he-side-r" aria-hidden="true"></div>
+            <!-- Base del bolsillo (V inferior) -->
             <div class="he-front" aria-hidden="true"></div>
+            <!-- Tapa triangular superior -->
             <div class="he-flap" aria-hidden="true"></div>
             <div class="he-seal" aria-hidden="true"><span>A</span></div>
           </div>
