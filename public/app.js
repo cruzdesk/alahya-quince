@@ -149,32 +149,41 @@
     const pages = root.querySelectorAll(".page");
     if (!pages.length) return;
 
-    // Tamaño base de UNA página (el libro abierto = 2 páginas)
-    const pageW = Math.min(290, Math.max(240, window.innerWidth < 600 ? window.innerWidth - 48 : 290));
-    const pageH = Math.min(420, Math.round(pageW * 1.4));
+    const isMobile = window.innerWidth < 700;
+    // Tamaño base de UNA página (móvil: que quepa en pantalla)
+    const pageW = Math.min(
+      isMobile ? 300 : 290,
+      Math.max(230, isMobile ? window.innerWidth - 40 : 290)
+    );
+    const pageH = Math.min(isMobile ? 400 : 420, Math.round(pageW * (isMobile ? 1.35 : 1.4)));
 
     let pageFlip;
+    let flipping = false;
     try {
       pageFlip = new St.PageFlip(root, {
         width: pageW,
         height: pageH,
         size: "stretch",
-        minWidth: 220,
-        maxWidth: 340,
-        minHeight: 320,
-        maxHeight: 480,
-        drawShadow: true,
-        maxShadowOpacity: 0.45,
+        minWidth: isMobile ? 200 : 220,
+        maxWidth: isMobile ? Math.min(360, window.innerWidth - 24) : 340,
+        minHeight: isMobile ? 280 : 320,
+        maxHeight: isMobile ? 460 : 480,
+        drawShadow: !isMobile, // sombras pesadas en móvil pueden trabar el toque
+        maxShadowOpacity: 0.4,
         showCover: true,
-        mobileScrollSupport: false,
-        usePortrait: true,
-        flippingTime: 900,
+        // true = al tocar el libro no pelea con el scroll de la página (mejor flip en móvil)
+        mobileScrollSupport: true,
+        // retrato en móvil: una página a la vez (más fácil de pasar)
+        usePortrait: isMobile,
+        flippingTime: isMobile ? 700 : 900,
         startPage: 0,
         autoSize: true,
         clickEventForward: true,
         useMouseEvents: true,
         showPageCorners: true,
-        disableFlipByClick: false,
+        // en móvil el clic en toda la hoja a veces falla; los botones son la vía principal
+        disableFlipByClick: isMobile,
+        swipeDistance: isMobile ? 12 : 28,
       });
       pageFlip.loadFromHTML(pages);
     } catch (err) {
@@ -198,43 +207,108 @@
           label.textContent = i + " / " + contentTotal;
         }
       }
-      if (prevBtn) prevBtn.disabled = i <= 0;
-      if (nextBtn) nextBtn.disabled = i >= n - 1;
+      if (prevBtn) prevBtn.disabled = i <= 0 || flipping;
+      if (nextBtn) nextBtn.disabled = i >= n - 1 || flipping;
       if (hint) {
         if (i === 0) {
-          hint.textContent = "Toca la portada o desliza para abrir el libro";
+          hint.textContent = isMobile
+            ? "Toca → o desliza para abrir"
+            : "Toca la portada o desliza para abrir el libro";
         } else if (i >= n - 1) {
           hint.textContent = "Fin del libro · ← o Portada";
         } else {
-          hint.textContent = "Pasa las páginas · desliza o usa ← →";
+          hint.textContent = isMobile
+            ? "Usa ← → o desliza la hoja"
+            : "Pasa las páginas · desliza o usa ← →";
         }
       }
     }
 
-    pageFlip.on("flip", updateUI);
-    pageFlip.on("init", updateUI);
-    pageFlip.on("changeState", updateUI);
-
-    prevBtn &&
-      prevBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        pageFlip.flipPrev();
-      });
-    nextBtn &&
-      nextBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        pageFlip.flipNext();
-      });
-    closeBtn &&
-      closeBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        // Volver a la portada con animación si es posible
-        try {
-          pageFlip.flip(0);
-        } catch (_) {
-          pageFlip.turnToPage(0);
+    function goNext() {
+      if (flipping) return;
+      const i = pageFlip.getCurrentPageIndex();
+      const n = pageFlip.getPageCount();
+      if (i >= n - 1) return;
+      try {
+        const st = pageFlip.getState && pageFlip.getState();
+        if (st && st !== "read") {
+          pageFlip.turnToNextPage();
+        } else {
+          pageFlip.flipNext("bottom");
         }
+      } catch (_) {
+        try {
+          pageFlip.turnToNextPage();
+        } catch (e2) {}
+      }
+      // fallback UI update (por si el evento flip no dispara)
+      window.setTimeout(updateUI, 50);
+      window.setTimeout(updateUI, 400);
+    }
+
+    function goPrev() {
+      if (flipping) return;
+      const i = pageFlip.getCurrentPageIndex();
+      if (i <= 0) return;
+      try {
+        const st = pageFlip.getState && pageFlip.getState();
+        if (st && st !== "read") {
+          pageFlip.turnToPrevPage();
+        } else {
+          pageFlip.flipPrev("bottom");
+        }
+      } catch (_) {
+        try {
+          pageFlip.turnToPrevPage();
+        } catch (e2) {}
+      }
+      window.setTimeout(updateUI, 50);
+      window.setTimeout(updateUI, 400);
+    }
+
+    pageFlip.on("flip", () => {
+      flipping = false;
+      updateUI();
+    });
+    pageFlip.on("init", updateUI);
+    pageFlip.on("changeState", (e) => {
+      const st = e && e.data;
+      flipping = st === "flipping" || st === "user_fold" || st === "fold_corner";
+      updateUI();
+    });
+
+    // pointerup: más fiable en móvil que solo click
+    function bindTap(el, fn) {
+      if (!el) return;
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        fn();
       });
+      el.addEventListener(
+        "touchend",
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          fn();
+        },
+        { passive: false }
+      );
+    }
+
+    bindTap(prevBtn, goPrev);
+    bindTap(nextBtn, goNext);
+    bindTap(closeBtn, () => {
+      try {
+        pageFlip.flip(0, "bottom");
+      } catch (_) {
+        try {
+          pageFlip.turnToPage(0);
+        } catch (e2) {}
+      }
+      window.setTimeout(updateUI, 50);
+      window.setTimeout(updateUI, 500);
+    });
 
     // Teclado
     document.addEventListener("keydown", (e) => {
@@ -245,10 +319,10 @@
       if (!inView) return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        pageFlip.flipPrev();
+        goPrev();
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        pageFlip.flipNext();
+        goNext();
       }
     });
 
