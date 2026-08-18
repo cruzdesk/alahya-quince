@@ -1060,10 +1060,27 @@
 
   // Al cambiar invitados en el modal, refrescar cupos del combo de mesas
   document.getElementById("editResGuests")?.addEventListener("input", () => {
+    const el = document.getElementById("editResGuests");
+    if (el) {
+      const raw = String(el.value ?? "").trim();
+      if (raw !== "") {
+        let n = parseInt(raw, 10);
+        if (Number.isFinite(n) && n < 1) el.value = "1";
+        if (Number.isFinite(n) && n > 20) el.value = "20";
+      }
+    }
     const id = document.getElementById("editResId")?.value;
-    const guests = document.getElementById("editResGuests")?.value || 1;
+    const guests = Math.min(Math.max(parseInt(el?.value ?? "1", 10) || 1, 1), 20);
     const mesa = document.getElementById("editResMesa")?.value || "";
     fillEditMesaSelect(mesa, id, guests);
+  });
+  document.getElementById("editResGuests")?.addEventListener("blur", () => {
+    const el = document.getElementById("editResGuests");
+    if (!el) return;
+    let n = parseInt(String(el.value ?? ""), 10);
+    if (!Number.isFinite(n) || n < 1) n = 1;
+    if (n > 20) n = 20;
+    el.value = String(n);
   });
 
   function closeEditReservation() {
@@ -1081,7 +1098,22 @@
     e.preventDefault();
     if (!adminKey) return;
     const id = document.getElementById("editResId").value;
-    const guests = Number(document.getElementById("editResGuests").value || 1);
+    const guestsEl = document.getElementById("editResGuests");
+    let guests = parseInt(String(guestsEl?.value ?? "1"), 10);
+    if (!Number.isFinite(guests) || guests < 1) {
+      if (guestsEl) guestsEl.value = "1";
+      alert("La cantidad de invitados debe ser al menos 1.");
+      if (editResStatusMsg) {
+        editResStatusMsg.textContent = "La cantidad de invitados debe ser al menos 1.";
+        editResStatusMsg.className = "form-status err";
+      }
+      guestsEl?.focus();
+      return;
+    }
+    if (guests > 20) {
+      guests = 20;
+      if (guestsEl) guestsEl.value = "20";
+    }
     const mesa = (document.getElementById("editResMesa")?.value || "").trim();
     const status = document.getElementById("editResStatus").value;
     if (status === "active" && mesa) {

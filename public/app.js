@@ -1186,6 +1186,27 @@
     e.target.value = formatPhoneInput(e.target.value);
   });
 
+  // Invitados: nunca permitir menos de 1 en el campo
+  const resGuests = document.getElementById("resGuests");
+  function clampResGuestsInput() {
+    if (!resGuests) return 1;
+    let n = parseInt(String(resGuests.value ?? ""), 10);
+    if (!Number.isFinite(n) || n < 1) n = 1;
+    if (n > 20) n = 20;
+    resGuests.value = String(n);
+    return n;
+  }
+  resGuests?.addEventListener("change", clampResGuestsInput);
+  resGuests?.addEventListener("blur", clampResGuestsInput);
+  resGuests?.addEventListener("input", () => {
+    // Si escriben 0 o negativo, corregir al soltar / cambiar (no pelear mientras teclean vacío)
+    const raw = String(resGuests.value ?? "").trim();
+    if (raw === "") return;
+    const n = parseInt(raw, 10);
+    if (Number.isFinite(n) && n < 1) resGuests.value = "1";
+    if (Number.isFinite(n) && n > 20) resGuests.value = "20";
+  });
+
   reserveForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (reserveStatus) {
@@ -1211,12 +1232,28 @@
       document.getElementById("resPhone")?.focus();
       return;
     }
+    const guestsEl = document.getElementById("resGuests");
+    let guests = parseInt(String(guestsEl?.value ?? "1"), 10);
+    if (!Number.isFinite(guests) || guests < 1) {
+      if (guestsEl) guestsEl.value = "1";
+      if (reserveStatus) {
+        reserveStatus.textContent =
+          "La cantidad de invitados debe ser al menos 1 (incluyéndote).";
+        reserveStatus.className = "form-status err";
+      }
+      guestsEl?.focus();
+      return;
+    }
+    if (guests > 20) {
+      guests = 20;
+      if (guestsEl) guestsEl.value = "20";
+    }
     const body = {
       name: document.getElementById("resName")?.value,
       phone: phoneVal,
       email: document.getElementById("resEmail")?.value,
       pueblo: document.getElementById("resPueblo")?.value,
-      guests: Number(document.getElementById("resGuests")?.value || 1),
+      guests,
       notes: document.getElementById("resNotes")?.value,
       device: typeof collectDeviceInfo === "function" ? collectDeviceInfo() : undefined,
     };

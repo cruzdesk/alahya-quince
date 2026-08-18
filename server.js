@@ -350,7 +350,13 @@ app.post("/api/reservations", rsvpLimiter, async (req, res) => {
     const phone = clean(req.body.phone, 40);
     const pueblo = clean(req.body.pueblo, 80);
     const notes = clean(req.body.notes, 400);
-    const guests = Math.min(Math.max(parseInt(req.body.guests, 10) || 1, 1), 20);
+    const guestsRaw = parseInt(String(req.body.guests ?? ""), 10);
+    if (!Number.isFinite(guestsRaw) || guestsRaw < 1) {
+      return res.status(400).json({
+        error: "La cantidad de invitados debe ser al menos 1 (incluyéndote).",
+      });
+    }
+    const guests = Math.min(guestsRaw, 20);
 
     if (!name || name.length < 2) {
       return res.status(400).json({ error: "Escribe tu nombre." });
@@ -546,8 +552,14 @@ app.post("/api/admin/reservations/:id/update", ...adminGuard, async (req, res) =
     const phone = clean(req.body.phone, 40) || null;
     const pueblo = clean(req.body.pueblo, 80) || null;
     const notes = clean(req.body.notes, 400) || null;
-    // Siempre número entero (evita sumas raras si viene string)
-    const guests = Math.min(Math.max(parseInt(String(req.body.guests ?? "1"), 10) || 1, 1), 20);
+    // Siempre ≥ 1 (rechaza 0 / negativo / vacío)
+    const guestsParsed = parseInt(String(req.body.guests ?? ""), 10);
+    if (!Number.isFinite(guestsParsed) || guestsParsed < 1) {
+      return res.status(400).json({
+        error: "La cantidad de invitados debe ser al menos 1.",
+      });
+    }
+    const guests = Math.min(guestsParsed, 20);
     let status = String(req.body.status || "active").toLowerCase();
     if (status !== "active" && status !== "cancelled") status = "active";
 
