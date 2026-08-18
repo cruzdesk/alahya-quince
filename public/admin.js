@@ -24,6 +24,7 @@
   const mesaMapDetail = document.getElementById("mesaMapDetail");
   let selectedMesaMap = "";
   const printWishesBtn = document.getElementById("printWishesBtn");
+  const printWishBookBtn = document.getElementById("printWishBookBtn");
   const printIncludeMeta = document.getElementById("printIncludeMeta");
   const printStatus = document.getElementById("printStatus");
   const adminViewTitle = document.getElementById("adminViewTitle");
@@ -1266,6 +1267,152 @@ ${rows || "<p>No hay deseos todavía.</p>"}
     win.document.close();
   }
 
+  /** Libro imprimible: portada + 1 deseo por página (Guardar como PDF en el diálogo de impresión) */
+  function openWishBookPrint(data) {
+    const wishes = data.wishes || [];
+    const whenPrinted = new Date(data.printedAt || Date.now()).toLocaleString("es", {
+      dateStyle: "full",
+      timeStyle: "short",
+    });
+    const cover = `<section class="sheet cover">
+      <div class="cover-inner">
+        <div class="orn">✦</div>
+        <p class="kicker">Muro de cariño</p>
+        <h1>Deseos</h1>
+        <p class="sub">Para Alahya · Victorian Masquerade</p>
+        <p class="count">${wishes.length} deseo${wishes.length === 1 ? "" : "s"}</p>
+        <div class="orn">✦</div>
+      </div>
+    </section>`;
+    const pages =
+      wishes.length === 0
+        ? `<section class="sheet page">
+            <div class="page-inner">
+              <div class="orn">✦</div>
+              <p class="empty">Aún no hay deseos públicos para imprimir.</p>
+              <div class="orn">✦</div>
+            </div>
+          </section>`
+        : wishes
+            .map((w, i) => {
+              const when = w.created_at
+                ? new Date(w.created_at).toLocaleDateString("es", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })
+                : "";
+              return `<section class="sheet page">
+                <div class="page-inner">
+                  <p class="who">${escapeHtml(w.name || "Anónimo")}</p>
+                  <blockquote>“${escapeHtml(w.message || "")}”</blockquote>
+                  ${when ? `<p class="when">${escapeHtml(when)}</p>` : ""}
+                  <span class="num">${i + 1} / ${wishes.length}</span>
+                </div>
+              </section>`;
+            })
+            .join("");
+    const back = `<section class="sheet cover back">
+      <div class="cover-inner">
+        <div class="orn">✦</div>
+        <h1 class="sm">Con cariño</h1>
+        <p class="sub">XV de Alahya</p>
+        <p class="printed">Impreso: ${escapeHtml(whenPrinted)}</p>
+        <div class="orn">✦</div>
+      </div>
+    </section>`;
+
+    const html = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8" /><title>Libro de deseos — Alahya XV</title>
+<style>
+  @page { size: letter portrait; margin: 0.55in; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    color: #2a1f24;
+    background: #efe8df;
+  }
+  .toolbar {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;
+    padding: 0.75rem 1rem;
+    background: #1a1212; color: #f7efe3;
+  }
+  .toolbar button, .toolbar span { font-family: system-ui, sans-serif; font-size: 13px; }
+  .toolbar button {
+    border: 1px solid #d4af37; background: #d4af37; color: #1a1212;
+    padding: 0.45rem 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 600;
+  }
+  .toolbar .hint { opacity: 0.85; }
+  .sheet {
+    width: 8.5in; min-height: 11in; margin: 0.6rem auto;
+    background: #fffcf8;
+    box-shadow: 0 8px 28px rgba(40, 10, 15, 0.18);
+    page-break-after: always;
+    break-after: page;
+  }
+  .sheet:last-child { page-break-after: auto; break-after: auto; }
+  .cover {
+    background: radial-gradient(ellipse 80% 50% at 50% 18%, rgba(232,213,163,0.35), transparent 55%),
+      linear-gradient(155deg, #7b3fa0 0%, #5a2d78 42%, #2f1848 100%);
+    color: #f7efe3;
+  }
+  .cover-inner, .page-inner {
+    min-height: 11in;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 1.25in 1in;
+  }
+  .orn { color: #e8d5a3; font-size: 1.1rem; margin: 0.35rem 0; }
+  .cover .kicker { letter-spacing: 0.22em; text-transform: uppercase; font-size: 0.72rem; opacity: 0.95; margin: 0; }
+  .cover h1 { font-style: italic; font-weight: 400; font-size: 3rem; margin: 0.35rem 0; color: #fff8f0; }
+  .cover h1.sm { font-size: 2.1rem; }
+  .cover .sub { font-style: italic; color: #e8d5a3; font-size: 1.05rem; margin: 0.25rem 0; }
+  .cover .count { font-size: 0.85rem; letter-spacing: 0.08em; margin-top: 1rem; opacity: 0.9; }
+  .cover .printed { font-size: 0.72rem; margin-top: 1.25rem; opacity: 0.75; }
+  .page-inner .who {
+    font-style: italic; font-size: 1.65rem; color: #6b3d8f; margin: 0 0 0.75rem;
+  }
+  .page-inner blockquote {
+    margin: 0; max-width: 28em; font-style: italic; font-size: 1.2rem; line-height: 1.5;
+    border-top: 1px solid rgba(107,61,143,0.3); border-bottom: 1px solid rgba(107,61,143,0.3);
+    padding: 1rem 0.5rem; color: #2a1f24;
+  }
+  .page-inner .when { margin-top: 0.85rem; font-size: 0.8rem; letter-spacing: 0.06em; color: #5c4a52; }
+  .page-inner .num {
+    position: absolute; bottom: 0.7in; left: 0; right: 0;
+    font-size: 0.75rem; color: rgba(58,42,40,0.45); letter-spacing: 0.08em;
+  }
+  .page { position: relative; }
+  .page-inner .empty { max-width: 22em; font-size: 1.1rem; color: #5c4a52; }
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none !important; }
+    .sheet {
+      width: auto; min-height: auto; height: auto;
+      margin: 0; box-shadow: none;
+      min-height: calc(100vh - 0.1px);
+    }
+    .cover-inner, .page-inner { min-height: calc(100vh - 1.1in); padding: 0.6in 0.45in; }
+  }
+</style></head><body>
+  <div class="toolbar no-print">
+    <button type="button" onclick="window.print()">Imprimir / Guardar PDF</button>
+    <span class="hint">En el diálogo elige «Guardar como PDF» · una página por deseo</span>
+  </div>
+  ${cover}
+  ${pages}
+  ${back}
+  <script>window.onload=function(){setTimeout(function(){window.print()},400)};<\/script>
+</body></html>`;
+
+    const win = window.open("", "_blank");
+    if (!win) throw new Error("Permite ventanas emergentes para imprimir.");
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
   function openReservationReport(data) {
     const s = data.stats || {};
     const list = data.reservations || [];
@@ -1710,26 +1857,28 @@ ${tableBlocks || "<p>No hay reservas activas.</p>"}
   // Inicializar selects de pueblo al cargar
   fillPuebloSelects();
 
+  async function fetchPublicWishesForPrint() {
+    const res = await fetch("/api/admin/print-wishes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: adminKey }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "No autorizado");
+    renderAdminWishes(data.wishes || []);
+    const publicWishes = (data.wishes || []).filter((w) => w.approved !== false);
+    return { ...data, wishes: publicWishes, total: publicWishes.length };
+  }
+
   printWishesBtn?.addEventListener("click", async () => {
     if (!adminKey) return;
     printWishesBtn.disabled = true;
     printWishesBtn.textContent = "Cargando…";
     try {
-      const res = await fetch("/api/admin/print-wishes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: adminKey }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "No autorizado");
-      renderAdminWishes(data.wishes || []);
-      const publicWishes = (data.wishes || []).filter((w) => w.approved !== false);
-      openPrintDocument(
-        { ...data, wishes: publicWishes, total: publicWishes.length },
-        !!(printIncludeMeta && printIncludeMeta.checked)
-      );
+      const payload = await fetchPublicWishesForPrint();
+      openPrintDocument(payload, !!(printIncludeMeta && printIncludeMeta.checked));
       if (printStatus) {
-        printStatus.textContent = `Listo: ${publicWishes.length} deseo(s) públicos para imprimir.`;
+        printStatus.textContent = `Listo: ${payload.wishes.length} deseo(s) públicos (lista).`;
         printStatus.className = "form-status ok";
       }
     } catch (err) {
@@ -1739,7 +1888,29 @@ ${tableBlocks || "<p>No hay reservas activas.</p>"}
       }
     } finally {
       printWishesBtn.disabled = false;
-      printWishesBtn.textContent = "🖨 Imprimir deseos públicos";
+      printWishesBtn.textContent = "🖨 Imprimir lista";
+    }
+  });
+
+  printWishBookBtn?.addEventListener("click", async () => {
+    if (!adminKey) return;
+    printWishBookBtn.disabled = true;
+    printWishBookBtn.textContent = "Preparando libro…";
+    try {
+      const payload = await fetchPublicWishesForPrint();
+      openWishBookPrint(payload);
+      if (printStatus) {
+        printStatus.textContent = `Libro listo: ${payload.wishes.length} deseo(s). Usa «Guardar como PDF» en el diálogo.`;
+        printStatus.className = "form-status ok";
+      }
+    } catch (err) {
+      if (printStatus) {
+        printStatus.textContent = err.message || "Error al generar el libro.";
+        printStatus.className = "form-status err";
+      }
+    } finally {
+      printWishBookBtn.disabled = false;
+      printWishBookBtn.textContent = "📖 PDF libro de deseos";
     }
   });
 
