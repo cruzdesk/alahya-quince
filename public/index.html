@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=20260815rsvp1" />
+  <link rel="stylesheet" href="/styles.css?v=20260815wishbook1" />
   <link rel="stylesheet" href="/envelope-hero.css?v=20260815v15" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
 </head>
@@ -446,25 +446,47 @@
         <button type="submit" class="btn btn-outline">Publicar deseo ✨</button>
         <p class="form-status" id="wishStatus" role="status"></p>
       </form>
-      <p class="muted center wish-tap-hint">Toca un deseo para ver detalles del dispositivo</p>
-      <div class="wishes-wall" id="wishesWall">
-        <p class="muted center">Cargando deseos…</p>
+
+      <p class="muted center book-hint" id="wishBookHint" style="margin-top:2rem">
+        Libro de deseos · toca o desliza para pasar las páginas
+      </p>
+      <div class="wish-book-scene">
+        <div class="wish-book-shell book-shell" id="wishBookShell">
+          <div class="wish-book-mount book-mount" id="wishBookMount">
+            <div class="flipbook wish-flipbook" id="wishFlipbook">
+              <div class="page page--cover" data-density="hard">
+                <div class="page-cover-inner">
+                  <span class="page-cover-ornament">✦</span>
+                  <span class="page-cover-kicker">Muro de cariño</span>
+                  <span class="page-cover-name page-cover-name--sm">Deseos</span>
+                  <span class="page-cover-theme">Para Alahya</span>
+                  <span class="page-cover-ornament">✦</span>
+                </div>
+              </div>
+              <div class="page page--paper">
+                <div class="page-paper-inner page-center">
+                  <p class="muted">Cargando deseos…</p>
+                </div>
+              </div>
+              <div class="page page--back" data-density="hard">
+                <div class="page-cover-inner">
+                  <span class="page-cover-ornament">✦</span>
+                  <span class="page-cover-name page-cover-name--sm">Con cariño</span>
+                  <span class="page-cover-ornament">✦</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="book-controls" id="wishBookControls">
+            <button type="button" class="book-btn" id="wishBookPrev" aria-label="Página anterior">←</button>
+            <span class="book-label" id="wishBookLabel">Portada</span>
+            <button type="button" class="book-btn" id="wishBookNext" aria-label="Página siguiente">→</button>
+            <button type="button" class="book-btn book-btn--close" id="wishBookCover">Portada</button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
-
-  <!-- Modal meta del deseo -->
-  <div class="modal-overlay" id="wishModal" hidden>
-    <div class="modal-card glass" role="dialog" aria-modal="true" aria-labelledby="wishModalTitle">
-      <button type="button" class="modal-close" id="wishModalClose" aria-label="Cerrar">×</button>
-      <p class="section-kicker" style="margin-bottom:0.35rem">Detalle del deseo</p>
-      <h3 class="modal-title" id="wishModalTitle"></h3>
-      <p class="modal-msg" id="wishModalMsg"></p>
-      <p class="modal-when muted" id="wishModalWhen"></p>
-      <h4 class="meta-heading">Información del equipo</h4>
-      <div class="meta-grid" id="wishModalMeta"></div>
-    </div>
-  </div>
 
   <!-- Confirmación post-RSVP -->
   <div class="modal-overlay" id="reserveSuccessModal" hidden>
@@ -526,6 +548,6 @@
 
   <script src="/pr-towns.js"></script>
   <script src="/vendor/page-flip.browser.js"></script>
-  <script src="/app.js?v=20260815guests1"></script>
+  <script src="/app.js?v=20260815wishbook1"></script>
 </body>
 </html>

@@ -817,11 +817,18 @@
   }
 
   // ——— Wishes
-  const wishesWall = document.getElementById("wishesWall");
   const wishForm = document.getElementById("wishForm");
   const wishStatus = document.getElementById("wishStatus");
   const wishMsg = document.getElementById("wishMsg");
   const emojiPicker = document.getElementById("emojiPicker");
+  const wishBookMount = document.getElementById("wishBookMount");
+  const wishBookShell = document.getElementById("wishBookShell");
+  const wishBookHint = document.getElementById("wishBookHint");
+  const wishBookPrev = document.getElementById("wishBookPrev");
+  const wishBookNext = document.getElementById("wishBookNext");
+  const wishBookCover = document.getElementById("wishBookCover");
+  const wishBookLabel = document.getElementById("wishBookLabel");
+  const wishBookControls = document.getElementById("wishBookControls");
 
   function insertEmojiAtCursor(input, emoji) {
     if (!input || !emoji) return;
@@ -846,38 +853,6 @@
     e.preventDefault();
     insertEmojiAtCursor(wishMsg, btn.getAttribute("data-emoji"));
   });
-  const wishModal = document.getElementById("wishModal");
-  const wishModalTitle = document.getElementById("wishModalTitle");
-  const wishModalMsg = document.getElementById("wishModalMsg");
-  const wishModalWhen = document.getElementById("wishModalWhen");
-  const wishModalMeta = document.getElementById("wishModalMeta");
-  const wishModalClose = document.getElementById("wishModalClose");
-  let wishesCache = [];
-
-  function renderWishes(wishes) {
-    wishesCache = wishes || [];
-    if (!wishesWall) return;
-    if (!wishesCache.length) {
-      wishesWall.innerHTML =
-        '<p class="muted center">Sé el primero en dejar un deseo ✨</p>';
-      return;
-    }
-    wishesWall.innerHTML = wishesCache
-      .map((w) => {
-        const when = w.created_at
-          ? new Date(w.created_at).toLocaleDateString("es", {
-              day: "numeric",
-              month: "short",
-            })
-          : "";
-        return `<article class="wish-card" data-id="${w.id}" tabindex="0" role="button" title="Ver detalles del equipo">
-          <div class="who">${escapeHtml(w.name)}</div>
-          <div class="msg">${escapeHtml(w.message)}</div>
-          <div class="when">${when} · toca para detalles</div>
-        </article>`;
-      })
-      .join("");
-  }
 
   function escapeHtml(s) {
     return String(s)
@@ -887,125 +862,273 @@
       .replace(/"/g, "&quot;");
   }
 
-  function flattenMeta(obj, prefix = "", out = []) {
-    if (obj == null || obj === "") {
-      if (prefix) out.push({ key: prefix, value: "—" });
-      return out;
-    }
-    if (typeof obj !== "object") {
-      out.push({ key: prefix, value: String(obj) });
-      return out;
-    }
-    if (Array.isArray(obj)) {
-      out.push({ key: prefix, value: obj.join(", ") || "—" });
-      return out;
-    }
-    const keys = Object.keys(obj);
-    if (!keys.length && prefix) {
-      out.push({ key: prefix, value: "—" });
-      return out;
-    }
-    keys.forEach((k) => {
-      const path = prefix ? `${prefix}.${k}` : k;
-      flattenMeta(obj[k], path, out);
-    });
-    return out;
+  // ——— Libro de deseos (StPageFlip: 1 página por deseo)
+  let wishesCache = [];
+  let wishFlip = null;
+  let wishNavIndex = 0;
+  let wishPageTotal = 3;
+  let wishLastTap = 0;
+
+  function wishMeasure() {
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const narrow = vw < 700;
+    const pageW = narrow
+      ? Math.max(130, Math.min(200, Math.floor((vw - 28) / 2)))
+      : 290;
+    const pageH = Math.round(pageW * (narrow ? 1.45 : 1.4));
+    return { vw, narrow, pageW, pageH };
   }
 
-  function openWishModal(wish) {
-    if (!wishModal || !wish) return;
-    wishModalTitle.textContent = wish.name || "Deseo";
-    wishModalMsg.textContent = wish.message || "";
-    wishModalWhen.textContent = wish.created_at
-      ? new Date(wish.created_at).toLocaleString("es", {
-          dateStyle: "full",
-          timeStyle: "medium",
-        })
-      : "";
-
-    const meta = wish.meta || {};
-    const rows = flattenMeta(meta);
-    if (!rows.length) {
-      wishModalMeta.innerHTML =
-        '<p class="muted">No hay datos de equipo en este deseo (publicado antes de activar el registro).</p>';
+  function buildWishPagesHtml(wishes) {
+    const list = wishes || [];
+    const cover = `<div class="page page--cover" data-density="hard">
+      <div class="page-cover-inner">
+        <span class="page-cover-ornament">✦</span>
+        <span class="page-cover-kicker">Muro de cariño</span>
+        <span class="page-cover-name page-cover-name--sm">Deseos</span>
+        <span class="page-cover-theme">Para Alahya</span>
+        <span class="page-cover-ornament">✦</span>
+        <span class="page-cover-tap">Abrir →</span>
+      </div>
+    </div>`;
+    let body = "";
+    if (!list.length) {
+      body = `<div class="page page--paper">
+        <div class="page-paper-inner wish-page-inner">
+          <span class="wish-page-ornament">✦</span>
+          <p class="wish-page-msg">Aún no hay deseos publicados.<br>¡Sé el primero en dejar el tuyo!</p>
+          <span class="wish-page-ornament">✦</span>
+        </div>
+      </div>`;
     } else {
-      const labels = {
-        "server.ip": "IP",
-        "server.userAgent": "User-Agent (servidor)",
-        "server.acceptLanguage": "Accept-Language",
-        "server.referer": "Referer",
-        "server.receivedAt": "Recibido en servidor",
-        "client.platform": "Plataforma",
-        "client.userAgent": "User-Agent",
-        "client.language": "Idioma",
-        "client.timezone": "Zona horaria",
-        "client.timezoneOffsetMin": "Offset TZ (min)",
-        "client.hardwareConcurrency": "CPU (hilos)",
-        "client.deviceMemory": "RAM (GB aprox.)",
-        "client.maxTouchPoints": "Puntos táctiles",
-        "client.screen.width": "Pantalla ancho",
-        "client.screen.height": "Pantalla alto",
-        "client.viewport.innerWidth": "Viewport ancho",
-        "client.viewport.innerHeight": "Viewport alto",
-        "client.viewport.devicePixelRatio": "Pixel ratio",
-        "client.connection.effectiveType": "Red",
-        "client.connection.downlink": "Downlink (Mb/s)",
-        "client.uaData.platform": "UA platform",
-        "client.uaData.mobile": "¿Móvil?",
-        "client.touchSupport": "Soporta touch",
-        "client.page.href": "URL",
-        "client.localTime": "Hora local del equipo",
-      };
-      wishModalMeta.innerHTML = rows
-        .map((r) => {
-          const label = labels[r.key] || r.key;
-          return `<div class="meta-row"><span class="meta-key">${escapeHtml(label)}</span><span class="meta-val">${escapeHtml(r.value)}</span></div>`;
+      body = list
+        .map((w, i) => {
+          const when = w.created_at
+            ? new Date(w.created_at).toLocaleDateString("es", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : "";
+          const msg = escapeHtml(w.message || "");
+          const who = escapeHtml(w.name || "Anónimo");
+          return `<div class="page page--paper">
+            <div class="page-paper-inner wish-page-inner">
+              <span class="wish-page-ornament">✦</span>
+              <div class="wish-page-who">${who}</div>
+              <p class="wish-page-msg">${msg}</p>
+              ${when ? `<div class="wish-page-when">${escapeHtml(when)}</div>` : ""}
+              <span class="wish-page-num">${i + 1}</span>
+            </div>
+          </div>`;
         })
         .join("");
     }
-    wishModal.hidden = false;
-    document.body.style.overflow = "hidden";
+    // Relleno para spreads pares (portada + contenido + contraportada)
+    const contentCount = list.length || 1;
+    const totalWithCovers = contentCount + 2;
+    let filler = "";
+    if (totalWithCovers % 2 === 1) {
+      filler = `<div class="page page--paper">
+        <div class="page-paper-inner wish-page-inner">
+          <span class="wish-page-ornament">✦</span>
+        </div>
+      </div>`;
+    }
+    const back = `<div class="page page--back" data-density="hard">
+      <div class="page-cover-inner">
+        <span class="page-cover-ornament">✦</span>
+        <span class="page-cover-name page-cover-name--sm">Con cariño</span>
+        <span class="page-cover-theme">XV de Alahya</span>
+        <span class="page-cover-ornament">✦</span>
+      </div>
+    </div>`;
+    return cover + body + filler + back;
   }
 
-  function closeWishModal() {
-    if (!wishModal) return;
-    wishModal.hidden = true;
-    document.body.style.overflow = "";
+  function updateWishBookUI() {
+    const n = wishPageTotal;
+    let i = wishNavIndex;
+    try {
+      if (wishFlip) i = wishFlip.getCurrentPageIndex();
+    } catch (_) {}
+    wishNavIndex = Math.max(0, Math.min(n - 1, i));
+    i = wishNavIndex;
+    const wishCount = wishesCache.length;
+    if (wishBookLabel) {
+      if (i <= 0) wishBookLabel.textContent = "Portada";
+      else if (i >= n - 1) wishBookLabel.textContent = "Fin";
+      else if (!wishCount) wishBookLabel.textContent = "Vacío";
+      else wishBookLabel.textContent = Math.min(i, wishCount) + " / " + wishCount;
+    }
+    if (wishBookPrev) {
+      wishBookPrev.disabled = i <= 0;
+      wishBookPrev.style.pointerEvents = i <= 0 ? "none" : "auto";
+    }
+    if (wishBookNext) {
+      const off = i >= Math.max(0, n - 2);
+      wishBookNext.disabled = off;
+      wishBookNext.style.pointerEvents = off ? "none" : "auto";
+    }
+    if (wishBookCover) {
+      wishBookCover.disabled = false;
+      wishBookCover.style.pointerEvents = "auto";
+    }
+    if (wishBookHint) {
+      if (!wishCount) wishBookHint.textContent = "Libro de deseos · aún vacío · publica el primero arriba";
+      else if (i <= 0) wishBookHint.textContent = "Libro de deseos · toca → o desliza para leer";
+      else if (i >= n - 1) wishBookHint.textContent = "Fin del libro · ← o Portada";
+      else wishBookHint.textContent = "Una página por deseo · desliza o usa ← →";
+    }
   }
 
-  wishModalClose?.addEventListener("click", closeWishModal);
-  wishModal?.addEventListener("click", (e) => {
-    if (e.target === wishModal) closeWishModal();
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeWishModal();
-  });
+  function createWishBook(wishes, startPage) {
+    if (!wishBookMount) return false;
+    if (typeof St === "undefined" || !St.PageFlip) {
+      if (wishBookHint) wishBookHint.textContent = "El libro de deseos no pudo cargar.";
+      return false;
+    }
+    wishesCache = wishes || [];
+    const html = buildWishPagesHtml(wishesCache);
+    try {
+      if (wishFlip) {
+        try {
+          wishFlip.destroy();
+        } catch (_) {}
+      }
+    } catch (_) {}
+    wishFlip = null;
+    wishBookMount.innerHTML = '<div class="flipbook wish-flipbook" id="wishFlipbook">' + html + "</div>";
+    const root = wishBookMount.querySelector("#wishFlipbook");
+    if (!root) return false;
+    const pages = Array.from(root.querySelectorAll(".page"));
+    wishPageTotal = pages.length;
+    const t = Math.max(0, Math.min(wishPageTotal - 1, startPage | 0));
+    const { vw, narrow, pageW, pageH } = wishMeasure();
+    try {
+      wishFlip = new St.PageFlip(root, {
+        width: pageW,
+        height: pageH,
+        size: "stretch",
+        minWidth: narrow ? 120 : 220,
+        maxWidth: narrow ? Math.max(pageW, Math.floor((vw - 24) / 2)) : 340,
+        minHeight: narrow ? 200 : 320,
+        maxHeight: narrow ? 420 : 500,
+        drawShadow: true,
+        maxShadowOpacity: narrow ? 0.28 : 0.4,
+        showCover: true,
+        usePortrait: false,
+        mobileScrollSupport: true,
+        flippingTime: narrow ? 700 : 850,
+        startPage: t,
+        autoSize: true,
+        clickEventForward: true,
+        useMouseEvents: true,
+        showPageCorners: true,
+        disableFlipByClick: false,
+        swipeDistance: narrow ? 18 : 28,
+      });
+      wishFlip.loadFromHTML(pages);
+    } catch (err) {
+      console.error("Wish book init error", err);
+      if (wishBookHint) wishBookHint.textContent = "No se pudo iniciar el libro de deseos.";
+      return false;
+    }
+    wishNavIndex = t;
+    wishFlip.on("flip", (e) => {
+      const d = e && typeof e.data === "number" ? e.data : wishNavIndex;
+      if (typeof d === "number" && d >= 0) wishNavIndex = d;
+      updateWishBookUI();
+    });
+    wishFlip.on("init", () => {
+      try {
+        wishNavIndex = wishFlip.getCurrentPageIndex();
+      } catch (_) {}
+      updateWishBookUI();
+    });
+    if (wishBookShell) wishBookShell.classList.add("book-shell--live");
+    updateWishBookUI();
+    return true;
+  }
 
-  wishesWall?.addEventListener("click", (e) => {
-    const card = e.target.closest(".wish-card");
-    if (!card) return;
-    const id = Number(card.dataset.id);
-    const wish = wishesCache.find((w) => w.id === id);
-    if (wish) openWishModal(wish);
-  });
-  wishesWall?.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter" && e.key !== " ") return;
-    const card = e.target.closest(".wish-card");
-    if (!card) return;
+  function wishGoTo(target, withFlip) {
+    if (!wishFlip) return;
+    const n = wishPageTotal;
+    const t = Math.max(0, Math.min(n - 1, target));
+    wishNavIndex = t;
+    try {
+      if (withFlip && t > wishFlip.getCurrentPageIndex()) wishFlip.flipNext("top");
+      else if (withFlip && t < wishFlip.getCurrentPageIndex()) wishFlip.flipPrev("top");
+      else wishFlip.turnToPage(t);
+    } catch (_) {
+      try {
+        wishFlip.turnToPage(t);
+      } catch (__) {}
+    }
+    window.setTimeout(() => {
+      try {
+        if (wishFlip.getCurrentPageIndex() !== t) {
+          createWishBook(wishesCache, t);
+          return;
+        }
+      } catch (_) {
+        createWishBook(wishesCache, t);
+        return;
+      }
+      updateWishBookUI();
+    }, 120);
+    updateWishBookUI();
+  }
+
+  function wishPrevIndex(from) {
+    if (from <= 0) return 0;
+    if (from === 1) return 0;
+    if (from % 2 === 1) return Math.max(0, from - 2);
+    return Math.max(0, from - 1);
+  }
+
+  function wishNextIndex(from) {
+    const n = wishPageTotal;
+    if (from >= n - 1) return n - 1;
+    if (from === 0) return 1;
+    if (from % 2 === 1) return Math.min(n - 1, from + 2);
+    return Math.min(n - 1, from + 1);
+  }
+
+  function onWishBookClick(e) {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const id = btn.id;
+    if (id !== "wishBookPrev" && id !== "wishBookNext" && id !== "wishBookCover") return;
     e.preventDefault();
-    const id = Number(card.dataset.id);
-    const wish = wishesCache.find((w) => w.id === id);
-    if (wish) openWishModal(wish);
-  });
+    e.stopPropagation();
+    const now = Date.now();
+    if (now - wishLastTap < 220) return;
+    wishLastTap = now;
+    btn.disabled = false;
+    let from = wishNavIndex;
+    try {
+      from = Math.max(wishNavIndex, wishFlip.getCurrentPageIndex());
+    } catch (_) {}
+    if (id === "wishBookPrev") wishGoTo(wishPrevIndex(from), false);
+    else if (id === "wishBookNext") wishGoTo(wishNextIndex(from), true);
+    else wishGoTo(0, false);
+  }
+
+  if (wishBookControls) {
+    wishBookControls.addEventListener("click", onWishBookClick);
+  }
 
   async function loadWishes() {
     try {
       const res = await fetch("/api/wishes");
       const data = await res.json();
-      renderWishes(data.wishes || []);
+      createWishBook(data.wishes || [], 0);
     } catch {
-      wishesWall.innerHTML =
-        '<p class="muted center">Los deseos aparecerán cuando el servidor esté listo.</p>';
+      if (wishBookHint) {
+        wishBookHint.textContent = "Los deseos aparecerán cuando el servidor esté listo.";
+      }
+      createWishBook([], 0);
     }
   }
 
@@ -1029,7 +1152,9 @@
       wishStatus.textContent = "¡Gracias por tu deseo! 💕";
       wishStatus.classList.add("ok");
       wishForm.reset();
-      loadWishes();
+      await loadWishes();
+      // Abrir en la primera página de deseos (después de portada)
+      window.setTimeout(() => wishGoTo(1, true), 200);
     } catch (err) {
       wishStatus.textContent = err.message || "No se pudo publicar.";
       wishStatus.classList.add("err");
