@@ -447,7 +447,8 @@ app.post("/api/admin/reservations", ...adminGuard, async (req, res) => {
     );
     const { rows } = await pool.query(
       `SELECT id, name, email, phone, guests, pueblo, notes, status, cancelled_at, created_at, mesa,
-              COALESCE(wa_sent_count, 0)::int AS wa_sent_count, wa_sent_at
+              COALESCE(wa_sent_count, 0)::int AS wa_sent_count, wa_sent_at,
+              ip, client_fp
        FROM reservations
        ORDER BY created_at DESC`
     );

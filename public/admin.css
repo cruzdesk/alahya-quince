@@ -658,6 +658,16 @@
   font-weight: 600;
 }
 
+.admin-ip {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #5c4a48;
+  background: rgba(201, 162, 39, 0.12);
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+}
+
 .admin-res-item.has-wa-sent {
   border-left: 3px solid #25d366;
 }

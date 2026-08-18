@@ -916,6 +916,10 @@
             <div class="meta-line">📍 ${pueblo} · <strong>${gCount}</strong> invitado(s)</div>
             <div class="meta-line">${escapeHtml(contact)}</div>
             <div class="meta-line">#${r.id} · ${escapeHtml(when)}${
+          r.ip
+            ? ` · IP <code class="admin-ip">${escapeHtml(String(r.ip))}</code>`
+            : " · IP —"
+        }${
           waSent
             ? ` · <span class="wa-meta">WA ×${waCount}${waWhen ? " · " + escapeHtml(waWhen) : ""}</span>`
             : ""
