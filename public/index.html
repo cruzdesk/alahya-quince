@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=20260814btn5" />
+  <link rel="stylesheet" href="/styles.css?v=20260815rsvp1" />
   <link rel="stylesheet" href="/envelope-hero.css?v=20260815v15" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
 </head>
@@ -466,6 +466,36 @@
     </div>
   </div>
 
+  <!-- Confirmación post-RSVP -->
+  <div class="modal-overlay" id="reserveSuccessModal" hidden>
+    <div
+      class="modal-card glass reserve-success-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="reserveSuccessTitle"
+    >
+      <button type="button" class="modal-close" id="reserveSuccessClose" aria-label="Cerrar">×</button>
+      <div class="reserve-success-ornament" aria-hidden="true">✦</div>
+      <p class="section-kicker reserve-success-kicker">Victorian Masquerade</p>
+      <h3 class="modal-title reserve-success-title" id="reserveSuccessTitle">Tu lugar está guardado</h3>
+      <p class="modal-msg reserve-success-msg" id="reserveSuccessMsg">
+        Gracias por confirmar. Te esperamos el <strong>10 de octubre de 2026</strong>.
+      </p>
+      <p class="muted reserve-success-meta" id="reserveSuccessMeta"></p>
+      <div class="reserve-success-actions">
+        <a
+          class="btn btn-gold"
+          id="reserveSuccessGoogleCal"
+          href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=XV+Alahya+Tha%C3%ADs+Saltares+Ortega&amp;dates=20261010T170000%2F20261010T230000&amp;ctz=America%2FPuerto_Rico&amp;details=Victorian+Masquerade+Ball%0AFormal%3A+color+negro%0ASin+ceremonia+en+la+iglesia.%0Ahttps%3A%2F%2Falahya-quince.onrender.com&amp;location=Tres+Palmas%2C+Aguadilla%2C+Puerto+Rico"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Añadir a Google Calendar</a>
+        <a class="btn btn-outline" id="reserveSuccessIcs" href="/event.ics" download="Alahya-XV-2026.ics">Apple / Outlook (.ics)</a>
+        <button type="button" class="btn btn-outline" id="reserveSuccessDismiss">Seguir explorando</button>
+      </div>
+    </div>
+  </div>
+
   <!-- REGALOS -->
   <section class="section gifts-section">
     <div class="container narrow">
@@ -496,6 +526,6 @@
 
   <script src="/pr-towns.js"></script>
   <script src="/vendor/page-flip.browser.js"></script>
-  <script src="/app.js?v=20260815date1"></script>
+  <script src="/app.js?v=20260815rsvp1"></script>
 </body>
 </html>

@@ -1056,6 +1056,53 @@
   const reserveForm = document.getElementById("reserveForm");
   const reserveStatus = document.getElementById("reserveStatus");
   const reserveBtn = document.getElementById("reserveBtn");
+  const reserveSuccessModal = document.getElementById("reserveSuccessModal");
+  const reserveSuccessMsg = document.getElementById("reserveSuccessMsg");
+  const reserveSuccessMeta = document.getElementById("reserveSuccessMeta");
+  const reserveSuccessClose = document.getElementById("reserveSuccessClose");
+  const reserveSuccessDismiss = document.getElementById("reserveSuccessDismiss");
+
+  function openReserveSuccessModal(info) {
+    if (!reserveSuccessModal) return;
+    const name = (info && info.name) || "";
+    const guests = Math.max(1, Number((info && info.guests) || 1));
+    if (reserveSuccessMsg) {
+      const hello = name ? `Gracias, <strong>${escapeHtml(name)}</strong>.` : "Gracias por confirmar.";
+      reserveSuccessMsg.innerHTML =
+        hello +
+        " Tu lugar está guardado. Te esperamos el <strong>10 de octubre de 2026</strong> · 5:00 p.m.";
+    }
+    if (reserveSuccessMeta) {
+      const nLabel = guests === 1 ? "1 persona" : guests + " personas";
+      reserveSuccessMeta.textContent = "Reserva para " + nLabel + " · Tres Palmas, Aguadilla";
+    }
+    // Copiar href del calendario principal si existe (por si se actualiza después)
+    const mainGoogle = document.getElementById("googleCalBtn");
+    const modalGoogle = document.getElementById("reserveSuccessGoogleCal");
+    if (mainGoogle && modalGoogle && mainGoogle.getAttribute("href")) {
+      modalGoogle.setAttribute("href", mainGoogle.getAttribute("href"));
+    }
+    reserveSuccessModal.hidden = false;
+    document.body.style.overflow = "hidden";
+    reserveSuccessClose?.focus();
+  }
+
+  function closeReserveSuccessModal() {
+    if (!reserveSuccessModal) return;
+    reserveSuccessModal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  reserveSuccessClose?.addEventListener("click", closeReserveSuccessModal);
+  reserveSuccessDismiss?.addEventListener("click", closeReserveSuccessModal);
+  reserveSuccessModal?.addEventListener("click", (e) => {
+    if (e.target === reserveSuccessModal) closeReserveSuccessModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && reserveSuccessModal && !reserveSuccessModal.hidden) {
+      closeReserveSuccessModal();
+    }
+  });
   const resPhone = document.getElementById("resPhone");
   const resPueblo = document.getElementById("resPueblo");
   const reserveClosedBanner = document.getElementById("reserveClosedBanner");
@@ -1191,22 +1238,16 @@
         throw new Error(data.error || "Error");
       }
       if (reserveStatus) {
-        reserveStatus.textContent =
-          (data.message || "¡Reserva guardada!") + " Te llevamos al calendario…";
+        reserveStatus.textContent = data.message || "¡Reserva guardada!";
         reserveStatus.classList.add("ok");
       }
+      const savedName = String(body.name || "").trim();
+      const savedGuests = Number(body.guests || 1);
       reserveForm.reset();
       const g = document.getElementById("resGuests");
       if (g) g.value = "1";
       if (resPueblo) resPueblo.value = "";
-      setTimeout(() => {
-        const cal = document.getElementById("calendario");
-        if (cal) {
-          cal.scrollIntoView({ behavior: "smooth", block: "start" });
-        } else {
-          window.location.hash = "calendario";
-        }
-      }, 2000);
+      openReserveSuccessModal({ name: savedName, guests: savedGuests, message: data.message });
     } catch (err) {
       if (reserveStatus) {
         reserveStatus.textContent = err.message || "No se pudo reservar.";

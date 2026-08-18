@@ -1541,6 +1541,68 @@ body {
   padding: 1.75rem 1.5rem 1.5rem;
 }
 
+/* ——— Confirmación RSVP ——— */
+.reserve-success-card {
+  text-align: center;
+  width: min(440px, 100%);
+  padding: 2.25rem 1.6rem 1.75rem;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 24px 48px rgba(40, 10, 15, 0.22);
+}
+
+.reserve-success-ornament {
+  font-size: 1.35rem;
+  color: var(--gold, #d4af37);
+  margin-bottom: 0.35rem;
+  line-height: 1;
+}
+
+.reserve-success-kicker {
+  margin-bottom: 0.35rem !important;
+}
+
+.reserve-success-title {
+  font-size: clamp(1.55rem, 5vw, 1.95rem);
+  margin-bottom: 0.65rem;
+}
+
+.reserve-success-msg {
+  font-size: 0.98rem;
+  line-height: 1.45;
+  margin-bottom: 0.55rem;
+  color: var(--ink);
+}
+
+.reserve-success-meta {
+  font-size: 0.82rem;
+  margin: 0 0 1.35rem;
+  letter-spacing: 0.04em;
+}
+
+.reserve-success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  align-items: stretch;
+}
+
+.reserve-success-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 540px) {
+  .reserve-success-card {
+    padding: 1.85rem 1.15rem 1.4rem;
+  }
+  .reserve-success-title {
+    font-size: 1.45rem;
+  }
+  .reserve-success-msg {
+    font-size: 0.92rem;
+  }
+}
+
 .modal-close {
   position: absolute;
   top: 0.65rem;
