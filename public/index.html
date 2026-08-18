@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=20260815wishbook1" />
+  <link rel="stylesheet" href="/styles.css?v=20260815wishbook2" />
   <link rel="stylesheet" href="/envelope-hero.css?v=20260815v15" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>" />
 </head>
@@ -447,31 +447,38 @@
         <p class="form-status" id="wishStatus" role="status"></p>
       </form>
 
-      <p class="muted center book-hint" id="wishBookHint" style="margin-top:2rem">
-        Libro de deseos · toca o desliza para pasar las páginas
+      <p class="muted book-hint" id="wishBookHint" style="margin-top:2rem">
+        Libro de deseos · toca la portada o desliza para pasar las páginas
       </p>
-      <div class="wish-book-scene">
-        <div class="wish-book-shell book-shell" id="wishBookShell">
-          <div class="wish-book-mount book-mount" id="wishBookMount">
+      <!-- Mismo formato que el libro de historia; color ciruela (no rojo) -->
+      <div class="book-scene wish-book">
+        <div class="book-shell" id="wishBookShell">
+          <div class="book-mount" id="wishBookMount">
             <div class="flipbook wish-flipbook" id="wishFlipbook">
               <div class="page page--cover" data-density="hard">
                 <div class="page-cover-inner">
+                  <span class="page-cover-frame" aria-hidden="true"></span>
                   <span class="page-cover-ornament">✦</span>
                   <span class="page-cover-kicker">Muro de cariño</span>
-                  <span class="page-cover-name page-cover-name--sm">Deseos</span>
-                  <span class="page-cover-theme">Para Alahya</span>
+                  <span class="page-cover-name">Deseos</span>
+                  <span class="page-cover-sub">Para Alahya</span>
+                  <span class="page-cover-theme">Victorian Masquerade</span>
                   <span class="page-cover-ornament">✦</span>
+                  <span class="page-cover-tap">Abrir →</span>
                 </div>
               </div>
               <div class="page page--paper">
                 <div class="page-paper-inner page-center">
                   <p class="muted">Cargando deseos…</p>
+                  <span class="page-num">1</span>
                 </div>
               </div>
               <div class="page page--back" data-density="hard">
                 <div class="page-cover-inner">
+                  <span class="page-cover-frame" aria-hidden="true"></span>
                   <span class="page-cover-ornament">✦</span>
                   <span class="page-cover-name page-cover-name--sm">Con cariño</span>
+                  <span class="page-cover-theme">XV de Alahya</span>
                   <span class="page-cover-ornament">✦</span>
                 </div>
               </div>
@@ -548,6 +555,6 @@
 
   <script src="/pr-towns.js"></script>
   <script src="/vendor/page-flip.browser.js"></script>
-  <script src="/app.js?v=20260815wishbook1"></script>
+  <script src="/app.js?v=20260815wishbook2"></script>
 </body>
 </html>

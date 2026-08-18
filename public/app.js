@@ -881,12 +881,15 @@
 
   function buildWishPagesHtml(wishes) {
     const list = wishes || [];
+    // Mismo markup que el libro de historia (tapas duras + papel centrado)
     const cover = `<div class="page page--cover" data-density="hard">
       <div class="page-cover-inner">
+        <span class="page-cover-frame" aria-hidden="true"></span>
         <span class="page-cover-ornament">✦</span>
         <span class="page-cover-kicker">Muro de cariño</span>
-        <span class="page-cover-name page-cover-name--sm">Deseos</span>
-        <span class="page-cover-theme">Para Alahya</span>
+        <span class="page-cover-name">Deseos</span>
+        <span class="page-cover-sub">Para Alahya</span>
+        <span class="page-cover-theme">Victorian Masquerade</span>
         <span class="page-cover-ornament">✦</span>
         <span class="page-cover-tap">Abrir →</span>
       </div>
@@ -894,10 +897,11 @@
     let body = "";
     if (!list.length) {
       body = `<div class="page page--paper">
-        <div class="page-paper-inner wish-page-inner">
-          <span class="wish-page-ornament">✦</span>
-          <p class="wish-page-msg">Aún no hay deseos publicados.<br>¡Sé el primero en dejar el tuyo!</p>
-          <span class="wish-page-ornament">✦</span>
+        <div class="page-paper-inner page-center">
+          <span class="page-decor-mark">✦</span>
+          <span class="page-decor-line" aria-hidden="true"></span>
+          <p>Aún no hay deseos publicados. ¡Sé el primero en dejar el tuyo!</p>
+          <span class="page-num">1</span>
         </div>
       </div>`;
     } else {
@@ -913,30 +917,34 @@
           const msg = escapeHtml(w.message || "");
           const who = escapeHtml(w.name || "Anónimo");
           return `<div class="page page--paper">
-            <div class="page-paper-inner wish-page-inner">
-              <span class="wish-page-ornament">✦</span>
-              <div class="wish-page-who">${who}</div>
-              <p class="wish-page-msg">${msg}</p>
-              ${when ? `<div class="wish-page-when">${escapeHtml(when)}</div>` : ""}
-              <span class="wish-page-num">${i + 1}</span>
+            <div class="page-paper-inner page-center">
+              <p class="page-title">${who}</p>
+              <blockquote>
+                “${msg}”
+                ${when ? `<cite>— ${escapeHtml(when)}</cite>` : ""}
+              </blockquote>
+              <span class="page-num">${i + 1}</span>
             </div>
           </div>`;
         })
         .join("");
     }
-    // Relleno para spreads pares (portada + contenido + contraportada)
     const contentCount = list.length || 1;
     const totalWithCovers = contentCount + 2;
     let filler = "";
     if (totalWithCovers % 2 === 1) {
       filler = `<div class="page page--paper">
-        <div class="page-paper-inner wish-page-inner">
-          <span class="wish-page-ornament">✦</span>
+        <div class="page-paper-inner page-center">
+          <span class="page-decor-mark">✦</span>
+          <span class="page-decor-line" aria-hidden="true"></span>
+          <span class="page-decor-sub">XV</span>
+          <span class="page-num">${contentCount + 1}</span>
         </div>
       </div>`;
     }
     const back = `<div class="page page--back" data-density="hard">
       <div class="page-cover-inner">
+        <span class="page-cover-frame" aria-hidden="true"></span>
         <span class="page-cover-ornament">✦</span>
         <span class="page-cover-name page-cover-name--sm">Con cariño</span>
         <span class="page-cover-theme">XV de Alahya</span>
@@ -1004,6 +1012,7 @@
     const pages = Array.from(root.querySelectorAll(".page"));
     wishPageTotal = pages.length;
     const t = Math.max(0, Math.min(wishPageTotal - 1, startPage | 0));
+    // Mismas medidas / opciones que el libro de historia (PC + celular)
     const { vw, narrow, pageW, pageH } = wishMeasure();
     try {
       wishFlip = new St.PageFlip(root, {
@@ -1015,11 +1024,11 @@
         minHeight: narrow ? 200 : 320,
         maxHeight: narrow ? 420 : 500,
         drawShadow: true,
-        maxShadowOpacity: narrow ? 0.28 : 0.4,
+        maxShadowOpacity: narrow ? 0.3 : 0.45,
         showCover: true,
         usePortrait: false,
         mobileScrollSupport: true,
-        flippingTime: narrow ? 700 : 850,
+        flippingTime: narrow ? 750 : 900,
         startPage: t,
         autoSize: true,
         clickEventForward: true,
