@@ -1370,6 +1370,12 @@ body {
   -webkit-tap-highlight-color: rgba(107, 61, 143, 0.18);
 }
 
+/* Página izquierda en blanco (pareja del deseo a la derecha) */
+.wish-book .page--wish-blank .page-paper-inner {
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 30%, rgba(107, 61, 143, 0.04), transparent 70%);
+}
+
 .pin-hint,
 .emoji-hint {
   margin: 0.35rem 0 0.75rem;

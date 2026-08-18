@@ -879,9 +879,38 @@
     return { vw, narrow, pageW, pageH };
   }
 
+  function blankWishPageHtml() {
+    // Página izquierda vacía (solo papel)
+    return `<div class="page page--paper page--wish-blank">
+      <div class="page-paper-inner page-center" aria-hidden="true"></div>
+    </div>`;
+  }
+
+  function wishPageHtml(w, num) {
+    const when = w.created_at
+      ? new Date(w.created_at).toLocaleDateString("es", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "";
+    const msg = escapeHtml(w.message || "");
+    const who = escapeHtml(w.name || "Anónimo");
+    return `<div class="page page--paper">
+      <div class="page-paper-inner page-center">
+        <p class="page-title">${who}</p>
+        <blockquote>
+          “${msg}”
+          ${when ? `<cite>— ${escapeHtml(when)}</cite>` : ""}
+        </blockquote>
+        <span class="page-num">${num}</span>
+      </div>
+    </div>`;
+  }
+
   function buildWishPagesHtml(wishes) {
     const list = wishes || [];
-    // Mismo markup que el libro de historia (tapas duras + papel centrado)
+    // Portada + (izq en blanco | deseo a la derecha) por cada deseo + contraportada
     const cover = `<div class="page page--cover" data-density="hard">
       <div class="page-cover-inner">
         <span class="page-cover-frame" aria-hidden="true"></span>
@@ -896,51 +925,20 @@
     </div>`;
     let body = "";
     if (!list.length) {
-      body = `<div class="page page--paper">
-        <div class="page-paper-inner page-center">
-          <span class="page-decor-mark">✦</span>
-          <span class="page-decor-line" aria-hidden="true"></span>
-          <p>Aún no hay deseos publicados. ¡Sé el primero en dejar el tuyo!</p>
-          <span class="page-num">1</span>
-        </div>
-      </div>`;
+      body =
+        blankWishPageHtml() +
+        `<div class="page page--paper">
+          <div class="page-paper-inner page-center">
+            <span class="page-decor-mark">✦</span>
+            <span class="page-decor-line" aria-hidden="true"></span>
+            <p>Aún no hay deseos publicados. ¡Sé el primero en dejar el tuyo!</p>
+            <span class="page-num">1</span>
+          </div>
+        </div>`;
     } else {
       body = list
-        .map((w, i) => {
-          const when = w.created_at
-            ? new Date(w.created_at).toLocaleDateString("es", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })
-            : "";
-          const msg = escapeHtml(w.message || "");
-          const who = escapeHtml(w.name || "Anónimo");
-          return `<div class="page page--paper">
-            <div class="page-paper-inner page-center">
-              <p class="page-title">${who}</p>
-              <blockquote>
-                “${msg}”
-                ${when ? `<cite>— ${escapeHtml(when)}</cite>` : ""}
-              </blockquote>
-              <span class="page-num">${i + 1}</span>
-            </div>
-          </div>`;
-        })
+        .map((w, i) => blankWishPageHtml() + wishPageHtml(w, i + 1))
         .join("");
-    }
-    const contentCount = list.length || 1;
-    const totalWithCovers = contentCount + 2;
-    let filler = "";
-    if (totalWithCovers % 2 === 1) {
-      filler = `<div class="page page--paper">
-        <div class="page-paper-inner page-center">
-          <span class="page-decor-mark">✦</span>
-          <span class="page-decor-line" aria-hidden="true"></span>
-          <span class="page-decor-sub">XV</span>
-          <span class="page-num">${contentCount + 1}</span>
-        </div>
-      </div>`;
     }
     const back = `<div class="page page--back" data-density="hard">
       <div class="page-cover-inner">
@@ -951,7 +949,7 @@
         <span class="page-cover-ornament">✦</span>
       </div>
     </div>`;
-    return cover + body + filler + back;
+    return cover + body + back;
   }
 
   function updateWishBookUI() {
@@ -967,7 +965,11 @@
       if (i <= 0) wishBookLabel.textContent = "Portada";
       else if (i >= n - 1) wishBookLabel.textContent = "Fin";
       else if (!wishCount) wishBookLabel.textContent = "Vacío";
-      else wishBookLabel.textContent = Math.min(i, wishCount) + " / " + wishCount;
+      else {
+        // Spreads: blank(1)+wish(2), blank(3)+wish(4)... → deseo = ceil(i/2)
+        const wishNum = Math.min(wishCount, Math.ceil(i / 2));
+        wishBookLabel.textContent = wishNum + " / " + wishCount;
+      }
     }
     if (wishBookPrev) {
       wishBookPrev.disabled = i <= 0;
